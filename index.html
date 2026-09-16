@@ -89,6 +89,43 @@
 @media(max-width:520px){#listaReparti{grid-template-columns:1fr 1fr;gap:12px}.categoria-immagine{width:96px;height:96px}}
 </style>
 
+
+<style id="dashboard-layout-style">
+.dashboard-main-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 350px;
+    gap:20px;
+    align-items:start;
+    margin-top:20px;
+}
+.dashboard-category-area{
+    min-width:0;
+}
+.dashboard-category-area .table-area{
+    margin-top:0 !important;
+}
+.dashboard-tools{
+    display:flex !important;
+    flex-direction:column;
+    gap:16px;
+    margin:0 !important;
+}
+.dashboard-tools .widget{
+    margin:0 !important;
+}
+.dashboard-tools .widget h3{
+    margin-top:0;
+}
+@media(max-width:1100px){
+    .dashboard-main-layout{grid-template-columns:minmax(0,1fr) 310px;}
+}
+@media(max-width:900px){
+    .dashboard-main-layout{grid-template-columns:1fr;}
+    .dashboard-tools{order:2;}
+    .dashboard-category-area{order:1;}
+}
+</style>
+
 </head>
 
 <body>
@@ -154,8 +191,32 @@
             </div>
         </header>
 
-        <section class="dashboard-tools" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:20px 0;">
-            <div class="widget" style="margin:0;">
+        <section class="cards">
+            <div class="card black" id="cardScaduti"><h2 id="scaduti">0</h2><p>Scaduti</p></div>
+            <div class="card red" id="cardEntro3"><h2 id="entro3">0</h2><p>Entro 3 giorni</p></div>
+            <div class="card orange" id="cardEntro7"><h2 id="entro7">0</h2><p>Entro 7 giorni</p></div>
+            <div class="card yellow" id="cardEntro10"><h2 id="entro10">0</h2><p>Entro 10 giorni</p></div>
+            <div class="card green" id="cardEntro15"><h2 id="entro15">0</h2><p>Entro 15 giorni</p></div>
+            <div class="card blue" id="cardTotale"><h2 id="totale">0</h2><p>Totale Referenze</p></div>
+        </section>
+
+
+
+        <section class="dashboard-main-layout">
+            <div class="dashboard-category-area">
+        <section class="table-area" style="margin-top:20px;">
+            <div class="table-header">
+                <div>
+                    <h2>📦 Referenze per categoria</h2>
+                    <p style="margin:5px 0 0;color:#667085;">Ogni categoria è una lista indipendente. Clicca una categoria per visualizzare solo le sue referenze.</p>
+                </div>
+                <button class="new-product" type="button" onclick="deselezionaReparto()">Tutte le categorie</button>
+            </div>
+            <div id="listaReparti" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:18px;"></div>
+        </section>
+            </div>
+        <aside class="dashboard-tools">
+            <div class="widget">
                 <h3>📥 Importazione lista prodotti</h3>
                 <p style="margin:0 0 10px;color:#667085;">Scegli una categoria e importa esclusivamente la sua lista.</p>
                 <select id="repartoCSV" style="width:100%;padding:12px 14px;font-size:16px;min-height:48px;margin-bottom:12px;box-sizing:border-box;border-radius:8px;">
@@ -172,13 +233,13 @@
                 </div>
             </div>
 
-            <div class="widget" style="margin:0;">
+            <div class="widget">
                 <h3>➕ Nuovo prodotto</h3>
                 <p style="margin:0 0 18px;color:#667085;">Inserisci manualmente una referenza nella categoria desiderata.</p>
                 <button id="newProduct" class="new-product" type="button" style="width:100%;min-height:48px;">+ Nuovo prodotto</button>
             </div>
 
-            <div class="widget" style="margin:0;">
+            <div class="widget">
                 <h3>⚡ Azioni rapide</h3>
                 <p style="margin:0 0 12px;color:#667085;">Esporta i dati della dashboard.</p>
                 <div style="display:grid;gap:10px;">
@@ -186,26 +247,8 @@
                     <button id="exportPDF">📄 Genera PDF</button>
                 </div>
             </div>
-        </section>
+        </aside>
 
-        <section class="cards">
-            <div class="card black" id="cardScaduti"><h2 id="scaduti">0</h2><p>Scaduti</p></div>
-            <div class="card red" id="cardEntro3"><h2 id="entro3">0</h2><p>Entro 3 giorni</p></div>
-            <div class="card orange" id="cardEntro7"><h2 id="entro7">0</h2><p>Entro 7 giorni</p></div>
-            <div class="card yellow" id="cardEntro10"><h2 id="entro10">0</h2><p>Entro 10 giorni</p></div>
-            <div class="card green" id="cardEntro15"><h2 id="entro15">0</h2><p>Entro 15 giorni</p></div>
-            <div class="card blue" id="cardTotale"><h2 id="totale">0</h2><p>Totale Referenze</p></div>
-        </section>
-
-        <section class="table-area" style="margin-top:20px;">
-            <div class="table-header">
-                <div>
-                    <h2>📦 Referenze per categoria</h2>
-                    <p style="margin:5px 0 0;color:#667085;">Ogni categoria è una lista indipendente. Clicca una categoria per visualizzare solo le sue referenze.</p>
-                </div>
-                <button class="new-product" type="button" onclick="deselezionaReparto()">Tutte le categorie</button>
-            </div>
-            <div id="listaReparti" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:18px;"></div>
         </section>
 
         <section class="table-area" style="margin-top:20px;">
