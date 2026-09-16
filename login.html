@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accesso — Scadenze Smart GDO</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+.login-box {
+    width: min(420px, calc(100% - 32px));
+    background: #fff;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,.12);
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+}
+
+.subtitle {
+    margin: 0 0 24px;
+    color: #667085;
+}
+
+label {
+    display: block;
+    margin: 14px 0 6px;
+    font-weight: 600;
+}
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d0d5dd;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 13px;
+    border: 0;
+    border-radius: 10px;
+    background: #111827;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+#errore {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fee4e2;
+    color: #b42318;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <h1>🔐 Scadenze Smart GDO</h1>
+
+    <p class="subtitle">Accedi al tuo account</p>
+
+    <form id="loginForm">
+
+        <label for="email">Email</label>
+        <input
+            id="email"
+            type="email"
+            autocomplete="username"
+            required
+        >
+
+        <label for="password">Password</label>
+        <input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            required
+        >
+
+        <button id="loginButton" type="submit">
+            Accedi
+        </button>
+
+        <div id="errore"></div>
+
+    </form>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+
+</body>
+</html>

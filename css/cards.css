@@ -1,0 +1,89 @@
+/* ===========================
+   KPI CARDS
+=========================== */
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:repeat(6,1fr);
+
+    gap:18px;
+
+    margin-bottom:30px;
+
+}
+
+.card{
+
+    border-radius:22px;
+
+    padding:28px 15px;
+
+    text-align:center;
+
+    color:white;
+
+    box-shadow:0 15px 35px rgba(0,0,0,.35);
+
+    transition:.30s;
+
+}
+
+.card:hover{
+
+    transform:translateY(-6px);
+
+}
+
+.card h2{
+
+    font-size:42px;
+
+    font-weight:800;
+
+}
+
+.card p{
+
+    margin-top:10px;
+
+    font-size:15px;
+
+}
+
+.black{
+
+    background:linear-gradient(#2F3542,#121826);
+
+}
+
+.red{
+
+    background:linear-gradient(#FF4D4D,#C62828);
+
+}
+
+.orange{
+
+    background:linear-gradient(#FF8C32,#F57C00);
+
+}
+
+.yellow{
+
+    background:linear-gradient(#FFD54F,#F9A825);
+
+}
+
+.green{
+
+    background:linear-gradient(#39D98A,#1B8D4B);
+
+}
+
+.blue{
+
+    background:linear-gradient(#4D8DFF,#1E5BFF);
+
+}

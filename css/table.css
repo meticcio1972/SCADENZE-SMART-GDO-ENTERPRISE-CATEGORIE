@@ -1,0 +1,75 @@
+.table-area{
+
+    background:#182235;
+
+    border-radius:20px;
+
+    padding:25px;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.30);
+
+}
+
+.table-area h2{
+
+    margin-bottom:20px;
+
+    font-size:24px;
+
+}
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+th{
+
+    text-align:left;
+
+    color:#94A3B8;
+
+    padding:15px;
+
+}
+
+td{
+
+    padding:18px 15px;
+
+    border-top:1px solid rgba(255,255,255,.05);
+
+}
+
+.badge{
+
+    padding:6px 12px;
+
+    border-radius:10px;
+
+    color:white;
+
+    font-weight:700;
+
+}
+
+.badge.red{
+
+    background:#EF4444;
+
+}
+
+.badge.orange{
+
+    background:#F97316;
+
+}
+
+.badge.green{
+
+    background:#22C55E;
+
+}

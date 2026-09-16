@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI GDO - Scadenze Smart GDO</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/topbar.css">
+    <link rel="stylesheet" href="css/table.css">
+    <link rel="stylesheet" href="css/responsive.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <h1>SCADENZE</h1>
+            <span>SMART GDO</span>
+            <small>ENTERPRISE</small>
+        </div>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="scadenze.html">Scadenze</a>
+            <a href="storico-scadenze.html">Storico scadenze</a>
+            <a href="offerte.html">offerte</a>
+            <a>Fornitori</a>
+            <a>Documenti</a>
+            <a>Report</a>
+            <a class="active" href="ai-gdo.html">AI GDO</a>
+            <a>Impostazioni</a>
+        </nav>
+
+    </aside>
+
+
+    <!-- CONTENUTO -->
+    <main>
+
+        <header class="topbar">
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    placeholder="Cerca..."
+                >
+            </div>
+
+            <div class="user-area">
+
+                <div class="circle">🔔</div>
+
+                <div class="profile">
+                    <div class="avatar"></div>
+
+                    <div class="profile-name">
+                        <strong>Andrea</strong>
+                        <span>Responsabile</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <section class="table-area">
+
+            <div class="table-header">
+
+                <h2>🤖 AI GDO</h2>
+
+            <button
+    class="new-product"
+    type="button"
+    id="btnCollegaAI"
+    onclick="collegaAI()">
+    🤖 Collega Intelligenza Artificiale
+</button>
+
+            </div>
+
+
+            
+            <!-- FUNZIONI AI -->
+
+            <div style="
+                background:#162238;
+                padding:30px;
+                border-radius:18px;
+                box-shadow:0 4px 12px rgba(0,0,0,0.15);
+            ">
+
+                <h2 style="color:#fff; margin-top:0;">
+                    🔮 Cosa farà AI GDO
+                </h2>
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+                    gap:15px;
+                    margin-top:20px;
+                ">
+
+                    <div style="
+                        background:#0f1728;
+                        padding:20px;
+                        border-radius:12px;
+                    ">
+                        <div style="font-size:28px;">📅</div>
+                        <h3 style="color:#fff;">Analisi scadenze</h3>
+                        <p style="color:#aebbd0;">
+                            Individua le situazioni che richiedono attenzione.
+                        </p>
+                    </div>
+
+                    <div style="
+                        background:#0f1728;
+                        padding:20px;
+                        border-radius:12px;
+                    ">
+                        <div style="font-size:28px;">📊</div>
+                        <h3 style="color:#fff;">Analisi offerte</h3>
+                        <p style="color:#aebbd0;">
+                            Analizza le referenze che vengono messe più spesso in offerta.
+                        </p>
+                    </div>
+
+                    <div style="
+                        background:#0f1728;
+                        padding:20px;
+                        border-radius:12px;
+                    ">
+                        <div style="font-size:28px;">🧠</div>
+                        <h3 style="color:#fff;">Ragionamento</h3>
+                        <p style="color:#aebbd0;">
+                            Collega scadenze, offerte e storico per trovare schemi.
+                        </p>
+                    </div>
+
+                    <div style="
+                        background:#0f1728;
+                        padding:20px;
+                        border-radius:12px;
+                    ">
+                        <div style="font-size:28px;">🔮</div>
+                        <h3 style="color:#fff;">Previsioni</h3>
+                        <p style="color:#aebbd0;">
+                            Anticipa possibili criticità e suggerisce azioni.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+       <!-- ANALISI AI GDO -->
+
+<div style="
+    background:#162238;
+    padding:30px;
+    border-radius:18px;
+    margin-top:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+">
+
+    <h2 style="color:#fff; margin-top:0;">
+        🧠 Analisi intelligente GDO
+    </h2>
+
+    <p style="color:#aebbd0; font-size:16px;">
+        L'Intelligenza Artificiale analizzerà scadenze, offerte e storico
+        per individuare priorità, criticità e possibili azioni.
+    </p>
+
+    <button
+        class="new-product"
+        type="button"
+        id="btnAnalizzaGDO"
+        onclick="analizzaSituazioneGDO()">
+        🧠 Analizza situazione GDO
+    </button>
+
+    <div
+        id="risultatoAI"
+        style="
+            display:none;
+            background:#0f1728;
+            padding:25px;
+            border-radius:12px;
+            margin-top:25px;
+            color:#fff;
+            line-height:1.6;
+        ">
+    </div>
+
+</div>
+            
+        </section>
+
+    </main>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script>
+
+async function collegaAI() {
+
+    const bottone = document.getElementById("btnCollegaAI");
+
+    bottone.disabled = true;
+    bottone.textContent = "🤖 Collegamento in corso...";
+
+    try {
+
+        const risposta = await fetch("/api/ai-gdo", {
+            method: "GET"
+        });
+
+        const dati = await risposta.json();
+
+        if (!risposta.ok) {
+            throw new Error(dati.error || "Errore nel collegamento");
+        }
+
+        alert(dati.risposta || "Collegamento riuscito");
+
+        bottone.textContent = "🟢 Intelligenza Artificiale collegata";
+
+    } catch (errore) {
+
+        console.error("Errore AI GDO:", errore);
+
+        alert("❌ Collegamento non riuscito: " + errore.message);
+
+        bottone.textContent = "🔴 Collegamento non riuscito";
+
+    } finally {
+
+        bottone.disabled = false;
+
+    }
+}
+
+
+async function analizzaSituazioneGDO() {
+
+    const bottone = document.getElementById("btnAnalizzaGDO");
+    const risultato = document.getElementById("risultatoAI");
+
+    bottone.disabled = true;
+    bottone.textContent = "🧠 Analisi in corso...";
+
+    risultato.style.display = "block";
+    risultato.innerHTML = "⏳ Sto analizzando i dati GDO...";
+
+    try {
+
+        // CARICA I PRODOTTI
+        const { data: prodotti, error: erroreProdotti } =
+            await window.supabaseClient
+                .from("prodotti")
+                .select("*")
+                .order("id", { ascending: true });
+
+        if (erroreProdotti) {
+            throw new Error("Errore caricamento prodotti");
+        }
+
+
+        // CARICA LO STORICO
+        const { data: storico, error: erroreStorico } =
+            await window.supabaseClient
+                .from("storico_scadenze")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+        if (erroreStorico) {
+            throw new Error("Errore caricamento storico");
+        }
+
+
+        // PREPARA SOLO I DATI UTILI ALL'AI
+        const datiGDO = {
+
+            prodotti: (prodotti || []).map(p => ({
+                codice: p.codice,
+                descrizione: p.descrizione,
+                reparto: p.reparto,
+                scadenza: p.scadenza,
+                giorni: p.giorni,
+                offerta: p.offerta,
+                pezzi_offerta: p.pezzi_offerta,
+                data_inizio_offerta: p.data_inizio_offerta,
+                data_fine_offerta: p.data_fine_offerta
+            })),
+
+            storico: (storico || []).map(s => ({
+                codice: s.codice,
+                descrizione: s.descrizione,
+                reparto: s.reparto,
+                scadenza: s.scadenza,
+                giorni: s.giorni,
+                pezzi_offerta: s.pezzi_offerta,
+                stato: s.stato,
+                intervento: s.intervento,
+                created_at: s.created_at
+            }))
+
+        };
+
+
+        const messaggio = `
+Sei AI GDO, un'intelligenza artificiale specializzata nella gestione
+delle scadenze e delle offerte di un supermercato.
+
+Devi ANALIZZARE i dati reali che ti vengono forniti.
+
+Non inventare dati.
+
+Distingui chiaramente:
+- 🔴 PRIORITÀ
+- 🟠 ATTENZIONE
+- 🟢 PREVISIONI / OPPORTUNITÀ
+- 💡 SUGGERIMENTO OPERATIVO
+
+Analizza insieme:
+1. prodotti prossimi alla scadenza;
+2. prodotti già scaduti;
+3. prodotti attualmente in offerta;
+4. quantità di pezzi messi in offerta;
+5. storico delle offerte;
+6. eventuali referenze che ricorrono nello storico;
+7. possibili situazioni che potrebbero richiedere un intervento.
+
+Per ogni situazione importante indica il codice prodotto e la descrizione
+quando disponibili.
+
+Se i dati non sono sufficienti per una previsione, dichiaralo
+esplicitamente.
+
+DATI REALI DEL GDO:
+
+${JSON.stringify(datiGDO)}
+`;
+
+
+        // INVIA I DATI ALL'AI
+        const risposta = await fetch("/api/ai-gdo", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                messaggio: messaggio
+            })
+
+        });
+
+
+        const dati = await risposta.json();
+
+
+        if (!risposta.ok) {
+            throw new Error(dati.error || "Errore durante l'analisi AI");
+        }
+
+
+    const testoAI = dati.risposta || "⚠️ L'AI non ha restituito una risposta.";
+
+risultato.innerHTML = testoAI
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+    .replace(/^#### (.*)$/gm, "<h4>$1</h4>")
+    .replace(/\n/g, "<br>");    
+    } catch (errore) {
+
+        console.error("Errore analisi AI GDO:", errore);
+
+        risultato.innerHTML =
+            "❌ Errore durante l'analisi: " + errore.message;
+
+    } finally {
+
+        bottone.disabled = false;
+        bottone.textContent = "🧠 Analizza situazione GDO";
+
+    }
+
+}
+
+</script>
+    
+</body>
+</html>

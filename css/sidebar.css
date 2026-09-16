@@ -1,0 +1,119 @@
+/* =====================================
+   SIDEBAR
+===================================== */
+
+.sidebar{
+
+    background:#111827;
+
+    padding:25px 18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    border-right:1px solid rgba(255,255,255,.05);
+
+}
+
+/* ---------- LOGO ---------- */
+
+.logo{
+
+    margin-bottom:35px;
+
+}
+
+.logo h1{
+
+    font-size:22px;
+
+    font-weight:800;
+
+    color:white;
+
+    letter-spacing:1px;
+
+}
+
+.logo span{
+
+    display:block;
+
+    margin-top:6px;
+
+    color:#3B82F6;
+
+    font-size:14px;
+
+    font-weight:700;
+
+}
+
+.logo small{
+
+    display:block;
+
+    margin-top:3px;
+
+    color:#94A3B8;
+
+    font-size:11px;
+
+    letter-spacing:2px;
+
+}
+
+/* ---------- MENU ---------- */
+
+.sidebar nav{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+.sidebar nav a{
+
+    display:flex;
+
+    align-items:center;
+
+    height:50px;
+
+    padding:0 18px;
+
+    border-radius:14px;
+
+    text-decoration:none;
+
+    color:#CBD5E1;
+
+    font-size:16px;
+
+    transition:.30s;
+
+}
+
+.sidebar nav a:hover{
+
+    background:#1E293B;
+
+    color:white;
+
+}
+
+.sidebar nav a.active{
+
+    background:linear-gradient(90deg,#2563EB,#3B82F6);
+
+    color:white;
+
+    font-weight:600;
+
+    box-shadow:0 10px 25px rgba(37,99,235,.35);
+
+}

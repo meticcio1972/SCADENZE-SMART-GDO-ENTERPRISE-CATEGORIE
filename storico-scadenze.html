@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Storico scadenze - Scadenze Smart GDO</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/topbar.css">
+    <link rel="stylesheet" href="css/table.css">
+    <link rel="stylesheet" href="css/responsive.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <h1>SCADENZE</h1>
+            <span>SMART GDO</span>
+            <small>ENTERPRISE</small>
+        </div>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="scadenze.html">Scadenze</a>
+            <a class="active" href="storico-scadenze.html">
+                Storico scadenze
+            </a>
+            <a href="offerte.html">offerte</a>
+            <a>Fornitori</a>
+            <a>Documenti</a>
+            <a>Report</a>
+            <a>AI GDO</a>
+            <a>Impostazioni</a>
+        </nav>
+
+    </aside>
+
+    <!-- CONTENUTO -->
+    <main>
+    <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
+    <div style="background:#fff; padding:15px 25px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; color:#666;">Eventi totali</div>
+     <div id="totaleEventi" style="font-size:28px; font-weight:bold; color:#222;">0</div>   
+    </div>
+
+    <div style="background:#fff; padding:15px 25px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; color:#666;">Pezzi totali</div>
+        <div id="totalePezzi" style="font-size:28px; font-weight:bold; color:#222;">0</div>
+    </div>
+</div>
+
+<div style="margin-bottom:20px;">
+   
+
+   <div style="background:#162238; padding:20px; border-radius:18px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+
+    <h3 style="margin:0 0 15px 0; color:#fff;">
+        📊 Riepilogo per codice
+    </h3>
+
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; color:#fff;">
+
+            <thead>
+                <tr>
+                    <th style="text-align:left; padding:12px;">Codice</th>
+                    <th style="text-align:left; padding:12px;">Descrizione</th>
+                    <th style="text-align:center; padding:12px;">Episodi</th>
+                    <th style="text-align:center; padding:12px;">Pezzi totali</th>
+                </tr>
+            </thead>
+
+            <tbody id="riepilogoCodici">
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+        
+        <header class="topbar">
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="ricercaStorico"
+                    placeholder="Cerca nello storico..."
+                >
+            </div>
+
+            <div class="user-area">
+                <div class="circle">🔔</div>
+
+                <div class="profile">
+                    <div class="avatar"></div>
+
+                    <div class="profile-name">
+                        <strong>Andrea</strong>
+                        <span>Responsabile</span>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+
+        <section class="table-area">
+
+            <div class="table-header">
+
+                <h2>📋 Storico scadenze</h2>
+
+                <button
+                    class="new-product"
+                    onclick="window.location.href='index.html'">
+                    ← Dashboard
+                </button>
+
+              <button
+    class="new-product"
+    onclick="esportaExcel()">
+    📊 Excel
+</button>
+
+            </div>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Codice</th>
+                        <th>Descrizione</th>
+                        <th>Reparto</th>
+                        <th>Scadenza</th>
+                        <th>Giorni</th>
+                        <th>Pezzi offerta</th>
+                        <th>Stato</th>
+                        <th>Intervento</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tabellaStorico">
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="supabase.js"></script>
+
+<script>
+
+"use strict";
+
+let storicoCompleto = [];
+
+
+async function caricaStorico() {
+
+    const tabella = document.getElementById("tabellaStorico");
+
+    tabella.innerHTML = `
+        <tr>
+            <td colspan="9" style="text-align:center;">
+                Caricamento...
+            </td>
+        </tr>
+    `;
+
+    const { data, error } = await window.supabaseClient
+        .from("storico_scadenze")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+
+        console.error("Errore caricamento storico:", error);
+
+        tabella.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align:center;">
+                    Errore nel caricamento dello storico
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+   storicoCompleto = data || [];
+
+// Aggiorna i riepiloghi
+document.getElementById("totaleEventi").textContent = storicoCompleto.length;
+
+const totalePezzi = storicoCompleto.reduce(
+    (totale, riga) => totale + Number(riga.pezzi_offerta || 0),
+    0
+);
+
+document.getElementById("totalePezzi").textContent = totalePezzi;
+
+// Riepilogo per codice
+const riepilogo = {};
+
+storicoCompleto.forEach(riga => {
+    const codice = String(riga.codice ?? "");
+
+    if (!riepilogo[codice]) {
+        riepilogo[codice] = {
+            descrizione: riga.descrizione ?? "",
+            episodi: 0,
+            pezzi: 0
+        };
+    }
+
+    riepilogo[codice].episodi++;
+    riepilogo[codice].pezzi += Number(riga.pezzi_offerta || 0);
+});
+
+const tabellaRiepilogo = document.getElementById("riepilogoCodici");
+
+tabellaRiepilogo.innerHTML = Object.entries(riepilogo)
+    .map(([codice, dati]) => `
+        <tr>
+            <td>${codice}</td>
+            <td>${dati.descrizione}</td>
+            <td>${dati.episodi}</td>
+            <td><strong>${dati.pezzi}</strong></td>
+        </tr>
+    `)
+    .join("");
+    
+mostraStorico(storicoCompleto);
+}
+
+
+function mostraStorico(lista) {
+
+    const tabella = document.getElementById("tabellaStorico");
+
+    if (!lista.length) {
+
+        tabella.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align:center;">
+                    Nessun evento nello storico
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    tabella.innerHTML = lista.map(riga => {
+
+        const dataEvento = riga.created_at
+            ? new Date(riga.created_at).toLocaleDateString("it-IT")
+            : "-";
+
+        const scadenza = riga.scadenza
+            ? new Date(riga.scadenza + "T00:00:00")
+                .toLocaleDateString("it-IT")
+            : "-";
+
+        return `
+            <tr>
+
+                <td>${dataEvento}</td>
+
+                <td>${riga.codice ?? ""}</td>
+
+                <td>${riga.descrizione ?? ""}</td>
+
+                <td>${riga.reparto ?? ""}</td>
+
+                <td>${scadenza}</td>
+
+                <td>${riga.giorni ?? ""}</td>
+
+                <td><strong>${riga.pezzi_offerta ?? 0}</strong></td>
+
+                <td>${riga.stato ?? ""}</td>
+
+                <td>${riga.intervento ?? ""}</td>
+
+            </tr>
+        `;
+
+    }).join("");
+}
+
+
+document
+    .getElementById("ricercaStorico")
+    .addEventListener("input", function () {
+
+        const testo = this.value
+            .toLowerCase()
+            .trim();
+
+        if (!testo) {
+
+            mostraStorico(storicoCompleto);
+            return;
+        }
+
+        const filtrati = storicoCompleto.filter(riga => {
+
+            return [
+                riga.codice,
+                riga.descrizione,
+                riga.reparto,
+                riga.stato,
+                riga.intervento
+            ]
+            .some(valore =>
+                String(valore ?? "")
+                    .toLowerCase()
+                    .includes(testo)
+            );
+
+        });
+
+        mostraStorico(filtrati);
+    });
+
+function esportaExcel() {
+
+    if (!storicoCompleto.length) {
+        alert("Non ci sono dati da esportare.");
+        return;
+    }
+
+    // FOGLIO 1 - STORICO COMPLETO
+    const datiStorico = storicoCompleto.map(riga => ({
+        "Data": riga.created_at
+            ? new Date(riga.created_at).toLocaleDateString("it-IT")
+            : "",
+        "Codice": riga.codice ?? "",
+        "Descrizione": riga.descrizione ?? "",
+        "Reparto": riga.reparto ?? "",
+        "Scadenza": riga.scadenza
+            ? new Date(riga.scadenza + "T00:00:00").toLocaleDateString("it-IT")
+            : "",
+        "Giorni": riga.giorni ?? "",
+        "Pezzi offerta": Number(riga.pezzi_offerta || 0),
+        "Stato": riga.stato ?? "",
+        "Intervento": riga.intervento ?? ""
+    }));
+
+    const foglioStorico = XLSX.utils.json_to_sheet(datiStorico);
+
+
+    // FOGLIO 2 - RIEPILOGO PER CODICE
+    const riepilogoExcel = {};
+
+    storicoCompleto.forEach(riga => {
+
+        const codice = String(riga.codice ?? "");
+
+        if (!riepilogoExcel[codice]) {
+            riepilogoExcel[codice] = {
+                descrizione: riga.descrizione ?? "",
+                episodi: 0,
+                pezzi: 0
+            };
+        }
+
+        riepilogoExcel[codice].episodi++;
+        riepilogoExcel[codice].pezzi += Number(riga.pezzi_offerta || 0);
+    });
+
+    const datiRiepilogo = Object.entries(riepilogoExcel).map(
+        ([codice, dati]) => ({
+            "Codice": codice,
+            "Descrizione": dati.descrizione,
+            "Episodi": dati.episodi,
+            "Pezzi totali": dati.pezzi
+        })
+    );
+
+    const foglioRiepilogo = XLSX.utils.json_to_sheet(datiRiepilogo);
+
+
+    // CREA IL FILE EXCEL
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        foglioStorico,
+        "Storico scadenze"
+    );
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        foglioRiepilogo,
+        "Riepilogo"
+    );
+
+
+    // LARGHEZZA COLONNE
+    foglioStorico["!cols"] = [
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 35 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 20 }
+    ];
+
+    foglioRiepilogo["!cols"] = [
+        { wch: 12 },
+        { wch: 35 },
+        { wch: 12 },
+        { wch: 15 }
+    ];
+
+
+    // SCARICA IL FILE
+    XLSX.writeFile(
+        workbook,
+        "Storico_Scadenze.xlsx"
+    );
+}
+document.addEventListener("DOMContentLoaded", caricaStorico);
+
+</script>
+
+</body>
+</html>

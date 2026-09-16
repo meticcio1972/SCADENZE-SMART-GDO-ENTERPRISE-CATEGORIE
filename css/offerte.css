@@ -1,0 +1,181 @@
+/* =========================
+   GESTIONE OFFERTE
+   ========================= */
+
+.container {
+    width: 95%;
+    margin: 30px auto;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.10);
+}
+
+/* Barra strumenti */
+.toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.toolbar input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+.toolbar button {
+    background: #1565c0;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.toolbar button:hover {
+    background: #0d47a1;
+}
+
+/* =========================
+   TABELLA OFFERTE
+   ========================= */
+
+.container table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    margin-top: 10px;
+}
+
+.container thead th {
+    background: #1565c0;
+    color: white;
+    padding: 12px 10px;
+    text-align: left;
+    border: 1px solid #d9e0e8;
+    font-weight: 600;
+}
+
+.container tbody td {
+    padding: 12px 10px;
+    border: 1px solid #d9e0e8;
+    color: #222;
+    background: white;
+    vertical-align: middle;
+}
+
+.container tbody tr:nth-child(even) td {
+    background: #f7f9fc;
+}
+
+.container tbody tr:hover td {
+    background: #eef5ff;
+}
+
+/* Larghezza colonne */
+.container th:nth-child(1),
+.container td:nth-child(1) {
+    width: 100px;
+}
+
+.container th:nth-child(2),
+.container td:nth-child(2) {
+    width: auto;
+}
+
+.container th:nth-child(3),
+.container td:nth-child(3) {
+    width: 130px;
+}
+
+.container th:nth-child(4),
+.container td:nth-child(4) {
+    width: 110px;
+    text-align: center;
+}
+
+.container th:nth-child(5),
+.container td:nth-child(5) {
+    width: 140px;
+    text-align: center;
+}
+
+.container th:nth-child(6),
+.container td:nth-child(6) {
+    width: 120px;
+    text-align: center;
+}
+
+/* Azioni */
+.container td:last-child {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.container td:last-child button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+    margin: 0 4px;
+}
+
+.container td:last-child button:first-child {
+    color: #1565c0;
+}
+
+.container td:last-child button:last-child {
+    color: #e53935;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 800px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .container table {
+        font-size: 13px;
+    }
+
+    .container th,
+    .container td {
+        padding: 8px 6px;
+    }
+}
+.azione-modifica,
+.azione-elimina {
+    background: transparent !important;
+    border: none !important;
+    padding: 2px !important;
+    margin: 2px 4px !important;
+    cursor: pointer;
+    font-size: 28px !important;
+    line-height: 1;
+}
+
+.azione-modifica i {
+    color: #4cc9f0 !important;
+}
+
+.azione-elimina i {
+    color: #ff4d3d !important;
+}
+
+.azione-modifica:hover i {
+    color: #38bdf8 !important;
+}
+
+.azione-elimina:hover i {
+    color: #ff2d20 !important;
+}

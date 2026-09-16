@@ -1,0 +1,129 @@
+<!DOCTYPE html> 
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offerte</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/offerte.css">  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="database.js"></script>
+<script src="offerte.js" defer></script>
+</head>
+
+<body>
+<div class="topbar">
+
+    <button id="tornaDashboard"
+            onclick="window.location.href='index.html'">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
+    </button>
+
+    <h2>📢 Gestione Offerte</h2>
+
+</div>
+<div class="container">
+
+
+
+<div class="toolbar">
+
+<input
+id="ricercaOfferta"
+type="text"
+placeholder="Cerca prodotto...">
+
+<button id="nuovaOfferta">
+➕ Nuova Offerta
+</button>
+
+<button id="stampaOfferte">
+🖨️ Stampa
+</button>
+
+<button id="excelOfferte">
+📊 Excel
+</button>
+
+</div>
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th>Codice</th>
+<th>Descrizione</th>
+<th>Reparto</th>
+<th>Pezzi</th>
+<th>Prezzo Offerta</th>
+<th>Data Inizio</th>
+<th>Data Fine</th>
+<th>Azioni</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tabellaOfferte">
+
+</tbody>
+
+</table>
+
+</div>
+  <div id="productModal" class="modal" style="display:none;">
+
+    <div class="modal-content">
+
+        <h2>Modifica Offerta</h2>
+
+        <input id="codice" type="text" placeholder="Codice" readonly>
+
+        <input id="descrizione" type="text" placeholder="Descrizione" readonly>
+
+        <select id="categoria" disabled>
+            <option>Latticini</option>
+            <option>Macelleria</option>
+            <option>Gastronomia</option>
+            <option>Ortofrutta</option>
+            <option>Drogheria</option>
+            <option>Altro</option>
+        </select>
+
+        <input id="prezzo" type="number" step="0.01" placeholder="Prezzo">
+
+        <label>
+            <input type="checkbox" id="offerta">
+            Offerta
+        </label>
+
+        <input id="pezzi_offerta" type="number" placeholder="Prezzo Offerta">
+        <input id="pezzi_offerta" type="number" placeholder="Pezzi">
+
+        <label for="data_inizio_offerta">Data inizio offerta</label>
+        <input id="data_inizio_offerta" type="date">
+
+        <label for="data_fine_offerta">Data fine offerta</label>
+        <input id="data_fine_offerta" type="date">
+        
+
+        <br><br>
+
+        <button id="saveOfferta">💾 Salva</button>
+
+        <button id="closeModal">❌ Chiudi</button>
+
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="database.js"></script>
+<script src="offerte.js"></script>
+</body>
+
+</html>
