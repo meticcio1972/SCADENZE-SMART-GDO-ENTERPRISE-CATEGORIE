@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storico vendite - Scadenze Smart GDO Enterprise</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/table.css">
+<link rel="stylesheet" href="css/widgets.css">
+<link rel="stylesheet" href="css/responsive.css">
+
+<style>
+.page-wrap{padding:24px}
+.sales-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+.sales-head h2{margin:0 0 6px}
+.sales-head p{margin:0;color:#667085}
+.sales-actions{display:flex;gap:10px;flex-wrap:wrap}
+.sales-actions button,.import-btn{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-weight:600}
+.import-btn{background:#111827;color:#fff;display:inline-flex;align-items:center;gap:8px}
+.secondary{background:#eef2f6}
+.cards-sales{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sales-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:17px 18px}
+.sales-card span{display:block;color:#667085;font-size:13px;margin-bottom:7px}
+.sales-card strong{font-size:25px}
+.panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-bottom:20px}
+.panel-head{padding:17px 18px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:15px}
+.panel-head h3{margin:0}
+.panel-body{padding:18px}
+.import-zone{border:2px dashed #cbd5e1;border-radius:12px;padding:28px;text-align:center;background:#f8fafc}
+.import-zone p{color:#667085;margin:8px 0 16px}
+.status{margin-top:14px;font-size:14px;color:#475467}
+.filters{display:flex;gap:10px;flex-wrap:wrap}
+.filters input,.filters select{padding:10px 12px;border:1px solid #d0d5dd;border-radius:8px;min-height:40px}
+.table-scroll{overflow:auto}
+.sales-table{width:100%;border-collapse:collapse;min-width:760px}
+.sales-table th,.sales-table td{padding:11px 12px;border-bottom:1px solid #eaecf0;text-align:left;white-space:nowrap}
+.sales-table th{background:#f8fafc;font-size:13px;color:#475467}
+.empty{text-align:center;color:#667085;padding:35px}
+.note{font-size:13px;color:#667085;margin-top:10px}
+@media(max-width:900px){.cards-sales{grid-template-columns:repeat(2,1fr)}.sales-head{flex-direction:column}}
+@media(max-width:520px){.page-wrap{padding:14px}.cards-sales{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <div class="logo">
+        <h1>SCADENZE</h1>
+        <span>SMART GDO</span>
+        <small>ENTERPRISE</small>
+    </div>
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a>Prodotti</a>
+        <a href="storico-scadenze.html">Storico scadenze</a>
+        <a href="offerte.html">offerte</a>
+        <a class="active" href="storico-vendite.html">Storico vendite</a>
+        <a>Documenti</a>
+        <a>Report</a>
+        <a href="ai-gdo.html">AI GDO</a>
+        <a>Impostazioni</a>
+        <a href="#" onclick="eseguiLogout();return false;">🚪 Esci</a>
+    </nav>
+</aside>
+
+<main>
+<header class="topbar">
+    <div class="search-box">
+        <input id="ricerca" type="text" placeholder="Cerca prodotto...">
+    </div>
+    <div class="user-area">
+        <div class="circle">🔔</div>
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="profile-name">
+                <strong>Andrea</strong>
+                <span>Responsabile</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="page-wrap">
+    <div class="sales-head">
+        <div>
+            <h2>📊 Storico vendite</h2>
+            <p>Archivio cumulativo delle vendite. I nuovi CSV vengono aggiunti allo storico senza cancellare i periodi già presenti.</p>
+        </div>
+        <div class="sales-actions">
+            <label class="import-btn">
+                <i class="fa-solid fa-file-import"></i>
+                Importa CSV
+                <input id="csvFile" type="file" accept=".csv,text/csv" hidden>
+            </label>
+            <button class="secondary" type="button" onclick="esportaCSV()">Esporta CSV</button>
+            <button class="secondary" type="button" onclick="svuotaStorico()">Svuota storico</button>
+        </div>
+    </div>
+
+    <section class="cards-sales">
+        <div class="sales-card"><span>Righe archiviate</span><strong id="totRighe">0</strong></div>
+        <div class="sales-card"><span>Referenze</span><strong id="totReferenze">0</strong></div>
+        <div class="sales-card"><span>Pezzi venduti</span><strong id="totPezzi">0</strong></div>
+        <div class="sales-card"><span>Periodo</span><strong id="periodo" style="font-size:18px">—</strong></div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head"><h3>📥 Importazione storico</h3></div>
+        <div class="panel-body">
+            <div class="import-zone">
+                <strong>Carica il CSV delle vendite</strong>
+                <p>Il file viene letto automaticamente e aggiunto allo storico esistente.</p>
+                <label class="import-btn">
+                    <i class="fa-solid fa-upload"></i> Seleziona CSV
+                    <input id="csvFile2" type="file" accept=".csv,text/csv" hidden>
+                </label>
+                <div id="status" class="status">Nessun nuovo file importato.</div>
+            </div>
+            <div class="note">Nota: il CSV UXI non va caricato qui. Questa pagina è dedicata esclusivamente allo storico vendite.</div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <h3>📋 Vendite archiviate</h3>
+            <div class="filters">
+                <input id="filtro" type="text" placeholder="Cerca codice o descrizione">
+                <select id="filtroAnno"><option value="">Tutti gli anni</option></select>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="sales-table">
+                <thead><tr><th>Data</th><th>Codice</th><th>Descrizione</th><th>Quantità</th><th>Periodo</th></tr></thead>
+                <tbody id="salesBody"></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+
+<script>
+"use strict";
+const TABLE="storico_vendite";
+let vendite=[];
+
+function setStatus(m,t=""){const e=document.getElementById("status");e.textContent=m;e.className="status "+t}
+function norm(v){return String(v??"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function parseCSV(text){
+ text=text.replace(/^\uFEFF/,"");const first=text.split(/\r?\n/)[0]||"",s=(first.match(/;/g)||[]).length,c=(first.match(/,/g)||[]).length,t=(first.match(/\t/g)||[]).length;
+ const d=t>s&&t>c?"\t":s>=c?";":",",rows=[];let row=[],cell="",q=false;
+ for(let i=0;i<text.length;i++){let x=text[i],n=text[i+1];if(x=='"'&&q&&n=='"'){cell+='"';i++;continue}if(x=='"'){q=!q;continue}
+ if(x===d&&!q){row.push(cell);cell="";continue}if((x=="\n"||x=="\r")&&!q){if(x=="\r"&&n=="\n")i++;row.push(cell);cell="";if(row.some(v=>String(v).trim()))rows.push(row);row=[];continue}cell+=x}
+ if(cell!==""||row.length){row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row)}if(!rows.length)return[];
+ const h=rows[0].map(v=>String(v).trim());return rows.slice(1).map(r=>{let o={};h.forEach((k,i)=>o[k]=String(r[i]??"").trim());return o})
+}
+function val(o,names){const k=Object.keys(o);for(const n of names){const x=k.find(z=>norm(z)===norm(n));if(x!==undefined&&o[x]!=="")return o[x]}for(const n of names){const x=k.find(z=>norm(z).includes(norm(n)));if(x!==undefined&&o[x]!=="")return o[x]}return""}
+function num(v){let s=String(v??"").trim().replace(/\s/g,"");if(!s)return 0;if(s.includes(",")&&s.includes("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(",",".");return Number(s)||0}
+function date(v){let s=String(v??"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);return m?`${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`:null}
+function row(o){return{codice:String(val(o,["codice","codice articolo","codice prodotto","ean","barcode","articolo"])).trim(),descrizione:String(val(o,["descrizione","descrizione articolo","prodotto"])).trim(),data_vendita:date(val(o,["data","data vendita","giorno","date"])),quantita:num(val(o,["quantita","quantità","qta","pezzi","venduti","vendite"])),periodo:String(val(o,["periodo","mese","month","settimana","week"])).trim()}}
+async function carica(){
+ const r=await window.supabaseClient.from(TABLE).select("id,created_at,codice,descrizione,data_vendita,quantita,periodo").order("data_vendita",{ascending:true}).limit(50000);
+ if(r.error){vendite=[];setStatus("Errore Supabase: "+r.error.message,"error");render();return}
+ vendite=r.data||[];setStatus(`Supabase attivo. ${vendite.length.toLocaleString("it-IT")} righe caricate.`,"ok");ui()
+}
+async function importa(file){
+ if(!file)return;setStatus("Lettura CSV...");const rd=new FileReader();
+ rd.onload=async()=>{try{
+  const p=parseCSV(rd.result).map(row).filter(r=>r.codice||r.descrizione||r.data_vendita),v=p.filter(r=>r.data_vendita);
+  if(!v.length)throw Error("Nessuna data vendita riconosciuta.");
+  let n=0;
+  for(let i=0;i<v.length;i+=500){
+   setStatus(`Importazione ${Math.min(i+500,v.length).toLocaleString("it-IT")} / ${v.length.toLocaleString("it-IT")}...`);
+   const r=await window.supabaseClient.from(TABLE).insert(v.slice(i,i+500));if(r.error)throw r.error;n+=Math.min(500,v.length-i)
+  }
+  await carica();setStatus(`Importazione completata: ${n.toLocaleString("it-IT")} righe salvate in Supabase.`,"ok")
+ }catch(e){console.error(e);setStatus("Errore importazione: "+(e.message||e),"error")}};
+ rd.readAsText(file,"UTF-8")
+}
+function ui(){
+ document.getElementById("totRighe").textContent=vendite.length.toLocaleString("it-IT");
+ document.getElementById("totReferenze").textContent=new Set(vendite.map(r=>r.codice).filter(Boolean)).size.toLocaleString("it-IT");
+ document.getElementById("totPezzi").textContent=vendite.reduce((s,r)=>s+(Number(r.quantita)||0),0).toLocaleString("it-IT");
+ let d=vendite.map(r=>r.data_vendita).filter(Boolean).sort();document.getElementById("periodo").textContent=d.length?`${d[0]} → ${d[d.length-1]}`:"—";
+ let y=[...new Set(vendite.map(r=>String(r.data_vendita||"").slice(0,4)).filter(x=>/^\d{4}$/.test(x)))].sort().reverse();
+ let s=document.getElementById("filtroAnno"),old=s.value;s.innerHTML='<option value="">Tutti gli anni</option>'+y.map(x=>`<option value="${x}">${x}</option>`).join("");s.value=y.includes(old)?old:"";render()
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function render(){
+ let q=norm(document.getElementById("filtro").value),a=document.getElementById("filtroAnno").value;
+ let r=vendite.filter(x=>(!q||norm(`${x.codice} ${x.descrizione}`).includes(q))&&(!a||String(x.data_vendita).startsWith(a))).slice().reverse(),b=document.getElementById("salesBody");
+ if(!r.length){b.innerHTML='<tr><td colspan="5" class="empty">Nessun dato nello storico.</td></tr>';return}
+ b.innerHTML=r.slice(0,1000).map(x=>`<tr><td>${esc(x.data_vendita)}</td><td>${esc(x.codice)}</td><td>${esc(x.descrizione)}</td><td>${(Number(x.quantita)||0).toLocaleString("it-IT")}</td><td>${esc(x.periodo)}</td></tr>`).join("")
+}
+async function esportaCSV(){
+ const r=await window.supabaseClient.from(TABLE).select("data_vendita,codice,descrizione,quantita,periodo").order("data_vendita",{ascending:true}).limit(50000);
+ if(r.error){alert(r.error.message);return}if(!r.data?.length){alert("Lo storico è vuoto.");return}
+ let l=["Data;Codice;Descrizione;Quantità;Periodo"];r.data.forEach(x=>l.push([x.data_vendita,x.codice,x.descrizione,x.quantita,x.periodo].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")));
+ let b=new Blob(["\uFEFF"+l.join("\r\n")],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="storico-vendite.csv";a.click();URL.revokeObjectURL(a.href)
+}
+document.getElementById("csvFile").addEventListener("change",e=>importa(e.target.files[0]));
+document.getElementById("csvFile2").addEventListener("change",e=>importa(e.target.files[0]));
+document.getElementById("filtro").addEventListener("input",render);
+document.getElementById("filtroAnno").addEventListener("change",render);
+document.addEventListener("DOMContentLoaded",()=>setTimeout(carica,300));
+</script>
+</body>
+</html>
