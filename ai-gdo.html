@@ -1,413 +1,222 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>AI GDO - Scadenze Smart GDO</title>
-
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/topbar.css">
-    <link rel="stylesheet" href="css/table.css">
-    <link rel="stylesheet" href="css/responsive.css">
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI GDO - Scadenze Smart GDO</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/table.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-top:20px}
+.ai-card{background:#0f1728;padding:20px;border-radius:12px}
+.ai-card h3{color:#fff;margin:10px 0 8px}.ai-card p{color:#aebbd0;margin:0;line-height:1.5}
+.ai-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.ai-stat{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb}.ai-stat span{display:block;color:#667085;font-size:13px}.ai-stat strong{display:block;color:#111827;font-size:25px;margin-top:7px}
+.ai-note{color:#aebbd0;margin-top:12px;font-size:14px}
+.ai-result{display:none;background:#0f1728;padding:25px;border-radius:12px;margin-top:25px;color:#fff;line-height:1.6}
+.ai-button{margin-top:12px}
+@media(max-width:900px){.ai-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.ai-stats{grid-template-columns:1fr}}
+</style>
 </head>
-
 <body>
-
 <div class="layout">
+<aside class="sidebar">
+<div class="logo"><h1>SCADENZE</h1><span>SMART GDO</span><small>ENTERPRISE</small></div>
+<nav>
+<a href="index.html">Dashboard</a>
+<a>Prodotti</a>
+<a href="storico-scadenze.html">Storico scadenze</a>
+<a href="offerte.html">offerte</a>
+<a href="storico-vendite.html">Storico vendite</a>
+<a>Documenti</a>
+<a>Report</a>
+<a class="active" href="ai-gdo.html">AI GDO</a>
+<a>Impostazioni</a>
+</nav>
+</aside>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+<main>
+<header class="topbar">
+<div class="search-box"><input type="text" placeholder="Cerca..."></div>
+<div class="user-area"><div class="circle">ð</div><div class="profile"><div class="avatar"></div><div class="profile-name"><strong>Andrea</strong><span>Responsabile</span></div></div></div>
+</header>
 
-        <div class="logo">
-            <h1>SCADENZE</h1>
-            <span>SMART GDO</span>
-            <small>ENTERPRISE</small>
-        </div>
-
-        <nav>
-            <a href="index.html">Dashboard</a>
-            <a href="scadenze.html">Scadenze</a>
-            <a href="storico-scadenze.html">Storico scadenze</a>
-            <a href="offerte.html">offerte</a>
-            <a>Fornitori</a>
-            <a>Documenti</a>
-            <a>Report</a>
-            <a class="active" href="ai-gdo.html">AI GDO</a>
-            <a>Impostazioni</a>
-        </nav>
-
-    </aside>
-
-
-    <!-- CONTENUTO -->
-    <main>
-
-        <header class="topbar">
-
-            <div class="search-box">
-                <input
-                    type="text"
-                    placeholder="Cerca..."
-                >
-            </div>
-
-            <div class="user-area">
-
-                <div class="circle">🔔</div>
-
-                <div class="profile">
-                    <div class="avatar"></div>
-
-                    <div class="profile-name">
-                        <strong>Andrea</strong>
-                        <span>Responsabile</span>
-                    </div>
-                </div>
-
-            </div>
-
-        </header>
-
-
-        <section class="table-area">
-
-            <div class="table-header">
-
-                <h2>🤖 AI GDO</h2>
-
-            <button
-    class="new-product"
-    type="button"
-    id="btnCollegaAI"
-    onclick="collegaAI()">
-    🤖 Collega Intelligenza Artificiale
-</button>
-
-            </div>
-
-
-            
-            <!-- FUNZIONI AI -->
-
-            <div style="
-                background:#162238;
-                padding:30px;
-                border-radius:18px;
-                box-shadow:0 4px 12px rgba(0,0,0,0.15);
-            ">
-
-                <h2 style="color:#fff; margin-top:0;">
-                    🔮 Cosa farà AI GDO
-                </h2>
-
-                <div style="
-                    display:grid;
-                    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-                    gap:15px;
-                    margin-top:20px;
-                ">
-
-                    <div style="
-                        background:#0f1728;
-                        padding:20px;
-                        border-radius:12px;
-                    ">
-                        <div style="font-size:28px;">📅</div>
-                        <h3 style="color:#fff;">Analisi scadenze</h3>
-                        <p style="color:#aebbd0;">
-                            Individua le situazioni che richiedono attenzione.
-                        </p>
-                    </div>
-
-                    <div style="
-                        background:#0f1728;
-                        padding:20px;
-                        border-radius:12px;
-                    ">
-                        <div style="font-size:28px;">📊</div>
-                        <h3 style="color:#fff;">Analisi offerte</h3>
-                        <p style="color:#aebbd0;">
-                            Analizza le referenze che vengono messe più spesso in offerta.
-                        </p>
-                    </div>
-
-                    <div style="
-                        background:#0f1728;
-                        padding:20px;
-                        border-radius:12px;
-                    ">
-                        <div style="font-size:28px;">🧠</div>
-                        <h3 style="color:#fff;">Ragionamento</h3>
-                        <p style="color:#aebbd0;">
-                            Collega scadenze, offerte e storico per trovare schemi.
-                        </p>
-                    </div>
-
-                    <div style="
-                        background:#0f1728;
-                        padding:20px;
-                        border-radius:12px;
-                    ">
-                        <div style="font-size:28px;">🔮</div>
-                        <h3 style="color:#fff;">Previsioni</h3>
-                        <p style="color:#aebbd0;">
-                            Anticipa possibili criticità e suggerisce azioni.
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-       <!-- ANALISI AI GDO -->
-
-<div style="
-    background:#162238;
-    padding:30px;
-    border-radius:18px;
-    margin-top:20px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
-">
-
-    <h2 style="color:#fff; margin-top:0;">
-        🧠 Analisi intelligente GDO
-    </h2>
-
-    <p style="color:#aebbd0; font-size:16px;">
-        L'Intelligenza Artificiale analizzerà scadenze, offerte e storico
-        per individuare priorità, criticità e possibili azioni.
-    </p>
-
-    <button
-        class="new-product"
-        type="button"
-        id="btnAnalizzaGDO"
-        onclick="analizzaSituazioneGDO()">
-        🧠 Analizza situazione GDO
-    </button>
-
-    <div
-        id="risultatoAI"
-        style="
-            display:none;
-            background:#0f1728;
-            padding:25px;
-            border-radius:12px;
-            margin-top:25px;
-            color:#fff;
-            line-height:1.6;
-        ">
-    </div>
-
+<section class="table-area">
+<div class="table-header">
+<h2>ð¤ AI GDO</h2>
+<button class="new-product" type="button" id="btnCollegaAI" onclick="collegaAI()">ð¤ Collega Intelligenza Artificiale</button>
 </div>
-            
-        </section>
 
-    </main>
-
+<div style="background:#162238;padding:30px;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h2 style="color:#fff;margin-top:0">ð® Cosa farÃ  AI GDO</h2>
+<div class="ai-grid">
+<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi scadenze</h3><p>Individua le situazioni che richiedono attenzione.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi vendite</h3><p>Collega vendite storiche, velocitÃ  di vendita e scadenze.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð§ </div><h3>Ragionamento</h3><p>Collega scadenze, offerte e storico per trovare schemi.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð®</div><h3>Previsioni</h3><p>Stima se la vendita puÃ² assorbire la merce prima della scadenza.</p></div>
 </div>
+</div>
+
+<div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h2 style="color:#fff;margin-top:0">ð Dati collegati all'AI</h2>
+<p style="color:#aebbd0;font-size:16px">Lo storico vendite viene letto direttamente da Supabase e collegato alle referenze presenti nel gestionale.</p>
+<div class="ai-stats">
+<div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">â</strong></div>
+<div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">â</strong></div>
+<div class="ai-stat"><span>Pezzi venduti periodo</span><strong id="statPezzi">â</strong></div>
+<div class="ai-stat"><span>Referenze collegate</span><strong id="statCollegate">â</strong></div>
+</div>
+<div id="statoDati" class="ai-note">â³ Collegamento ai dati in corso...</div>
+</div>
+
+<div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h2 style="color:#fff;margin-top:0">ð§  Analisi intelligente GDO</h2>
+<p style="color:#aebbd0;font-size:16px">
+L'AI analizzerÃ  insieme scadenze, vendite storiche e offerte. Per ogni referenza potrÃ  confrontare la quantitÃ  venduta nel periodo con la velocitÃ  media settimanale e la situazione di scadenza.
+</p>
+<button class="new-product ai-button" type="button" id="btnAnalizzaGDO" onclick="analizzaSituazioneGDO()">ð§  Analizza situazione GDO</button>
+<div id="risultatoAI" class="ai-result"></div>
+</div>
+</section>
+</main>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script>
+const STORICO_TABLE="storico_vendite";
+let cacheGDO=null;
 
-async function collegaAI() {
-
-    const bottone = document.getElementById("btnCollegaAI");
-
-    bottone.disabled = true;
-    bottone.textContent = "🤖 Collegamento in corso...";
-
-    try {
-
-        const risposta = await fetch("/api/ai-gdo", {
-            method: "GET"
-        });
-
-        const dati = await risposta.json();
-
-        if (!risposta.ok) {
-            throw new Error(dati.error || "Errore nel collegamento");
-        }
-
-        alert(dati.risposta || "Collegamento riuscito");
-
-        bottone.textContent = "🟢 Intelligenza Artificiale collegata";
-
-    } catch (errore) {
-
-        console.error("Errore AI GDO:", errore);
-
-        alert("❌ Collegamento non riuscito: " + errore.message);
-
-        bottone.textContent = "🔴 Collegamento non riuscito";
-
-    } finally {
-
-        bottone.disabled = false;
-
-    }
+function fmt(n){return Number(n||0).toLocaleString("it-IT",{maximumFractionDigits:2})}
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function parsePeriodo(s){
+ const m=String(s||"").match(/(\d{1,2})\/(\d{1,2})\/(\d{4}).*?(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+ if(!m)return null;
+ const a=new Date(Number(m[3]),Number(m[2])-1,Number(m[1])),b=new Date(Number(m[6]),Number(m[5])-1,Number(m[4]));
+ const giorni=Math.max(1,Math.round((b-a)/86400000)+1);
+ return {inizio:a.toISOString().slice(0,10),fine:b.toISOString().slice(0,10),giorni};
 }
+async function leggiStoricoVendite(){
+ let righe=[],page=1000;
+ for(let from=0;;from+=page){
+  const {data,error}=await window.supabaseClient.from(STORICO_TABLE)
+   .select("id,codice,descrizione,quantita,periodo")
+   .order("id",{ascending:true}).range(from,from+page-1);
+  if(error)throw new Error("Errore storico vendite: "+error.message);
+  righe.push(...(data||[]));
+  if(!data||data.length<page)break;
+ }
+ return righe;
+}
+function aggregaVendite(righe){
+ const map=new Map(); let periodo=null;
+ for(const r of righe){
+  if(!periodo&&r.periodo)periodo=parsePeriodo(r.periodo);
+  const codice=String(r.codice||"").trim(); if(!codice)continue;
+  if(!map.has(codice))map.set(codice,{codice,descrizione:r.descrizione||"",vendite_periodo:0});
+  const x=map.get(codice); x.vendite_periodo+=Number(r.quantita)||0;
+ }
+ const giorni=periodo?.giorni||null;
+ for(const x of map.values()){
+  x.media_giornaliera=giorni?x.vendite_periodo/giorni:null;
+  x.media_settimanale=giorni?x.media_giornaliera*7:null;
+ }
+ return {map,periodo,giorni};
+}
+async function caricaDati(){
+ const stato=document.getElementById("statoDati");
+ try{
+  const [{data:prodotti,error:ep},righe]=await Promise.all([
+   window.supabaseClient.from("prodotti").select("*").order("id",{ascending:true}),
+   leggiStoricoVendite()
+  ]);
+  if(ep)throw new Error("Errore prodotti: "+ep.message);
+  const agg=aggregaVendite(righe);
+  const pMap=new Map((prodotti||[]).map(p=>[String(p.codice||"").trim(),p]));
+  const collegati=[...agg.map.values()].filter(v=>pMap.has(v.codice));
+  cacheGDO={prodotti:prodotti||[],storicoRighe:righe,vendite:agg.map,periodo:agg.periodo,giorni:agg.giorni,pMap};
+  document.getElementById("statProdotti").textContent=fmt((prodotti||[]).length);
+  document.getElementById("statVendite").textContent=fmt(righe.length);
+  document.getElementById("statPezzi").textContent=fmt(righe.reduce((s,r)=>s+(Number(r.quantita)||0),0));
+  document.getElementById("statCollegate").textContent=fmt(collegati.length);
+  stato.textContent=`ð¢ Dati collegati. ${fmt(righe.length)} righe vendite e ${fmt(collegati.length)} referenze collegate ai prodotti.`;
+ }catch(e){
+  console.error(e);stato.textContent="ð´ "+e.message;
+ }
+}
+async function collegaAI(){
+ const b=document.getElementById("btnCollegaAI");b.disabled=true;b.textContent="ð¤ Collegamento in corso...";
+ try{
+  const r=await fetch("/api/ai-gdo",{method:"GET"}),d=await r.json();
+  if(!r.ok)throw new Error(d.error||"Errore nel collegamento");
+  alert(d.risposta||"Collegamento riuscito");b.textContent="ð¢ Intelligenza Artificiale collegata";
+ }catch(e){console.error(e);alert("â Collegamento non riuscito: "+e.message);b.textContent="ð´ Collegamento non riuscito"}finally{b.disabled=false}
+}
+function costruisciDatiAI(){
+ const {prodotti,vendite,pMap,periodo,giorni}=cacheGDO;
+ const righe=prodotti.map(p=>{
+  const codice=String(p.codice||"").trim(),v=vendite.get(codice);
+  return {
+   codice,descrizione:p.descrizione||v?.descrizione||"",
+   reparto:p.reparto||null,
+   scadenza:p.scadenza||null,giorni:p.giorni??null,
+   offerta:p.offerta??null,pezzi_offerta:p.pezzi_offerta??null,
+   data_inizio_offerta:p.data_inizio_offerta||null,data_fine_offerta:p.data_fine_offerta||null,
+   vendite_periodo:v?.vendite_periodo||0,
+   media_settimanale:v?.media_settimanale??null,
+   periodo_vendite:periodo?`${periodo.inizio} â ${periodo.fine}`:"periodo non disponibile"
+  };
+ });
+ return righe;
+}
+async function analizzaSituazioneGDO(){
+ const b=document.getElementById("btnAnalizzaGDO"),r=document.getElementById("risultatoAI");
+ b.disabled=true;b.textContent="ð§  Analisi in corso...";r.style.display="block";r.innerHTML="â³ Sto leggendo vendite, prodotti, scadenze e offerte...";
+ try{
+  if(!cacheGDO)await caricaDati();
+  if(!cacheGDO)throw new Error("Dati GDO non disponibili.");
+  const datiGDO=costruisciDatiAI();
+  const messaggio=`
+Sei AI GDO, un'intelligenza artificiale specializzata nella gestione operativa di un supermercato.
 
+Usa ESCLUSIVAMENTE i dati reali forniti. Non inventare quantitÃ , date o scadenze.
 
-async function analizzaSituazioneGDO() {
+IMPORTANTE SULLE VENDITE:
+Lo storico vendite Ã¨ un RESOCONTO TOTALE del periodo indicato, non una serie giornaliera.
+Per ogni referenza:
+- vendite_periodo = pezzi venduti nel periodo;
+- media_settimanale = vendite_periodo divise proporzionalmente sui giorni del periodo, solo se il periodo Ã¨ disponibile;
+- non usare data_vendita per ricavare una "ultima vendita": il file contiene un totale aggregato del periodo, non una sequenza di vendite giornaliere.
+Usa quindi la media settimanale come indicatore di velocitÃ  di vendita, non come previsione certa.
 
-    const bottone = document.getElementById("btnAnalizzaGDO");
-    const risultato = document.getElementById("risultatoAI");
-
-    bottone.disabled = true;
-    bottone.textContent = "🧠 Analisi in corso...";
-
-    risultato.style.display = "block";
-    risultato.innerHTML = "⏳ Sto analizzando i dati GDO...";
-
-    try {
-
-        // CARICA I PRODOTTI
-        const { data: prodotti, error: erroreProdotti } =
-            await window.supabaseClient
-                .from("prodotti")
-                .select("*")
-                .order("id", { ascending: true });
-
-        if (erroreProdotti) {
-            throw new Error("Errore caricamento prodotti");
-        }
-
-
-        // CARICA LO STORICO
-        const { data: storico, error: erroreStorico } =
-            await window.supabaseClient
-                .from("storico_scadenze")
-                .select("*")
-                .order("created_at", { ascending: false });
-
-        if (erroreStorico) {
-            throw new Error("Errore caricamento storico");
-        }
-
-
-        // PREPARA SOLO I DATI UTILI ALL'AI
-        const datiGDO = {
-
-            prodotti: (prodotti || []).map(p => ({
-                codice: p.codice,
-                descrizione: p.descrizione,
-                reparto: p.reparto,
-                scadenza: p.scadenza,
-                giorni: p.giorni,
-                offerta: p.offerta,
-                pezzi_offerta: p.pezzi_offerta,
-                data_inizio_offerta: p.data_inizio_offerta,
-                data_fine_offerta: p.data_fine_offerta
-            })),
-
-            storico: (storico || []).map(s => ({
-                codice: s.codice,
-                descrizione: s.descrizione,
-                reparto: s.reparto,
-                scadenza: s.scadenza,
-                giorni: s.giorni,
-                pezzi_offerta: s.pezzi_offerta,
-                stato: s.stato,
-                intervento: s.intervento,
-                created_at: s.created_at
-            }))
-
-        };
-
-
-        const messaggio = `
-Sei AI GDO, un'intelligenza artificiale specializzata nella gestione
-delle scadenze e delle offerte di un supermercato.
-
-Devi ANALIZZARE i dati reali che ti vengono forniti.
-
-Non inventare dati.
+Ragiona soprattutto sulle referenze che hanno una scadenza vicina e confrontale con la loro velocitÃ  di vendita.
+Se una referenza scade tra pochi giorni e la sua velocitÃ  di vendita Ã¨ sufficiente a smaltire la quantitÃ  presente, evidenzialo.
+Se la velocitÃ  Ã¨ bassa o manca un dato necessario, dichiaralo.
+Non inventare la quantitÃ  attualmente presente se non Ã¨ fornita.
 
 Distingui chiaramente:
-- 🔴 PRIORITÀ
-- 🟠 ATTENZIONE
-- 🟢 PREVISIONI / OPPORTUNITÀ
-- 💡 SUGGERIMENTO OPERATIVO
+ð´ PRIORITÃ
+ð  ATTENZIONE
+ð¢ OPPORTUNITÃ
+ð¡ SUGGERIMENTO OPERATIVO
 
-Analizza insieme:
-1. prodotti prossimi alla scadenza;
-2. prodotti già scaduti;
-3. prodotti attualmente in offerta;
-4. quantità di pezzi messi in offerta;
-5. storico delle offerte;
-6. eventuali referenze che ricorrono nello storico;
-7. possibili situazioni che potrebbero richiedere un intervento.
+Per ogni situazione importante indica codice e descrizione.
+Indica anche quando i dati non sono sufficienti per una conclusione.
 
-Per ogni situazione importante indica il codice prodotto e la descrizione
-quando disponibili.
-
-Se i dati non sono sufficienti per una previsione, dichiaralo
-esplicitamente.
-
-DATI REALI DEL GDO:
-
+DATI REALI:
 ${JSON.stringify(datiGDO)}
 `;
-
-
-        // INVIA I DATI ALL'AI
-        const risposta = await fetch("/api/ai-gdo", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                messaggio: messaggio
-            })
-
-        });
-
-
-        const dati = await risposta.json();
-
-
-        if (!risposta.ok) {
-            throw new Error(dati.error || "Errore durante l'analisi AI");
-        }
-
-
-    const testoAI = dati.risposta || "⚠️ L'AI non ha restituito una risposta.";
-
-risultato.innerHTML = testoAI
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/^### (.*)$/gm, "<h3>$1</h3>")
-    .replace(/^#### (.*)$/gm, "<h4>$1</h4>")
-    .replace(/\n/g, "<br>");    
-    } catch (errore) {
-
-        console.error("Errore analisi AI GDO:", errore);
-
-        risultato.innerHTML =
-            "❌ Errore durante l'analisi: " + errore.message;
-
-    } finally {
-
-        bottone.disabled = false;
-        bottone.textContent = "🧠 Analizza situazione GDO";
-
-    }
-
+  const resp=await fetch("/api/ai-gdo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messaggio})});
+  const data=await resp.json();if(!resp.ok)throw new Error(data.error||"Errore durante l'analisi AI");
+  const testo=data.risposta||"â ï¸ L'AI non ha restituito una risposta.";
+  r.innerHTML=escapeHtml(testo).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/^### (.*)$/gm,"<h3>$1</h3>").replace(/^#### (.*)$/gm,"<h4>$1</h4>").replace(/\n/g,"<br>");
+ }catch(e){console.error(e);r.innerHTML="â Errore durante l'analisi: "+escapeHtml(e.message)}finally{b.disabled=false;b.textContent="ð§  Analizza situazione GDO"}
 }
-
+document.addEventListener("DOMContentLoaded",caricaDati);
 </script>
-    
 </body>
 </html>
