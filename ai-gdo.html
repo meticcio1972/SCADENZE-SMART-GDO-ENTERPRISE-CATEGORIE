@@ -238,13 +238,33 @@ async function analizzaSituazioneGDO(){
   r.innerHTML=`⏳ Invio all'AI di ${datiGDO.length} situazioni prioritarie...`;
 
   const messaggio=`
-Sei AI GDO. Analizza solo i dati reali forniti.
+Sei AI GDO, un'intelligenza artificiale per la gestione delle scadenze di un supermercato.
 
-Lo storico è un totale del periodo: usa vendite_periodo e media_settimanale come velocità.
-Non inventare giacenze, date o "ultima vendita".
+OBIETTIVO PRINCIPALE:
+Non limitarti a riportare i pezzi venduti nel periodo. Devi trasformare le vendite storiche in una VELOCITÀ MEDIA DI VENDITA SETTIMANALE e usarla per valutare la scadenza.
 
-Concentrati su scadenze vicine, velocità di vendita e offerte.
-Per ogni caso importante indica codice e descrizione.
+REGOLE VENDITE:
+- vendite_periodo = totale dei pezzi venduti nell'intero periodo storico disponibile;
+- media_settimanale = vendite_periodo / numero di settimane del periodo;
+- se media_settimanale è già presente nei dati, usala e riportala;
+- se non è presente ma sono disponibili periodo o giorni, calcolala tu;
+- NON trattare mai "vendite nel periodo: 147" come 147 pezzi a settimana;
+- indica sempre sia il totale del periodo sia la media settimanale;
+- arrotonda la media settimanale a 1 decimale;
+- NON inventare giacenze e NON ricavare una "ultima vendita" da uno storico aggregato.
+
+ESEMPIO DI FORMATO:
+"Vendite periodo: 147 pezzi (circa 9 mesi) → media: circa 3,8 pezzi/settimana."
+Poi confronta questa velocità con i giorni alla scadenza.
+
+ANALISI:
+Per ogni referenza con scadenza vicina indica:
+1. codice e descrizione;
+2. giorni alla scadenza;
+3. pezzi venduti nel periodo;
+4. media settimanale;
+5. valutazione operativa: se la velocità di vendita è alta, media o bassa rispetto alla scadenza;
+6. azione consigliata, senza inventare la quantità presente.
 
 Categorie:
 🔴 PRIORITÀ
@@ -252,9 +272,9 @@ Categorie:
 🟢 OPPORTUNITÀ
 💡 SUGGERIMENTO
 
-Se i dati non bastano, dichiaralo.
+Se manca un dato necessario, dichiaralo chiaramente.
 
-DATI:
+DATI REALI:
 ${JSON.stringify(datiGDO)}
 `;
 
