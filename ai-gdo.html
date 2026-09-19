@@ -200,9 +200,9 @@ async function collegaAI(){
 function costruisciDatiAI(){
  const {prodotti,vendite,periodo}=cacheGDO;
 
- // Mandiamo all'AI un riepilogo compatto, non le righe grezze dello storico.
- // La sorgente ÃÂ¨ comunque limitata alle referenze presenti nelle liste.
- const righe=prodotti.map(p=>{
+ // Le referenze sono giÃ  state filtrate a monte: qui costruiamo
+ // solamente il riepilogo delle referenze presenti nelle liste.
+ return prodotti.map(p=>{
   const codice=String(p.codice||"").trim();
   const v=vendite.get(codice);
 
@@ -221,33 +221,56 @@ function costruisciDatiAI(){
    periodo_vendite:periodo?`${periodo.inizio} Ã¢ÂÂ ${periodo.fine}`:"periodo non disponibile"
   };
  });
-
- return righe;
 }
+
 async function analizzaSituazioneGDO(){
  const b=document.getElementById("btnAnalizzaGDO"),r=document.getElementById("risultatoAI");
- b.disabled=true;b.textContent="Ã°ÂÂ§Â  Analisi in corso...";r.style.display="block";r.innerHTML="Ã¢ÂÂ³ Sto leggendo vendite, prodotti, scadenze e offerte...";
+ b.disabled=true;
+ b.textContent="Ã°ÂÂ§Â  Analisi in corso...";
+ r.style.display="block";
+ r.innerHTML="Ã¢ÂÂ³ Preparo le referenze e avvio l'analisi a blocchi...";
+
  try{
   if(!cacheGDO)await caricaDati();
   if(!cacheGDO)throw new Error("Dati GDO non disponibili.");
+
   const datiGDO=costruisciDatiAI();
-  const messaggio=`
+
+  if(!datiGDO.length){
+   r.innerHTML="Ã¢ÂÂ¹Ã¯Â¸Â Nessuna referenza disponibile per l'analisi.";
+   return;
+  }
+
+  // IMPORTANTE:
+  // non inviamo piÃÂ¹ centinaia di referenze in una sola richiesta.
+  // Ogni chiamata contiene un piccolo blocco.
+  const dimensioneBlocco=20;
+  const risultati=[];
+
+  for(let i=0;i<datiGDO.length;i+=dimensioneBlocco){
+
+   const blocco=datiGDO.slice(i,i+dimensioneBlocco);
+   const numeroFine=Math.min(i+dimensioneBlocco,datiGDO.length);
+
+   r.innerHTML=`Ã¢ÂÂ³ Analisi AI in corso: ${numeroFine} di ${datiGDO.length} referenze...`;
+
+   const messaggio=`
 Sei AI GDO, un'intelligenza artificiale specializzata nella gestione operativa di un supermercato.
 
-Usa ESCLUSIVAMENTE i dati reali forniti. Non inventare quantitÃÂ , date o scadenze.
+Analizza ESCLUSIVAMENTE le referenze presenti in questo blocco.
+Usa solo i dati reali forniti. Non inventare quantitÃÂ , date, scadenze o giacenze.
 
 IMPORTANTE SULLE VENDITE:
 Lo storico vendite ÃÂ¨ un RESOCONTO TOTALE del periodo indicato, non una serie giornaliera.
 Per ogni referenza:
 - vendite_periodo = pezzi venduti nel periodo;
-- media_settimanale = vendite_periodo divise proporzionalmente sui giorni del periodo, solo se il periodo ÃÂ¨ disponibile;
-- non usare data_vendita per ricavare una "ultima vendita": il file contiene un totale aggregato del periodo, non una sequenza di vendite giornaliere.
-Usa quindi la media settimanale come indicatore di velocitÃÂ  di vendita, non come previsione certa.
+- media_settimanale = indicatore della velocitÃÂ  media di vendita;
+- non usare data_vendita per ricavare una "ultima vendita";
+- non inventare la quantitÃÂ  attualmente presente.
 
-Ragiona soprattutto sulle referenze che hanno una scadenza vicina e confrontale con la loro velocitÃÂ  di vendita.
-Se una referenza scade tra pochi giorni e la sua velocitÃÂ  di vendita ÃÂ¨ sufficiente a smaltire la quantitÃÂ  presente, evidenzialo.
-Se la velocitÃÂ  ÃÂ¨ bassa o manca un dato necessario, dichiaralo.
-Non inventare la quantitÃÂ  attualmente presente se non ÃÂ¨ fornita.
+Ragiona soprattutto sulle referenze con scadenza vicina e confrontale con la velocitÃÂ  di vendita.
+Considera anche eventuali offerte.
+Se manca un dato necessario, dichiaralo chiaramente.
 
 Distingui chiaramente:
 Ã°ÂÂÂ´ PRIORITÃÂ
@@ -256,17 +279,47 @@ Distingui chiaramente:
 Ã°ÂÂÂ¡ SUGGERIMENTO OPERATIVO
 
 Per ogni situazione importante indica codice e descrizione.
-Indica anche quando i dati non sono sufficienti per una conclusione.
 
-DATI REALI:
-${JSON.stringify(datiGDO)}
+DATI REALI DEL BLOCCO:
+${JSON.stringify(blocco)}
 `;
-  const resp=await fetch("/api/ai-gdo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messaggio})});
-  const data=await resp.json();if(!resp.ok)throw new Error(data.error||"Errore durante l'analisi AI");
-  const testo=data.risposta||"Ã¢ÂÂ Ã¯Â¸Â L'AI non ha restituito una risposta.";
-  r.innerHTML=escapeHtml(testo).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/^### (.*)$/gm,"<h3>$1</h3>").replace(/^#### (.*)$/gm,"<h4>$1</h4>").replace(/\n/g,"<br>");
- }catch(e){console.error(e);r.innerHTML="Ã¢ÂÂ Errore durante l'analisi: "+escapeHtml(e.message)}finally{b.disabled=false;b.textContent="Ã°ÂÂ§Â  Analizza situazione GDO"}
+
+   const resp=await fetch("/api/ai-gdo",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({messaggio})
+   });
+
+   const data=await resp.json();
+
+   if(!resp.ok){
+    throw new Error(data.error||"Errore durante l'analisi AI");
+   }
+
+   if(data.risposta){
+    risultati.push(`BLOCCO ${Math.floor(i/dimensioneBlocco)+1}
+
+${data.risposta}`);
+   }
+  }
+
+  const testo=risultati.join("\n\n---\n\n");
+
+  r.innerHTML=escapeHtml(testo)
+   .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+   .replace(/^### (.*)$/gm,"<h3>$1</h3>")
+   .replace(/^#### (.*)$/gm,"<h4>$1</h4>")
+   .replace(/\n/g,"<br>");
+
+ }catch(e){
+  console.error(e);
+  r.innerHTML="Ã¢ÂÂ Errore durante l'analisi: "+escapeHtml(e.message);
+ }finally{
+  b.disabled=false;
+  b.textContent="Ã°ÂÂ§Â  Analizza situazione GDO";
+ }
 }
+
 document.addEventListener("DOMContentLoaded",caricaDati);
 </script>
 </body>
