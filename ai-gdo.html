@@ -42,43 +42,43 @@
 <main>
 <header class="topbar">
 <div class="search-box"><input type="text" placeholder="Cerca..."></div>
-<div class="user-area"><div class="circle">Ã°ÂÂÂ</div><div class="profile"><div class="avatar"></div><div class="profile-name"><strong>Andrea</strong><span>Responsabile</span></div></div></div>
+<div class="user-area"><div class="circle">ð</div><div class="profile"><div class="avatar"></div><div class="profile-name"><strong>Andrea</strong><span>Responsabile</span></div></div></div>
 </header>
 
 <section class="table-area">
 <div class="table-header">
-<h2>Ã°ÂÂ¤Â AI GDO</h2>
-<button class="new-product" type="button" id="btnCollegaAI" onclick="collegaAI()">Ã°ÂÂ¤Â Collega Intelligenza Artificiale</button>
+<h2>ð¤ AI GDO</h2>
+<button class="new-product" type="button" id="btnCollegaAI" onclick="collegaAI()">ð¤ Collega Intelligenza Artificiale</button>
 </div>
 
 <div style="background:#162238;padding:30px;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
-<h2 style="color:#fff;margin-top:0">Ã°ÂÂÂ® Cosa farÃÂ  AI GDO</h2>
+<h2 style="color:#fff;margin-top:0">ð® Cosa farÃ  AI GDO</h2>
 <div class="ai-grid">
-<div class="ai-card"><div style="font-size:28px">Ã°ÂÂÂ</div><h3>Analisi scadenze</h3><p>Individua le situazioni che richiedono attenzione.</p></div>
-<div class="ai-card"><div style="font-size:28px">Ã°ÂÂÂ</div><h3>Analisi vendite</h3><p>Collega vendite storiche, velocitÃÂ  di vendita e scadenze.</p></div>
-<div class="ai-card"><div style="font-size:28px">Ã°ÂÂ§Â </div><h3>Ragionamento</h3><p>Collega scadenze, offerte e storico per trovare schemi.</p></div>
-<div class="ai-card"><div style="font-size:28px">Ã°ÂÂÂ®</div><h3>Previsioni</h3><p>Stima se la vendita puÃÂ² assorbire la merce prima della scadenza.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi scadenze</h3><p>Individua le situazioni che richiedono attenzione.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi vendite</h3><p>Collega vendite storiche, velocitÃ  di vendita e scadenze.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð§ </div><h3>Ragionamento</h3><p>Collega scadenze, offerte e storico per trovare schemi.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð®</div><h3>Previsioni</h3><p>Stima se la vendita puÃ² assorbire la merce prima della scadenza.</p></div>
 </div>
 </div>
 
 <div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
-<h2 style="color:#fff;margin-top:0">Ã°ÂÂÂ Dati collegati all'AI</h2>
+<h2 style="color:#fff;margin-top:0">ð Dati collegati all'AI</h2>
 <p style="color:#aebbd0;font-size:16px">Lo storico vendite viene letto direttamente da Supabase e collegato alle referenze presenti nel gestionale.</p>
 <div class="ai-stats">
-<div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">Ã¢ÂÂ</strong></div>
-<div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">Ã¢ÂÂ</strong></div>
-<div class="ai-stat"><span>Pezzi venduti periodo</span><strong id="statPezzi">Ã¢ÂÂ</strong></div>
-<div class="ai-stat"><span>Referenze collegate</span><strong id="statCollegate">Ã¢ÂÂ</strong></div>
+<div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">â</strong></div>
+<div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">â</strong></div>
+<div class="ai-stat"><span>Pezzi venduti periodo</span><strong id="statPezzi">â</strong></div>
+<div class="ai-stat"><span>Referenze collegate</span><strong id="statCollegate">â</strong></div>
 </div>
-<div id="statoDati" class="ai-note">Ã¢ÂÂ³ Collegamento ai dati in corso...</div>
+<div id="statoDati" class="ai-note">â³ Collegamento ai dati in corso...</div>
 </div>
 
 <div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
-<h2 style="color:#fff;margin-top:0">Ã°ÂÂ§Â  Analisi intelligente GDO</h2>
+<h2 style="color:#fff;margin-top:0">ð§  Analisi intelligente GDO</h2>
 <p style="color:#aebbd0;font-size:16px">
-L'AI analizzerÃÂ  insieme scadenze, vendite storiche e offerte. Per ogni referenza potrÃÂ  confrontare la quantitÃÂ  venduta nel periodo con la velocitÃÂ  media settimanale e la situazione di scadenza.
+L'AI analizzerÃ  insieme scadenze, vendite storiche e offerte. Per ogni referenza potrÃ  confrontare la quantitÃ  venduta nel periodo con la velocitÃ  media settimanale e la situazione di scadenza.
 </p>
-<button class="new-product ai-button" type="button" id="btnAnalizzaGDO" onclick="analizzaSituazioneGDO()">Ã°ÂÂ§Â  Analizza situazione GDO</button>
+<button class="new-product ai-button" type="button" id="btnAnalizzaGDO" onclick="analizzaSituazioneGDO()">ð§  Analizza situazione GDO</button>
 <div id="risultatoAI" class="ai-result"></div>
 </div>
 </section>
@@ -156,10 +156,10 @@ async function caricaDati(){
     .filter(Boolean)
   )];
 
-  stato.textContent=`Ã°ÂÂâ¹ ${fmt(listaProdotti.length)} referenze caricate nelle liste. Incrocio con lo storico...`;
+  stato.textContent=`ð‹ ${fmt(listaProdotti.length)} referenze caricate nelle liste. Incrocio con lo storico...`;
 
   // 2) SOLO dopo aver conosciuto le referenze caricate, cerchiamo lo storico
-  //    relativo a quei codici. Non viene piÃÂ¹ scaricato tutto lo storico.
+  //    relativo a quei codici. Non viene piÃ¹ scaricato tutto lo storico.
   const righe=await leggiStoricoVendite(codiciLista);
 
   const agg=aggregaVendite(righe);
@@ -183,19 +183,19 @@ async function caricaDati(){
   );
   document.getElementById("statCollegate").textContent=fmt(collegati.length);
 
-  stato.textContent=`Ã°ÂÂÂ¢ Dati collegati. ${fmt(listaProdotti.length)} referenze nelle liste, ${fmt(righe.length)} righe storico relative a queste referenze e ${fmt(collegati.length)} referenze collegate.`;
+  stato.textContent=`ð¢ Dati collegati. ${fmt(listaProdotti.length)} referenze nelle liste, ${fmt(righe.length)} righe storico relative a queste referenze e ${fmt(collegati.length)} referenze collegate.`;
  }catch(e){
   console.error(e);
-  stato.textContent="Ã°ÂÂÂ´ "+e.message;
+  stato.textContent="ð´ "+e.message;
  }
 }
 async function collegaAI(){
- const b=document.getElementById("btnCollegaAI");b.disabled=true;b.textContent="Ã°ÂÂ¤Â Collegamento in corso...";
+ const b=document.getElementById("btnCollegaAI");b.disabled=true;b.textContent="ð¤ Collegamento in corso...";
  try{
   const r=await fetch("/api/ai-gdo",{method:"GET"}),d=await r.json();
   if(!r.ok)throw new Error(d.error||"Errore nel collegamento");
-  alert(d.risposta||"Collegamento riuscito");b.textContent="Ã°ÂÂÂ¢ Intelligenza Artificiale collegata";
- }catch(e){console.error(e);alert("Ã¢ÂÂ Collegamento non riuscito: "+e.message);b.textContent="Ã°ÂÂÂ´ Collegamento non riuscito"}finally{b.disabled=false}
+  alert(d.risposta||"Collegamento riuscito");b.textContent="ð¢ Intelligenza Artificiale collegata";
+ }catch(e){console.error(e);alert("â Collegamento non riuscito: "+e.message);b.textContent="ð´ Collegamento non riuscito"}finally{b.disabled=false}
 }
 function parseDataAI(v){
  if(!v)return null;
@@ -269,13 +269,13 @@ function costruisciDatiAI(){
    data_fine_offerta:p.data_fine_offerta||null,
    vendite_periodo:venditePeriodo,
    media_settimanale:mediaSettimanale,
-   periodo_vendite:periodo?`${periodo.inizio} â ${periodo.fine}`:"periodo non disponibile"
+   periodo_vendite:periodo?`${periodo.inizio} → ${periodo.fine}`:"periodo non disponibile"
   });
  }
 
  candidati.sort((a,b)=>b.priorita-a.priorita);
 
- // UNA SOLA chiamata AI. Il database puÃÂ² contenere migliaia di referenze,
+ // UNA SOLA chiamata AI. Il database puÃ² contenere migliaia di referenze,
  // ma GPT riceve al massimo 25 situazioni realmente rilevanti.
  return candidati.slice(0,25).map(({priorita,...r})=>r);
 }
@@ -283,9 +283,9 @@ function costruisciDatiAI(){
 async function analizzaSituazioneGDO(){
  const b=document.getElementById("btnAnalizzaGDO"),r=document.getElementById("risultatoAI");
  b.disabled=true;
- b.textContent="ð§  Analisi in corso...";
+ b.textContent="🧠 Analisi in corso...";
  r.style.display="block";
- r.innerHTML="â³ Seleziono le referenze prioritarie e preparo l'analisi...";
+ r.innerHTML="⏳ Seleziono le referenze prioritarie e preparo l'analisi...";
 
  try{
   if(!cacheGDO)await caricaDati();
@@ -294,34 +294,34 @@ async function analizzaSituazioneGDO(){
   const datiGDO=costruisciDatiAI();
 
   if(!datiGDO.length){
-   r.innerHTML="â¹ï¸ Nessuna referenza presenta attualmente dati sufficienti per un'analisi.";
+   r.innerHTML="ℹ️ Nessuna referenza presenta attualmente dati sufficienti per un'analisi.";
    return;
   }
 
   const messaggio=`
 Sei AI GDO, un'intelligenza artificiale specializzata nella gestione operativa di un supermercato.
 
-Usa ESCLUSIVAMENTE i dati reali forniti. Non inventare quantitÃ , date, scadenze o giacenze.
+Usa ESCLUSIVAMENTE i dati reali forniti. Non inventare quantità, date, scadenze o giacenze.
 
-Lo storico vendite Ã¨ un RESOCONTO TOTALE del periodo indicato, non una serie giornaliera.
+Lo storico vendite è un RESOCONTO TOTALE del periodo indicato, non una serie giornaliera.
 - vendite_periodo = pezzi venduti nel periodo;
-- media_settimanale = indicatore della velocitÃ  media di vendita;
+- media_settimanale = indicatore della velocità media di vendita;
 - non usare data_vendita per ricavare una "ultima vendita";
-- non inventare la quantitÃ  attualmente presente.
+- non inventare la quantità attualmente presente.
 
-Queste sono le referenze giÃ  selezionate dal sistema perchÃ© presentano una situazione potenzialmente rilevante:
+Queste sono le referenze già selezionate dal sistema perché presentano una situazione potenzialmente rilevante:
 scadenza vicina, scadenza superata, offerta o vendite.
 
 Analizza queste referenze e individua le situazioni che richiedono attenzione.
 Per ogni situazione importante indica codice e descrizione.
-Confronta, quando possibile, la scadenza con la velocitÃ  media di vendita.
+Confronta, quando possibile, la scadenza con la velocità media di vendita.
 Se mancano dati necessari, dichiaralo chiaramente.
 
 Distingui:
-ð´ PRIORITÃ
-ð  ATTENZIONE
-ð¢ OPPORTUNITÃ
-ð¡ SUGGERIMENTO OPERATIVO
+🔴 PRIORITÀ
+🟠 ATTENZIONE
+🟢 OPPORTUNITÀ
+💡 SUGGERIMENTO OPERATIVO
 
 DATI REALI:
 ${JSON.stringify(datiGDO)}
@@ -336,7 +336,7 @@ ${JSON.stringify(datiGDO)}
   const data=await resp.json();
   if(!resp.ok)throw new Error(data.error||"Errore durante l'analisi AI");
 
-  const testo=data.risposta||"â ï¸ L'AI non ha restituito una risposta.";
+  const testo=data.risposta||"⚠️ L'AI non ha restituito una risposta.";
   r.innerHTML=escapeHtml(testo)
    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
    .replace(/^### (.*)$/gm,"<h3>$1</h3>")
@@ -345,10 +345,10 @@ ${JSON.stringify(datiGDO)}
 
  }catch(e){
   console.error(e);
-  r.innerHTML="â Errore durante l'analisi: "+escapeHtml(e.message);
+  r.innerHTML="❌ Errore durante l'analisi: "+escapeHtml(e.message);
  }finally{
   b.disabled=false;
-  b.textContent="ð§  Analizza situazione GDO";
+  b.textContent="🧠 Analizza situazione GDO";
  }
 }
 
