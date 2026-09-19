@@ -201,26 +201,16 @@ function parseDataAI(v){
  if(!v)return null;
  const s=String(v).trim();
  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
- if(m){
-  const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
-  if(!Number.isNaN(d.getTime()))return d;
- }
- m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
- if(m){
-  const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
-  if(!Number.isNaN(d.getTime()))return d;
- }
+ if(m){const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));if(!Number.isNaN(d.getTime()))return d;}
+ m=s.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})/);
+ if(m){const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));if(!Number.isNaN(d.getTime()))return d;}
  const d=new Date(s);
  return Number.isNaN(d.getTime())?null:d;
 }
 
-function giorniScadenzaAI(p){
- const n=Number(p.giorni);
- if(Number.isFinite(n))return n;
-
- const d=parseDataAI(p.scadenza);
+function giorniAllaScadenzaAI(v){
+ const d=parseDataAI(v);
  if(!d)return null;
-
  const oggi=new Date();
  oggi.setHours(0,0,0,0);
  d.setHours(0,0,0,0);
@@ -233,59 +223,50 @@ function costruisciDatiAI(){
 
  for(const p of prodotti){
   const codice=String(p.codice||"").trim();
+  if(!codice)continue;
+
   const v=vendite.get(codice);
-  const giorniScadenza=giorniScadenzaAI(p);
-  const venditePeriodo=v?.vendite_periodo||0;
-  const mediaSettimanale=v?.media_settimanale??null;
-  const haOfferta=p.offerta!==null && p.offerta!==undefined &&
-                  String(p.offerta).trim()!=="";
+  const giorniScadenza=giorniAllaScadenzaAI(p.scadenza);
+  const venditePeriodo=Number(v?.vendite_periodo||0);
+  const haOfferta=p.offerta!==null && p.offerta!==undefined && String(p.offerta).trim()!=="";
 
-  const urgente=giorniScadenza!==null && giorniScadenza<=7;
-  const attenzione=giorniScadenza!==null && giorniScadenza<=14;
-  const scaduta=giorniScadenza!==null && giorniScadenza<0;
-  const haVendite=venditePeriodo>0;
+  if((giorniScadenza!==null && giorniScadenza<=14) || haOfferta || venditePeriodo>0){
+   let priorita=0;
+   if(giorniScadenza!==null){
+    if(giorniScadenza<0)priorita+=1000;
+    else if(giorniScadenza<=3)priorita+=900;
+    else if(giorniScadenza<=7)priorita+=700;
+    else if(giorniScadenza<=14)priorita+=500;
+   }
+   if(haOfferta)priorita+=100;
+   if(venditePeriodo>0)priorita+=Math.min(100,venditePeriodo/10);
 
-  // L'AI vede solo situazioni utili, non tutte le referenze.
-  if(!(scaduta || urgente || attenzione || haOfferta || haVendite)) continue;
-
-  let priorita=0;
-  if(scaduta)priorita+=100000;
-  else if(urgente)priorita+=50000;
-  else if(attenzione)priorita+=20000;
-
-  if(haOfferta)priorita+=5000;
-  if(haVendite)priorita+=Math.min(venditePeriodo,5000);
-
-  candidati.push({
-   priorita,
-   codice,
-   descrizione:p.descrizione||v?.descrizione||"",
-   reparto:p.reparto||null,
-   scadenza:p.scadenza||null,
-   giorni:giorniScadenza,
-   offerta:p.offerta??null,
-   pezzi_offerta:p.pezzi_offerta??null,
-   data_inizio_offerta:p.data_inizio_offerta||null,
-   data_fine_offerta:p.data_fine_offerta||null,
-   vendite_periodo:venditePeriodo,
-   media_settimanale:mediaSettimanale,
-   periodo_vendite:periodo?`${periodo.inizio} → ${periodo.fine}`:"periodo non disponibile"
-  });
+   candidati.push({
+    priorita,
+    codice,
+    descrizione:p.descrizione||v?.descrizione||"",
+    reparto:p.reparto||null,
+    scadenza:p.scadenza||null,
+    giorni:giorniScadenza,
+    offerta:p.offerta??null,
+    pezzi_offerta:p.pezzi_offerta??null,
+    data_inizio_offerta:p.data_inizio_offerta||null,
+    data_fine_offerta:p.data_fine_offerta||null,
+    vendite_periodo:venditePeriodo,
+    media_settimanale:v?.media_settimanale??null,
+    periodo_vendite:periodo?`${periodo.inizio} → ${periodo.fine}`:"periodo non disponibile"
+   });
+  }
  }
 
  candidati.sort((a,b)=>b.priorita-a.priorita);
-
- // UNA SOLA chiamata AI. Il database puÃ² contenere migliaia di referenze,
- // ma GPT riceve al massimo 25 situazioni realmente rilevanti.
- return candidati.slice(0,25).map(({priorita,...r})=>r);
+ return candidati.slice(0,15).map(({priorita,...r})=>r);
 }
 
 async function analizzaSituazioneGDO(){
  const b=document.getElementById("btnAnalizzaGDO"),r=document.getElementById("risultatoAI");
- b.disabled=true;
- b.textContent="🧠 Analisi in corso...";
- r.style.display="block";
- r.innerHTML="⏳ Seleziono le referenze prioritarie e preparo l'analisi...";
+ b.disabled=true;b.textContent="🧠 Analisi in corso...";r.style.display="block";
+ r.innerHTML="⏳ Sto selezionando le situazioni più rilevanti...";
 
  try{
   if(!cacheGDO)await caricaDati();
@@ -294,34 +275,35 @@ async function analizzaSituazioneGDO(){
   const datiGDO=costruisciDatiAI();
 
   if(!datiGDO.length){
-   r.innerHTML="ℹ️ Nessuna referenza presenta attualmente dati sufficienti per un'analisi.";
+   r.innerHTML="ℹ️ Non ci sono attualmente referenze con dati sufficienti per un'analisi.";
    return;
   }
 
+  r.innerHTML=`⏳ Invio all'AI di ${datiGDO.length} situazioni prioritarie...`;
+
   const messaggio=`
-Sei AI GDO, un'intelligenza artificiale specializzata nella gestione operativa di un supermercato.
+Sei AI GDO, specializzata nella gestione operativa di un supermercato.
 
 Usa ESCLUSIVAMENTE i dati reali forniti. Non inventare quantità, date, scadenze o giacenze.
 
 Lo storico vendite è un RESOCONTO TOTALE del periodo indicato, non una serie giornaliera.
 - vendite_periodo = pezzi venduti nel periodo;
 - media_settimanale = indicatore della velocità media di vendita;
-- non usare data_vendita per ricavare una "ultima vendita";
+- non ricavare una "ultima vendita" dallo storico;
 - non inventare la quantità attualmente presente.
 
-Queste sono le referenze già selezionate dal sistema perché presentano una situazione potenzialmente rilevante:
-scadenza vicina, scadenza superata, offerta o vendite.
+Analizza queste sole referenze prioritarie, già selezionate dal sistema.
+Concentrati sulle scadenze vicine, sulla velocità di vendita e sulle eventuali offerte.
 
-Analizza queste referenze e individua le situazioni che richiedono attenzione.
 Per ogni situazione importante indica codice e descrizione.
-Confronta, quando possibile, la scadenza con la velocità media di vendita.
-Se mancano dati necessari, dichiaralo chiaramente.
-
-Distingui:
+Usa queste categorie:
 🔴 PRIORITÀ
 🟠 ATTENZIONE
 🟢 OPPORTUNITÀ
 💡 SUGGERIMENTO OPERATIVO
+
+Se i dati non bastano per una conclusione, dichiaralo chiaramente.
+Non inventare informazioni.
 
 DATI REALI:
 ${JSON.stringify(datiGDO)}
@@ -347,8 +329,7 @@ ${JSON.stringify(datiGDO)}
   console.error(e);
   r.innerHTML="❌ Errore durante l'analisi: "+escapeHtml(e.message);
  }finally{
-  b.disabled=false;
-  b.textContent="🧠 Analizza situazione GDO";
+  b.disabled=false;b.textContent="🧠 Analizza situazione GDO";
  }
 }
 
