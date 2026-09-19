@@ -42,43 +42,43 @@
 <main>
 <header class="topbar">
 <div class="search-box"><input type="text" placeholder="Cerca..."></div>
-<div class="user-area"><div class="circle">ð</div><div class="profile"><div class="avatar"></div><div class="profile-name"><strong>Andrea</strong><span>Responsabile</span></div></div></div>
+<div class="user-area"><div class="circle">🔔</div><div class="profile"><div class="avatar"></div><div class="profile-name"><strong>Andrea</strong><span>Responsabile</span></div></div></div>
 </header>
 
 <section class="table-area">
 <div class="table-header">
-<h2>ð¤ AI GDO</h2>
-<button class="new-product" type="button" id="btnCollegaAI" onclick="collegaAI()">ð¤ Collega Intelligenza Artificiale</button>
+<h2>🤖 AI GDO</h2>
+<button class="new-product" type="button" id="btnCollegaAI" onclick="collegaAI()">🤖 Collega Intelligenza Artificiale</button>
 </div>
 
 <div style="background:#162238;padding:30px;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
-<h2 style="color:#fff;margin-top:0">ð® Cosa farÃ  AI GDO</h2>
+<h2 style="color:#fff;margin-top:0">🔮 Cosa farà AI GDO</h2>
 <div class="ai-grid">
-<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi scadenze</h3><p>Individua le situazioni che richiedono attenzione.</p></div>
-<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi vendite</h3><p>Collega vendite storiche, velocitÃ  di vendita e scadenze.</p></div>
-<div class="ai-card"><div style="font-size:28px">ð§ </div><h3>Ragionamento</h3><p>Collega scadenze, offerte e storico per trovare schemi.</p></div>
-<div class="ai-card"><div style="font-size:28px">ð®</div><h3>Previsioni</h3><p>Stima se la vendita puÃ² assorbire la merce prima della scadenza.</p></div>
+<div class="ai-card"><div style="font-size:28px">📅</div><h3>Analisi scadenze</h3><p>Individua le situazioni che richiedono attenzione.</p></div>
+<div class="ai-card"><div style="font-size:28px">📊</div><h3>Analisi vendite</h3><p>Collega vendite storiche, velocità di vendita e scadenze.</p></div>
+<div class="ai-card"><div style="font-size:28px">🧠</div><h3>Ragionamento</h3><p>Collega scadenze, offerte e storico per trovare schemi.</p></div>
+<div class="ai-card"><div style="font-size:28px">🔮</div><h3>Previsioni</h3><p>Stima se la vendita può assorbire la merce prima della scadenza.</p></div>
 </div>
 </div>
 
 <div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
-<h2 style="color:#fff;margin-top:0">ð Dati collegati all'AI</h2>
+<h2 style="color:#fff;margin-top:0">📊 Dati collegati all'AI</h2>
 <p style="color:#aebbd0;font-size:16px">Lo storico vendite viene letto direttamente da Supabase e collegato alle referenze presenti nel gestionale.</p>
 <div class="ai-stats">
-<div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">â</strong></div>
-<div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">â</strong></div>
-<div class="ai-stat"><span>Pezzi venduti periodo</span><strong id="statPezzi">â</strong></div>
-<div class="ai-stat"><span>Referenze collegate</span><strong id="statCollegate">â</strong></div>
+<div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">—</strong></div>
+<div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">—</strong></div>
+<div class="ai-stat"><span>Pezzi venduti periodo</span><strong id="statPezzi">—</strong></div>
+<div class="ai-stat"><span>Referenze collegate</span><strong id="statCollegate">—</strong></div>
 </div>
-<div id="statoDati" class="ai-note">â³ Collegamento ai dati in corso...</div>
+<div id="statoDati" class="ai-note">⏳ Collegamento ai dati in corso...</div>
 </div>
 
 <div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
-<h2 style="color:#fff;margin-top:0">ð§  Analisi intelligente GDO</h2>
+<h2 style="color:#fff;margin-top:0">🧠 Analisi intelligente GDO</h2>
 <p style="color:#aebbd0;font-size:16px">
-L'AI analizzerÃ  insieme scadenze, vendite storiche e offerte. Per ogni referenza potrÃ  confrontare la quantitÃ  venduta nel periodo con la velocitÃ  media settimanale e la situazione di scadenza.
+L'AI analizzerà insieme scadenze, vendite storiche e offerte. Per ogni referenza potrà confrontare la quantità venduta nel periodo con la velocità media settimanale e la situazione di scadenza.
 </p>
-<button class="new-product ai-button" type="button" id="btnAnalizzaGDO" onclick="analizzaSituazioneGDO()">ð§  Analizza situazione GDO</button>
+<button class="new-product ai-button" type="button" id="btnAnalizzaGDO" onclick="analizzaSituazioneGDO()">🧠 Analizza situazione GDO</button>
 <div id="risultatoAI" class="ai-result"></div>
 </div>
 </section>
@@ -100,28 +100,18 @@ function parsePeriodo(s){
  const giorni=Math.max(1,Math.round((b-a)/86400000)+1);
  return {inizio:a.toISOString().slice(0,10),fine:b.toISOString().slice(0,10),giorni};
 }
-// Legge lo storico SOLO per i codici presenti nelle liste/prodotti attualmente caricati.
-// Le query vengono fatte a blocchi per evitare URL troppo lunghi quando le referenze sono migliaia.
-async function leggiStoricoVendite(codici){
- const unici=[...new Set((codici||[]).map(c=>String(c||"").trim()).filter(Boolean))];
- const righe=[];
- const chunkSize=500;
-
- for(let i=0;i<unici.length;i+=chunkSize){
-  const chunk=unici.slice(i,i+chunkSize);
-  const {data,error}=await window.supabaseClient
-   .from(STORICO_TABLE)
+async function leggiStoricoVendite(){
+ let righe=[],page=1000;
+ for(let from=0;;from+=page){
+  const {data,error}=await window.supabaseClient.from(STORICO_TABLE)
    .select("id,codice,descrizione,quantita,periodo")
-   .in("codice",chunk)
-   .order("id",{ascending:true});
-
+   .order("id",{ascending:true}).range(from,from+page-1);
   if(error)throw new Error("Errore storico vendite: "+error.message);
   righe.push(...(data||[]));
+  if(!data||data.length<page)break;
  }
-
  return righe;
 }
-
 function aggregaVendite(righe){
  const map=new Map(); let periodo=null;
  for(const r of righe){
@@ -137,72 +127,41 @@ function aggregaVendite(righe){
  }
  return {map,periodo,giorni};
 }
-
 async function caricaDati(){
  const stato=document.getElementById("statoDati");
  try{
-  // 1) Prima leggiamo SOLO le referenze presenti nelle liste/gestionale.
-  const {data:prodotti,error:ep}=await window.supabaseClient
-   .from("prodotti")
-   .select("*")
-   .order("id",{ascending:true});
-
+  const [{data:prodotti,error:ep},righe]=await Promise.all([
+   window.supabaseClient.from("prodotti").select("*").order("id",{ascending:true}),
+   leggiStoricoVendite()
+  ]);
   if(ep)throw new Error("Errore prodotti: "+ep.message);
-
-  const listaProdotti=prodotti||[];
-  const codiciLista=[...new Set(
-   listaProdotti
-    .map(p=>String(p.codice||"").trim())
-    .filter(Boolean)
-  )];
-
-  stato.textContent=`ð‹ ${fmt(listaProdotti.length)} referenze caricate nelle liste. Incrocio con lo storico...`;
-
-  // 2) SOLO dopo aver conosciuto le referenze caricate, cerchiamo lo storico
-  //    relativo a quei codici. Non viene piÃ¹ scaricato tutto lo storico.
-  const righe=await leggiStoricoVendite(codiciLista);
-
   const agg=aggregaVendite(righe);
-  const pMap=new Map(listaProdotti.map(p=>[String(p.codice||"").trim(),p]));
+  const pMap=new Map((prodotti||[]).map(p=>[String(p.codice||"").trim(),p]));
   const collegati=[...agg.map.values()].filter(v=>pMap.has(v.codice));
-
-  cacheGDO={
-   prodotti:listaProdotti,
-   storicoRighe:righe,
-   vendite:agg.map,
-   periodo:agg.periodo,
-   giorni:agg.giorni,
-   pMap,
-   codiciLista
-  };
-
-  document.getElementById("statProdotti").textContent=fmt(listaProdotti.length);
+  cacheGDO={prodotti:prodotti||[],storicoRighe:righe,vendite:agg.map,periodo:agg.periodo,giorni:agg.giorni,pMap};
+  document.getElementById("statProdotti").textContent=fmt((prodotti||[]).length);
   document.getElementById("statVendite").textContent=fmt(righe.length);
-  document.getElementById("statPezzi").textContent=fmt(
-   righe.reduce((s,r)=>s+(Number(r.quantita)||0),0)
-  );
+  document.getElementById("statPezzi").textContent=fmt(righe.reduce((s,r)=>s+(Number(r.quantita)||0),0));
   document.getElementById("statCollegate").textContent=fmt(collegati.length);
-
-  stato.textContent=`ð¢ Dati collegati. ${fmt(listaProdotti.length)} referenze nelle liste, ${fmt(righe.length)} righe storico relative a queste referenze e ${fmt(collegati.length)} referenze collegate.`;
+  stato.textContent=`🟢 Dati collegati. ${fmt(righe.length)} righe vendite e ${fmt(collegati.length)} referenze collegate ai prodotti.`;
  }catch(e){
-  console.error(e);
-  stato.textContent="ð´ "+e.message;
+  console.error(e);stato.textContent="🔴 "+e.message;
  }
 }
 async function collegaAI(){
- const b=document.getElementById("btnCollegaAI");b.disabled=true;b.textContent="ð¤ Collegamento in corso...";
+ const b=document.getElementById("btnCollegaAI");b.disabled=true;b.textContent="🤖 Collegamento in corso...";
  try{
   const r=await fetch("/api/ai-gdo",{method:"GET"}),d=await r.json();
   if(!r.ok)throw new Error(d.error||"Errore nel collegamento");
-  alert(d.risposta||"Collegamento riuscito");b.textContent="ð¢ Intelligenza Artificiale collegata";
- }catch(e){console.error(e);alert("â Collegamento non riuscito: "+e.message);b.textContent="ð´ Collegamento non riuscito"}finally{b.disabled=false}
+  alert(d.risposta||"Collegamento riuscito");b.textContent="🟢 Intelligenza Artificiale collegata";
+ }catch(e){console.error(e);alert("❌ Collegamento non riuscito: "+e.message);b.textContent="🔴 Collegamento non riuscito"}finally{b.disabled=false}
 }
 function parseDataAI(v){
  if(!v)return null;
  const s=String(v).trim();
- let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+ let m=s.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);
  if(m){const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));if(!Number.isNaN(d.getTime()))return d;}
- m=s.match(/^(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})/);
+ m=s.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})/);
  if(m){const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));if(!Number.isNaN(d.getTime()))return d;}
  const d=new Date(s);
  return Number.isNaN(d.getTime())?null:d;
@@ -228,7 +187,8 @@ function costruisciDatiAI(){
   const v=vendite.get(codice);
   const giorniScadenza=giorniAllaScadenzaAI(p.scadenza);
   const venditePeriodo=Number(v?.vendite_periodo||0);
-  const haOfferta=p.offerta!==null && p.offerta!==undefined && String(p.offerta).trim()!=="";
+  const haOfferta=p.offerta!==null && p.offerta!==undefined &&
+   String(p.offerta).trim()!=="";
 
   if((giorniScadenza!==null && giorniScadenza<=14) || haOfferta || venditePeriodo>0){
    let priorita=0;
@@ -249,20 +209,14 @@ function costruisciDatiAI(){
     scadenza:p.scadenza||null,
     giorni:giorniScadenza,
     offerta:p.offerta??null,
-    pezzi_offerta:p.pezzi_offerta??null,
-    data_inizio_offerta:p.data_inizio_offerta||null,
-    data_fine_offerta:p.data_fine_offerta||null,
     vendite_periodo:venditePeriodo,
-    media_settimanale:v?.media_settimanale??null,
-    periodo_vendite:periodo?`${periodo.inizio} → ${periodo.fine}`:"periodo non disponibile"
+    media_settimanale:v?.media_settimanale??null
    });
   }
  }
 
  candidati.sort((a,b)=>b.priorita-a.priorita);
- return candidati.slice(0,8).map(({priorita,codice,descrizione,reparto,scadenza,giorni,offerta,vendite_periodo,media_settimanale})=>({
-  codice,descrizione,reparto,scadenza,giorni,offerta,vendite_periodo,media_settimanale
- }));
+ return candidati.slice(0,8).map(({priorita,...r})=>r);
 }
 
 async function analizzaSituazioneGDO(){
@@ -277,19 +231,28 @@ async function analizzaSituazioneGDO(){
   const datiGDO=costruisciDatiAI();
 
   if(!datiGDO.length){
-   r.innerHTML="ℹ️ Non ci sono attualmente referenze con dati sufficienti per un'analisi.";
+   r.innerHTML="ℹ️ Nessuna situazione prioritaria trovata.";
    return;
   }
 
-  r.innerHTML=`⏳ Invio all'AI delle situazioni prioritarie...`;
+  r.innerHTML=`⏳ Invio all'AI di ${datiGDO.length} situazioni prioritarie...`;
 
   const messaggio=`
 Sei AI GDO. Analizza solo i dati reali forniti.
 
-Lo storico è un totale del periodo: usa vendite_periodo e media_settimanale come velocità. Non inventare giacenze o date e non ricavare una "ultima vendita".
+Lo storico è un totale del periodo: usa vendite_periodo e media_settimanale come velocità.
+Non inventare giacenze, date o "ultima vendita".
 
-Individua le urgenze legate a scadenze, vendite e offerte. Per ogni caso indica codice e descrizione.
-Categorie: 🔴 PRIORITÀ, 🟠 ATTENZIONE, 🟢 OPPORTUNITÀ, 💡 SUGGERIMENTO.
+Concentrati su scadenze vicine, velocità di vendita e offerte.
+Per ogni caso importante indica codice e descrizione.
+
+Categorie:
+🔴 PRIORITÀ
+🟠 ATTENZIONE
+🟢 OPPORTUNITÀ
+💡 SUGGERIMENTO
+
+Se i dati non bastano, dichiaralo.
 
 DATI:
 ${JSON.stringify(datiGDO)}
