@@ -28,7 +28,7 @@
 .cards-sales{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .sales-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:17px 18px}
 .sales-card span{display:block;color:#667085;font-size:13px;margin-bottom:7px}
-.sales-card strong{font-size:25px}
+.sales-card strong{font-size:25px;color:#111827}
 .panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-bottom:20px}
 .panel-head{padding:17px 18px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:15px}
 .panel-head h3{margin:0}
@@ -40,7 +40,7 @@
 .filters input,.filters select{padding:10px 12px;border:1px solid #d0d5dd;border-radius:8px;min-height:40px}
 .table-scroll{overflow:auto}
 .sales-table{width:100%;border-collapse:collapse;min-width:760px}
-.sales-table th,.sales-table td{padding:11px 12px;border-bottom:1px solid #eaecf0;text-align:left;white-space:nowrap}
+.sales-table th,.sales-table td{padding:11px 12px;border-bottom:1px solid #eaecf0;text-align:left;white-space:nowrap}.sales-table td{color:#344054}
 .sales-table th{background:#f8fafc;font-size:13px;color:#475467}
 .empty{text-align:center;color:#667085;padding:35px}
 .note{font-size:13px;color:#667085;margin-top:10px}
@@ -67,7 +67,7 @@
         <a>Report</a>
         <a href="ai-gdo.html">AI GDO</a>
         <a>Impostazioni</a>
-        <a href="#" onclick="eseguiLogout();return false;">🚪 Esci</a>
+        <a href="#" onclick="eseguiLogout();return false;">ðª Esci</a>
     </nav>
 </aside>
 
@@ -77,7 +77,7 @@
         <input id="ricerca" type="text" placeholder="Cerca prodotto...">
     </div>
     <div class="user-area">
-        <div class="circle">🔔</div>
+        <div class="circle">ð</div>
         <div class="profile">
             <div class="avatar"></div>
             <div class="profile-name">
@@ -91,8 +91,8 @@
 <div class="page-wrap">
     <div class="sales-head">
         <div>
-            <h2>📊 Storico vendite</h2>
-            <p>Archivio cumulativo delle vendite. I nuovi CSV vengono aggiunti allo storico senza cancellare i periodi già presenti.</p>
+            <h2>ð Storico vendite</h2>
+            <p>Archivio cumulativo delle vendite. I nuovi CSV vengono aggiunti allo storico senza cancellare i periodi giÃ  presenti.</p>
         </div>
         <div class="sales-actions">
             <label class="import-btn">
@@ -109,11 +109,11 @@
         <div class="sales-card"><span>Righe archiviate</span><strong id="totRighe">0</strong></div>
         <div class="sales-card"><span>Referenze</span><strong id="totReferenze">0</strong></div>
         <div class="sales-card"><span>Pezzi venduti</span><strong id="totPezzi">0</strong></div>
-        <div class="sales-card"><span>Periodo</span><strong id="periodo" style="font-size:18px">—</strong></div>
+        <div class="sales-card"><span>Periodo</span><strong id="periodo" style="font-size:18px">â</strong></div>
     </section>
 
     <section class="panel">
-        <div class="panel-head"><h3>📥 Importazione storico</h3></div>
+        <div class="panel-head"><h3>ð¥ Importazione storico</h3></div>
         <div class="panel-body">
             <div class="import-zone">
                 <strong>Carica il CSV delle vendite</strong>
@@ -124,13 +124,13 @@
                 </label>
                 <div id="status" class="status">Nessun nuovo file importato.</div>
             </div>
-            <div class="note">Nota: il CSV UXI non va caricato qui. Questa pagina è dedicata esclusivamente allo storico vendite.</div>
+            <div class="note">Nota: il CSV UXI non va caricato qui. Questa pagina Ã¨ dedicata esclusivamente allo storico vendite.</div>
         </div>
     </section>
 
     <section class="panel">
         <div class="panel-head">
-            <h3>📋 Vendite archiviate</h3>
+            <h3>ð Vendite archiviate</h3>
             <div class="filters">
                 <input id="filtro" type="text" placeholder="Cerca codice o descrizione">
                 <select id="filtroAnno"><option value="">Tutti gli anni</option></select>
@@ -138,7 +138,7 @@
         </div>
         <div class="table-scroll">
             <table class="sales-table">
-                <thead><tr><th>Data</th><th>Codice</th><th>Descrizione</th><th>Quantità</th><th>Periodo</th></tr></thead>
+                <thead><tr><th>Data</th><th>Codice</th><th>Descrizione</th><th>QuantitÃ </th><th>Periodo</th></tr></thead>
                 <tbody id="salesBody"></tbody>
             </table>
         </div>
@@ -169,17 +169,46 @@ function parseCSV(text){
 function val(o,names){const k=Object.keys(o);for(const n of names){const x=k.find(z=>norm(z)===norm(n));if(x!==undefined&&o[x]!=="")return o[x]}for(const n of names){const x=k.find(z=>norm(z).includes(norm(n)));if(x!==undefined&&o[x]!=="")return o[x]}return""}
 function num(v){let s=String(v??"").trim().replace(/\s/g,"");if(!s)return 0;if(s.includes(",")&&s.includes("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(",",".");return Number(s)||0}
 function date(v){let s=String(v??"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);return m?`${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`:null}
-function row(o){return{codice:String(val(o,["codice","codice articolo","codice prodotto","ean","barcode","articolo"])).trim(),descrizione:String(val(o,["descrizione","descrizione articolo","prodotto"])).trim(),data_vendita:date(val(o,["data","data vendita","giorno","date"])),quantita:num(val(o,["quantita","quantità","qta","pezzi","venduti","vendite"])),periodo:String(val(o,["periodo","mese","month","settimana","week"])).trim()}}
+function row(o, defaultPeriodo=""){return{codice:String(val(o,["codice","codice articolo","codice prodotto","ean","barcode","articolo"])).trim(),descrizione:String(val(o,["descrizione","descrizione articolo","prodotto"])).trim(),data_vendita:date(val(o,["DataUltVen","data","data vendita","giorno","date"])),quantita:num(val(o,["VenditePZ","quantita","quantitÃ ","qta","pezzi","venduti","vendite"])),periodo:String(val(o,["periodo","mese","month","settimana","week"])).trim()||defaultPeriodo}}
 async function carica(){
- const r=await window.supabaseClient.from(TABLE).select("id,created_at,codice,descrizione,data_vendita,quantita,periodo").order("data_vendita",{ascending:true}).limit(50000);
- if(r.error){vendite=[];setStatus("Errore Supabase: "+r.error.message,"error");render();return}
- vendite=r.data||[];setStatus(`Supabase attivo. ${vendite.length.toLocaleString("it-IT")} righe caricate.`,"ok");ui()
+ try{
+  vendite=[];
+  const PAGE=1000;
+  for(let from=0;;from+=PAGE){
+   const to=from+PAGE-1;
+   const r=await window.supabaseClient
+    .from(TABLE)
+    .select("id,created_at,codice,descrizione,data_vendita,quantita,periodo")
+    .order("data_vendita",{ascending:true})
+    .order("id",{ascending:true})
+    .range(from,to);
+   if(r.error)throw r.error;
+   const batch=r.data||[];
+   vendite.push(...batch);
+   if(batch.length<PAGE)break;
+   setStatus(`Lettura storico: ${vendite.length.toLocaleString("it-IT")} righe...`);
+  }
+  setStatus(`Supabase attivo. ${vendite.length.toLocaleString("it-IT")} righe caricate.`,"ok");
+  ui();
+ }catch(e){
+  vendite=[];
+  setStatus("Errore Supabase: "+(e.message||e),"error");
+  render();
+ }
+}
+function periodoDaNomeFile(nome){
+ const s=String(nome||"");
+ const m=s.match(/(\\d{1,2})[:\\/-](\\d{1,2})[:\\/-](\\d{4}).*?(\\d{1,2})[:\\/-](\\d{1,2})[:\\/-](\\d{4})/);
+ if(!m)return "";
+ return `${m[1].padStart(2,"0")}/${m[2].padStart(2,"0")}/${m[3]} â ${m[4].padStart(2,"0")}/${m[5].padStart(2,"0")}/${m[6]}`;
 }
 async function importa(file){
  if(!file)return;setStatus("Lettura CSV...");const rd=new FileReader();
  rd.onload=async()=>{try{
-  const p=parseCSV(rd.result).map(row).filter(r=>r.codice||r.descrizione||r.data_vendita),v=p.filter(r=>r.data_vendita);
-  if(!v.length)throw Error("Nessuna data vendita riconosciuta.");
+  const periodoDefault=periodoDaNomeFile(file.name);
+  const p=parseCSV(rd.result).map(o=>row(o,periodoDefault)).filter(r=>r.codice||r.descrizione||r.quantita!==0);
+  if(!p.length)throw Error("Nessuna riga di vendita riconosciuta.");
+  const v=p;
   let n=0;
   for(let i=0;i<v.length;i+=500){
    setStatus(`Importazione ${Math.min(i+500,v.length).toLocaleString("it-IT")} / ${v.length.toLocaleString("it-IT")}...`);
@@ -193,7 +222,7 @@ function ui(){
  document.getElementById("totRighe").textContent=vendite.length.toLocaleString("it-IT");
  document.getElementById("totReferenze").textContent=new Set(vendite.map(r=>r.codice).filter(Boolean)).size.toLocaleString("it-IT");
  document.getElementById("totPezzi").textContent=vendite.reduce((s,r)=>s+(Number(r.quantita)||0),0).toLocaleString("it-IT");
- let d=vendite.map(r=>r.data_vendita).filter(Boolean).sort();document.getElementById("periodo").textContent=d.length?`${d[0]} → ${d[d.length-1]}`:"—";
+ let d=vendite.map(r=>r.data_vendita).filter(Boolean).sort();document.getElementById("periodo").textContent=d.length?`${d[0]} â ${d[d.length-1]}`:"â";
  let y=[...new Set(vendite.map(r=>String(r.data_vendita||"").slice(0,4)).filter(x=>/^\d{4}$/.test(x)))].sort().reverse();
  let s=document.getElementById("filtroAnno"),old=s.value;s.innerHTML='<option value="">Tutti gli anni</option>'+y.map(x=>`<option value="${x}">${x}</option>`).join("");s.value=y.includes(old)?old:"";render()
 }
@@ -206,8 +235,8 @@ function render(){
 }
 async function esportaCSV(){
  const r=await window.supabaseClient.from(TABLE).select("data_vendita,codice,descrizione,quantita,periodo").order("data_vendita",{ascending:true}).limit(50000);
- if(r.error){alert(r.error.message);return}if(!r.data?.length){alert("Lo storico è vuoto.");return}
- let l=["Data;Codice;Descrizione;Quantità;Periodo"];r.data.forEach(x=>l.push([x.data_vendita,x.codice,x.descrizione,x.quantita,x.periodo].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")));
+ if(r.error){alert(r.error.message);return}if(!r.data?.length){alert("Lo storico Ã¨ vuoto.");return}
+ let l=["Data;Codice;Descrizione;QuantitÃ ;Periodo"];r.data.forEach(x=>l.push([x.data_vendita,x.codice,x.descrizione,x.quantita,x.periodo].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")));
  let b=new Blob(["\uFEFF"+l.join("\r\n")],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="storico-vendite.csv";a.click();URL.revokeObjectURL(a.href)
 }
 document.getElementById("csvFile").addEventListener("change",e=>importa(e.target.files[0]));
