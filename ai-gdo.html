@@ -260,7 +260,9 @@ function costruisciDatiAI(){
  }
 
  candidati.sort((a,b)=>b.priorita-a.priorita);
- return candidati.slice(0,15).map(({priorita,...r})=>r);
+ return candidati.slice(0,8).map(({priorita,codice,descrizione,reparto,scadenza,giorni,offerta,vendite_periodo,media_settimanale})=>({
+  codice,descrizione,reparto,scadenza,giorni,offerta,vendite_periodo,media_settimanale
+ }));
 }
 
 async function analizzaSituazioneGDO(){
@@ -279,33 +281,17 @@ async function analizzaSituazioneGDO(){
    return;
   }
 
-  r.innerHTML=`⏳ Invio all'AI di ${datiGDO.length} situazioni prioritarie...`;
+  r.innerHTML=`⏳ Invio all'AI delle situazioni prioritarie...`;
 
   const messaggio=`
-Sei AI GDO, specializzata nella gestione operativa di un supermercato.
+Sei AI GDO. Analizza solo i dati reali forniti.
 
-Usa ESCLUSIVAMENTE i dati reali forniti. Non inventare quantità, date, scadenze o giacenze.
+Lo storico è un totale del periodo: usa vendite_periodo e media_settimanale come velocità. Non inventare giacenze o date e non ricavare una "ultima vendita".
 
-Lo storico vendite è un RESOCONTO TOTALE del periodo indicato, non una serie giornaliera.
-- vendite_periodo = pezzi venduti nel periodo;
-- media_settimanale = indicatore della velocità media di vendita;
-- non ricavare una "ultima vendita" dallo storico;
-- non inventare la quantità attualmente presente.
+Individua le urgenze legate a scadenze, vendite e offerte. Per ogni caso indica codice e descrizione.
+Categorie: 🔴 PRIORITÀ, 🟠 ATTENZIONE, 🟢 OPPORTUNITÀ, 💡 SUGGERIMENTO.
 
-Analizza queste sole referenze prioritarie, già selezionate dal sistema.
-Concentrati sulle scadenze vicine, sulla velocità di vendita e sulle eventuali offerte.
-
-Per ogni situazione importante indica codice e descrizione.
-Usa queste categorie:
-🔴 PRIORITÀ
-🟠 ATTENZIONE
-🟢 OPPORTUNITÀ
-💡 SUGGERIMENTO OPERATIVO
-
-Se i dati non bastano per una conclusione, dichiaralo chiaramente.
-Non inventare informazioni.
-
-DATI REALI:
+DATI:
 ${JSON.stringify(datiGDO)}
 `;
 
