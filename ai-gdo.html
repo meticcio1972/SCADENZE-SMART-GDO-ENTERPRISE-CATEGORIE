@@ -63,7 +63,7 @@
 
 <div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
 <h2 style="color:#fff;margin-top:0">📊 Dati collegati all'AI</h2>
-<p style="color:#aebbd0;font-size:16px">Lo storico vendite viene letto direttamente da Supabase e collegato alle referenze presenti nel gestionale.</p>
+<p style="color:#aebbd0;font-size:16px">Prima vengono lette le referenze presenti nelle liste; poi lo storico vendite viene cercato solo per queste referenze.</p>
 <div class="ai-stats">
 <div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">—</strong></div>
 <div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">—</strong></div>
@@ -100,16 +100,27 @@ function parsePeriodo(s){
  const giorni=Math.max(1,Math.round((b-a)/86400000)+1);
  return {inizio:a.toISOString().slice(0,10),fine:b.toISOString().slice(0,10),giorni};
 }
-async function leggiStoricoVendite(){
- let righe=[],page=1000;
- for(let from=0;;from+=page){
-  const {data,error}=await window.supabaseClient.from(STORICO_TABLE)
+async function leggiStoricoVendite(codici){
+ const codiciUnici=[...new Set((codici||[]).map(x=>String(x||"").trim()).filter(Boolean))];
+ if(!codiciUnici.length)return [];
+
+ let righe=[];
+ const batch=100;
+
+ // Legge lo storico SOLO per le referenze presenti nelle liste/prodotti.
+ // Non scarica più tutto lo storico del gestionale.
+ for(let i=0;i<codiciUnici.length;i+=batch){
+  const gruppo=codiciUnici.slice(i,i+batch);
+  const {data,error}=await window.supabaseClient
+   .from(STORICO_TABLE)
    .select("id,codice,descrizione,quantita,periodo")
-   .order("id",{ascending:true}).range(from,from+page-1);
+   .in("codice",gruppo)
+   .order("id",{ascending:true});
+
   if(error)throw new Error("Errore storico vendite: "+error.message);
   righe.push(...(data||[]));
-  if(!data||data.length<page)break;
  }
+
  return righe;
 }
 function aggregaVendite(righe){
@@ -130,22 +141,54 @@ function aggregaVendite(righe){
 async function caricaDati(){
  const stato=document.getElementById("statoDati");
  try{
-  const [{data:prodotti,error:ep},righe]=await Promise.all([
-   window.supabaseClient.from("prodotti").select("*").order("id",{ascending:true}),
-   leggiStoricoVendite()
-  ]);
+  stato.textContent="⏳ Leggo prima le referenze presenti nelle liste...";
+
+  // PRIMA: carichiamo le referenze realmente presenti nel gestionale/liste.
+  const {data:prodotti,error:ep}=await window.supabaseClient
+   .from("prodotti")
+   .select("*")
+   .order("id",{ascending:true});
+
   if(ep)throw new Error("Errore prodotti: "+ep.message);
+
+  const listaProdotti=prodotti||[];
+  const codici=listaProdotti
+   .map(p=>String(p.codice||"").trim())
+   .filter(Boolean);
+
+  stato.textContent=`⏳ Trovate ${fmt(listaProdotti.length)} referenze. Ora cerco nello storico solo queste...`;
+
+  // DOPO: incrociamo SOLO queste referenze con lo storico vendite.
+  const righe=await leggiStoricoVendite(codici);
+
   const agg=aggregaVendite(righe);
-  const pMap=new Map((prodotti||[]).map(p=>[String(p.codice||"").trim(),p]));
+  const pMap=new Map(listaProdotti.map(p=>[String(p.codice||"").trim(),p]));
   const collegati=[...agg.map.values()].filter(v=>pMap.has(v.codice));
-  cacheGDO={prodotti:prodotti||[],storicoRighe:righe,vendite:agg.map,periodo:agg.periodo,giorni:agg.giorni,pMap};
-  document.getElementById("statProdotti").textContent=fmt((prodotti||[]).length);
+
+  cacheGDO={
+   prodotti:listaProdotti,
+   storicoRighe:righe,
+   vendite:agg.map,
+   periodo:agg.periodo,
+   giorni:agg.giorni,
+   pMap
+  };
+
+  document.getElementById("statProdotti").textContent=fmt(listaProdotti.length);
   document.getElementById("statVendite").textContent=fmt(righe.length);
-  document.getElementById("statPezzi").textContent=fmt(righe.reduce((s,r)=>s+(Number(r.quantita)||0),0));
+  document.getElementById("statPezzi").textContent=fmt(
+   righe.reduce((s,r)=>s+(Number(r.quantita)||0),0)
+  );
   document.getElementById("statCollegate").textContent=fmt(collegati.length);
-  stato.textContent=`🟢 Dati collegati. ${fmt(righe.length)} righe vendite e ${fmt(collegati.length)} referenze collegate ai prodotti.`;
+
+  stato.textContent=
+   `🟢 Dati collegati. ${fmt(listaProdotti.length)} referenze nelle liste, `+
+   `${fmt(righe.length)} righe storico relative a queste referenze e `+
+   `${fmt(collegati.length)} referenze collegate.`;
+
  }catch(e){
-  console.error(e);stato.textContent="🔴 "+e.message;
+  console.error(e);
+  stato.textContent="🔴 "+e.message;
  }
 }
 async function collegaAI(){
