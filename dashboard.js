@@ -382,7 +382,7 @@ function renderTabellaDashboard(lista) {
     if (!lista || lista.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align:center;">
+                <td colspan="7" style="text-align:center;">
                     Nessun prodotto presente.
                 </td>
             </tr>
@@ -405,6 +405,10 @@ function renderTabellaDashboard(lista) {
                 <td>${p.reparto || ""}</td>
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
+                <td class="media-settimanale-dashboard"
+                    data-codice="${String(p.codice || "").trim()}">
+                    Calcolo...
+                </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${Number(p.id)})" title="Modifica">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -416,6 +420,10 @@ function renderTabellaDashboard(lista) {
             </tr>
         `;
     });
+
+    if (typeof avviaCalcoloVenditeMedieDashboard === "function") {
+        avviaCalcoloVenditeMedieDashboard();
+    }
 }
 
 // =====================================
