@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("â Scadenze Smart GDO Enterprise avviato");
+    console.log("Ã¢ÂÂ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -363,7 +363,7 @@ function renderTabella(listaArgomento) {
         const mediaTesto =
             typeof media === "number"
                 ? `${media.toFixed(1)} pz/settimana`
-                : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "â");
+                : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "-");
 
         righe.push(`
             <tr>
@@ -535,7 +535,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto Ã¨ stato salvato, ma non Ã¨ stato registrato nello storico.");
+        alert("Il prodotto ÃÂ¨ stato salvato, ma non ÃÂ¨ stato registrato nello storico.");
         return;
     }
 
@@ -626,6 +626,17 @@ function renderTabellaFiltrata(filtro) {
             <td>${p.reparto}</td>
             <td>${formattaData(p.scadenza)}</td>
             <td>${p.giorni}</td>
+            <td class="media-settimanale">
+                ${
+                    (() => {
+                        const codice = normalizzaCodiceVendite(p.codice);
+                        const media = CACHE_VENDITE_MEDIE.get(codice);
+                        return typeof media === "number"
+                            ? `${media.toFixed(1)} pz/settimana`
+                            : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "-");
+                    })()
+                }
+            </td>
             <td>
     ${
         ["entro3", "entro7", "entro10", "entro15"].includes(filtro)
@@ -648,6 +659,14 @@ function renderTabellaFiltrata(filtro) {
 </tr>
 `;                
     });
+
+    const repartoAttivo = typeof Dashboard !== "undefined"
+        ? Dashboard.repartoSelezionato
+        : null;
+
+    if (repartoAttivo && lista.length) {
+        caricaVenditeMediePerLista(lista);
+    }
 
 }
 function modificaProdotto(id) {
@@ -928,7 +947,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "ð¡ Importazione in corso...";
+    statoImportazione.textContent = "Ã°ÂÂÂ¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -1012,7 +1031,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "ð¢ Completato";
+    statoImportazione.textContent = "Ã°ÂÂÂ¢ Completato";
 }
 
 if (ultimoImport) {
