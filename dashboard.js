@@ -359,7 +359,68 @@ function selezionaReparto(reparto) {
     );
 
     Dashboard.aggiorna();
-    renderTabella(lista);
+    renderTabellaDashboard(lista);
+}
+
+
+// =====================================
+// TABELLA DASHBOARD FILTRATA
+// Mostra esattamente la lista ricevuta.
+// Non usa Prodotti.tutti(), quindi quando
+// selezioniamo un reparto non ricompaiono
+// le altre famiglie.
+// =====================================
+
+function renderTabellaDashboard(lista) {
+
+    const tbody = document.getElementById("productTable");
+
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    if (!lista || lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;">
+                    Nessun prodotto presente in questo reparto.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const tutti = Prodotti.tutti();
+
+    lista.forEach(p => {
+
+        const indiceGlobale = tutti.findIndex(
+            x => String(x.id) === String(p.id)
+        );
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${p.codice || ""}</td>
+                <td>${p.descrizione || ""}</td>
+                <td>${p.reparto || ""}</td>
+                <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
+                <td>${p.giorni ?? ""}</td>
+                <td>
+                    <button class="btn-edit"
+                        onclick="modificaProdotto(${Number(p.id)})"
+                        title="Modifica">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+
+                    <button class="btn-delete"
+                        onclick="eliminaProdotto(${indiceGlobale})"
+                        title="Elimina">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
 }
 
 // =====================================
@@ -372,7 +433,7 @@ function deselezionaReparto() {
     console.log("NESSUN REPARTO SELEZIONATO");
 
     Dashboard.aggiorna();
-    renderTabella(Prodotti.tutti());
+    renderTabellaDashboard(Prodotti.tutti());
 }
 
 // =====================================
@@ -452,7 +513,7 @@ function filtraDashboard(tipo) {
 
     }
 
-    renderTabella(lista);
+    renderTabellaDashboard(lista);
 
 }
 
