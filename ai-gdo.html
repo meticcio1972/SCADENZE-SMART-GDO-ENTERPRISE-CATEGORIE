@@ -93,54 +93,49 @@ let cacheGDO=null;
 
 function fmt(n){return Number(n||0).toLocaleString("it-IT",{maximumFractionDigits:2})}
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function creaDataAI(anno,mese,giorno){
- const d=new Date(Number(anno),Number(mese)-1,Number(giorno));
- if(Number.isNaN(d.getTime()))return null;
- if(d.getFullYear()!==Number(anno)||d.getMonth()!==Number(mese)-1||d.getDate()!==Number(giorno))return null;
- d.setHours(0,0,0,0);
- return d;
-}
-
-function estraiDatePeriodoAI(v){
- const s=String(v??"").trim();
- if(!s)return [];
-
- const date=[];
-
- // Formati ISO: 2026-01-01 / 2026.01.01 / 2026/01/01
- const iso=/\b(20\d{2})[\/.-](\d{1,2})[\/.-](\d{1,2})\b/g;
- let m;
- while((m=iso.exec(s))!==null){
-  const d=creaDataAI(m[1],m[2],m[3]);
-  if(d)date.push(d);
- }
-
- // Formati italiani: 01/01/2026 / 01.01.2026 / 01-01-2026
- const ita=/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d{2})\b/g;
- while((m=ita.exec(s))!==null){
-  const d=creaDataAI(m[3],m[2],m[1]);
-  if(d)date.push(d);
- }
-
- return date;
-}
-
 function parsePeriodo(s){
- const date=estraiDatePeriodoAI(s);
- if(date.length<2)return null;
+ const testo=String(s||"").trim();
+ if(!testo)return null;
 
- date.sort((a,b)=>a-b);
- const a=date[0];
- const b=date[date.length-1];
- const giorni=Math.max(1,Math.round((b-a)/86400000)+1);
+ // Supporta i formati piÃ¹ comuni del campo periodo:
+ // DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY e YYYY-MM-DD.
+ const date=[];
+ const reDMY=/(\d{1,2})[\\/.-](\d{1,2})[\\/.-](\d{4})/g;
+ let m;
+ while((m=reDMY.exec(testo))!==null){
+  const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+  if(!Number.isNaN(d.getTime()))date.push(d);
+ }
 
- return {
-  inizio:a.toISOString().slice(0,10),
-  fine:b.toISOString().slice(0,10),
-  giorni
- };
+ if(date.length<2){
+  const reYMD=/(\d{4})[\\/.-](\d{1,2})[\\/.-](\d{1,2})/g;
+  while((m=reYMD.exec(testo))!==null){
+   const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+   if(!Number.isNaN(d.getTime()))date.push(d);
+  }
+ }
+
+ if(date.length>=2){
+  const a=date[0],b=date[1];
+  const giorni=Math.max(1,Math.round((b-a)/86400000)+1);
+  return {
+   inizio:a.toISOString().slice(0,10),
+   fine:b.toISOString().slice(0,10),
+   giorni
+  };
+ }
+
+ return null;
 }
 
+// Nel nostro storico attuale il periodo di riferimento Ã¨ quello del file
+// vendite: 01/01/2026 â 31/08/2026 = 243 giorni.
+// Viene usato solo se il campo "periodo" di Supabase Ã¨ vuoto/non leggibile.
+const PERIODO_VENDITE_DEFAULT={
+ inizio:"2026-01-01",
+ fine:"2026-08-31",
+ giorni:243
+};
 async function leggiStoricoVendite(codici){
  const codiciUnici=[...new Set((codici||[]).map(x=>String(x||"").trim()).filter(Boolean))];
  if(!codiciUnici.length)return [];
@@ -165,66 +160,22 @@ async function leggiStoricoVendite(codici){
  return righe;
 }
 function aggregaVendite(righe){
- const map=new Map();
- let periodoDateMin=null;
- let periodoDateMax=null;
-
+ const map=new Map(); let periodo=null;
  for(const r of righe){
-  const datePeriodo=estraiDatePeriodoAI(r.periodo);
-
-  if(datePeriodo.length){
-   const minLocale=new Date(Math.min(...datePeriodo.map(d=>d.getTime())));
-   const maxLocale=new Date(Math.max(...datePeriodo.map(d=>d.getTime())));
-
-   if(!periodoDateMin || minLocale<periodoDateMin)periodoDateMin=minLocale;
-   if(!periodoDateMax || maxLocale>periodoDateMax)periodoDateMax=maxLocale;
-  }
-
-  const codice=String(r.codice||"").trim();
-  if(!codice)continue;
-
-  if(!map.has(codice)){
-   map.set(codice,{
-    codice,
-    descrizione:r.descrizione||"",
-    vendite_periodo:0
-   });
-  }
-
-  const x=map.get(codice);
-  x.vendite_periodo+=Number(r.quantita)||0;
+  if(!periodo&&r.periodo)periodo=parsePeriodo(r.periodo);
+  const codice=String(r.codice||"").trim(); if(!codice)continue;
+  if(!map.has(codice))map.set(codice,{codice,descrizione:r.descrizione||"",vendite_periodo:0});
+  const x=map.get(codice); x.vendite_periodo+=Number(r.quantita)||0;
  }
+ const periodoFinale=periodo||PERIODO_VENDITE_DEFAULT;
+ const giorni=periodoFinale.giorni;
 
- let periodo=null;
- let giorni=null;
-
- if(periodoDateMin && periodoDateMax){
-  giorni=Math.max(
-   1,
-   Math.round((periodoDateMax-periodoDateMin)/86400000)+1
-  );
-
-  periodo={
-   inizio:periodoDateMin.toISOString().slice(0,10),
-   fine:periodoDateMax.toISOString().slice(0,10),
-   giorni
-  };
- }
-
- // La media settimanale viene calcolata dal sistema, NON dall'AI.
  for(const x of map.values()){
-  x.media_giornaliera=giorni
-   ? x.vendite_periodo/giorni
-   : null;
-
-  x.media_settimanale=giorni
-   ? x.media_giornaliera*7
-   : null;
+  x.media_giornaliera=x.vendite_periodo/giorni;
+  x.media_settimanale=x.media_giornaliera*7;
  }
-
- return {map,periodo,giorni};
+ return {map,periodo:periodoFinale,giorni};
 }
-
 async function caricaDati(){
  const stato=document.getElementById("statoDati");
  try{
@@ -268,15 +219,15 @@ async function caricaDati(){
   );
   document.getElementById("statCollegate").textContent=fmt(collegati.length);
 
-  const testoPeriodo=agg.periodo
-   ? ` Periodo vendite: ${agg.periodo.inizio} â ${agg.periodo.fine} (${agg.giorni} giorni).`
-   : " Periodo vendite non riconosciuto.";
+  const periodoTesto=agg.periodo
+   ? `${agg.periodo.inizio} â ${agg.periodo.fine} (${agg.periodo.giorni} giorni)`
+   : "non disponibile";
 
   stato.textContent=
    `ð¢ Dati collegati. ${fmt(listaProdotti.length)} referenze nelle liste, `+
    `${fmt(righe.length)} righe storico relative a queste referenze e `+
-   `${fmt(collegati.length)} referenze collegate.`+
-   testoPeriodo;
+   `${fmt(collegati.length)} referenze collegate. `+
+   `Periodo vendite: ${periodoTesto}.`;
 
  }catch(e){
   console.error(e);
@@ -315,8 +266,9 @@ function costruisciDatiAI(){
  const {prodotti,vendite,periodo}=cacheGDO;
  const candidati=[];
 
- // La media settimanale Ã¨ giÃ  stata calcolata localmente
- // durante l'aggregazione dello storico.
+ // Il calcolo della velocitÃ  viene fatto QUI, prima dell'AI.
+ // L'AI riceve quindi giÃ  la media settimanale corretta.
+ const settimane=periodo?.giorni ? periodo.giorni/7 : null;
 
  for(const p of prodotti){
   const codice=String(p.codice||"").trim();
@@ -325,13 +277,9 @@ function costruisciDatiAI(){
   const v=vendite.get(codice);
   const giorniScadenza=giorniAllaScadenzaAI(p.scadenza);
   const venditePeriodo=Number(v?.vendite_periodo||0);
-
-  // Usa esclusivamente la media calcolata dal sistema.
-  const mediaSettimanale=
-   v?.media_settimanale!==null &&
-   v?.media_settimanale!==undefined
-    ? Number(v.media_settimanale)
-    : null;
+  const mediaSettimanale=(
+   settimane && settimane>0
+  ) ? venditePeriodo/settimane : null;
 
   const haOfferta=p.offerta!==null && p.offerta!==undefined &&
    String(p.offerta).trim()!=="";
@@ -363,7 +311,11 @@ function costruisciDatiAI(){
     vendite_periodo:Math.round(venditePeriodo*100)/100,
     media_settimanale:mediaSettimanale!==null
       ? Math.round(mediaSettimanale*10)/10
-      : null
+      : null,
+    settimane_periodo:settimane ? Math.round(settimane*100)/100 : null,
+    periodo_vendite:periodo
+      ? `${periodo.inizio} â ${periodo.fine}`
+      : "01/01/2026 â 31/08/2026"
    });
   }
  }
@@ -395,13 +347,17 @@ async function analizzaSituazioneGDO(){
   const messaggio=`
 Sei AI GDO. Analizza le referenze prioritarie di un supermercato usando ESCLUSIVAMENTE i dati forniti.
 
-IMPORTANTE:
-- vendite_periodo Ã¨ il totale venduto nell'intero periodo storico, circa 9 mesi.
-- media_settimanale Ã¨ la vera velocitÃ  media di vendita, giÃ  calcolata dal sistema come vendite_periodo diviso per le settimane del periodo.
-- Per valutare se la merce puÃ² essere assorbita prima della scadenza usa soprattutto media_settimanale, NON vendite_periodo.
-- NON ricalcolare la media.
-- NON trattare vendite_periodo come vendite settimanali.
-- Non inventare giacenze, date o ultima vendita.
+La media_settimanale Ã¨ giÃ  stata calcolata dal sistema e DEVE essere usata come velocitÃ  di vendita:
+media_settimanale = vendite_periodo / settimane del periodo.
+
+Il totale vendite del periodo (es. 147 pezzi) NON Ã¨ la velocitÃ  settimanale.
+Per una referenza devi riportare SEMPRE:
+- Vendite periodo: X pezzi
+- Media: Y pezzi/settimana
+- Periodo vendite: data inizio â data fine
+
+NON ricalcolare la media e NON confonderla con vendite_periodo.
+Se media_settimanale Ã¨ presente, usa esattamente quel valore.
 
 Per ogni referenza valuta:
 - giorni alla scadenza;
@@ -420,8 +376,8 @@ Rispondi in modo sintetico con:
 Per ogni prodotto importante scrivi:
 CODICE â DESCRIZIONE
 Scadenza: X giorni
-Vendite periodo (totale storico): X pezzi
-Media settimanale: X pezzi/settimana
+Vendite periodo: X pezzi
+Media: X pezzi/settimana
 Azione: ...
 
 DATI:
