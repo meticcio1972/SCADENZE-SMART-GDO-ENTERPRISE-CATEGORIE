@@ -557,15 +557,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function apriScadenze(tipo) {
 
-    if (Dashboard.repartoSelezionato) {
-        filtraDashboard(tipo);
-        return;
-    }
-
-    let url =
-        `scadenze.html?tipo=${tipo}`;
-
-    window.location.href = url;
+    // I contatori della Dashboard filtrano sempre la lista
+    // direttamente nella Dashboard.
+    //
+    // Se è selezionato un reparto, filtra prima per reparto
+    // e poi per scadenza.
+    //
+    // Se non è selezionato un reparto, filtra tutta la lista.
+    filtraDashboard(tipo);
 
 }
 // =====================================
