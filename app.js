@@ -38,41 +38,56 @@ function ricalcolaGiorni(data) {
 
 async function caricaTuttiProdotti() {
 
-    const puntoVendita = await getPuntoVenditaCorrente();
+    const configurazione = await caricaConfigurazionePuntoVendita();
 
-    if (!puntoVendita) {
+    if (!configurazione?.puntoVendita) {
         return {
             data: null,
             error: new Error("Punto vendita non disponibile")
         };
     }
 
+    const puntoVendita = configurazione.puntoVendita;
+    const admin = configurazione.ruolo === "admin";
+
     const dimensionePagina = 1000;
 
+    /*
+       ADMIN:
+       Supabase RLS gli permette di leggere entrambi i punti vendita.
+       Carichiamo tutto e poi mostriamo solamente il punto vendita
+       selezionato.
+
+       UTENTE NORMALE:
+       chiediamo direttamente solo il proprio punto vendita.
+    */
     const richieste = [
         window.supabaseClient
             .from("prodotti")
             .select("*")
             .order("id", { ascending: true })
-            .eq("punto_vendita", puntoVendita)
             .range(0, dimensionePagina - 1),
 
         window.supabaseClient
             .from("prodotti")
             .select("*")
             .order("id", { ascending: true })
-            .eq("punto_vendita", puntoVendita)
             .range(dimensionePagina, dimensionePagina * 2 - 1),
 
         window.supabaseClient
             .from("prodotti")
             .select("*")
             .order("id", { ascending: true })
-            .eq("punto_vendita", puntoVendita)
             .range(dimensionePagina * 2, dimensionePagina * 3 - 1)
     ];
 
-    const risultati = await Promise.all(richieste);
+    const richiesteFinali = admin
+        ? richieste
+        : richieste.map(richiesta =>
+            richiesta.eq("punto_vendita", puntoVendita)
+        );
+
+    const risultati = await Promise.all(richiesteFinali);
 
     for (const risultato of risultati) {
         if (risultato.error) {
@@ -80,9 +95,22 @@ async function caricaTuttiProdotti() {
         }
     }
 
-    const tutti = risultati.flatMap(r => r.data || []);
+    let tutti = risultati.flatMap(r => r.data || []);
 
-    console.log("Prodotti caricati:", tutti.length);
+    if (admin) {
+        tutti = tutti.filter(
+            prodotto => prodotto.punto_vendita === puntoVendita
+        );
+    }
+
+    console.log(
+        "Punto vendita:",
+        puntoVendita,
+        "| Ruolo:",
+        configurazione.ruolo,
+        "| Prodotti caricati:",
+        tutti.length
+    );
 
     return { data: tutti, error: null };
 }
@@ -106,10 +134,17 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("Punto vendita corrente:", configurazionePuntoVendita.puntoVendita);
-    console.log("Ruolo utente:", configurazionePuntoVendita.ruolo);
+    console.log(
+        "Punto vendita corrente:",
+        configurazionePuntoVendita.puntoVendita
+    );
 
-    console.log("Ã¢ÂÂ Scadenze Smart GDO Enterprise avviato");
+    console.log(
+        "Ruolo utente:",
+        configurazionePuntoVendita.ruolo
+    );
+
+    console.log("Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -137,25 +172,42 @@ console.log("Prodotti caricati:", data.length);
 }
 async function ricaricaProdotti() {
 
-    const puntoVendita = await getPuntoVenditaCorrente();
+    const configurazione = await caricaConfigurazionePuntoVendita();
 
-    if (!puntoVendita) {
+    if (!configurazione?.puntoVendita) {
         console.error("Punto vendita non disponibile.");
         return;
     }
 
-    const { data, error } = await window.supabaseClient
+    const puntoVendita = configurazione.puntoVendita;
+    const admin = configurazione.ruolo === "admin";
+
+    let query = window.supabaseClient
         .from("prodotti")
         .select("*")
-        .eq("punto_vendita", puntoVendita)
         .order("id", { ascending: true });
+
+    if (!admin) {
+        query = query.eq("punto_vendita", puntoVendita);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         console.error(error);
         return;
     }
 
-    Prodotti.carica(ricalcolaGiorni(data));
+    let prodotti = data || [];
+
+    if (admin) {
+        prodotti = prodotti.filter(
+            prodotto => prodotto.punto_vendita === puntoVendita
+        );
+    }
+
+    Prodotti.carica(ricalcolaGiorni(prodotti));
+
     if (typeof renderTabella === "function") {
         renderTabella();
     }
@@ -290,13 +342,6 @@ const giorni = Math.ceil(
     (dataScadenza - oggi) / (1000 * 60 * 60 * 24)
 );
 
-const puntoVendita = await getPuntoVenditaCorrente();
-
-if (!puntoVendita) {
-    alert("Impossibile determinare il punto vendita.");
-    return;
-}
-
 const prodotto = {
     codice: document.getElementById("codice").value,
     descrizione: document.getElementById("descrizione").value,
@@ -306,8 +351,14 @@ const prodotto = {
     offerta: document.getElementById("offerta")?.checked || false,
 pezzi_offerta: parseInt(document.getElementById("pezzi_offerta")?.value || "0"),
 data_inizio_offerta: document.getElementById("data_inizio_offerta")?.value || null,
-data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null 
+data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null,
+punto_vendita: await getPuntoVenditaCorrente()
 };
+
+if (!prodotto.punto_vendita) {
+    alert("Impossibile determinare il punto vendita.");
+    return;
+}
 
 
     if (window.idProdottoInModifica !== undefined) {
@@ -356,7 +407,7 @@ if (
             stato: "in_offerta",
             intervento: "Metti in offerta",
             pezzi_offerta: prodotto.pezzi_offerta,
-            punto_vendita: puntoVendita
+            punto_vendita: prodotto.punto_vendita
         }]);
 
     if (erroreStorico) {
@@ -388,11 +439,11 @@ window.idProdottoInModifica = undefined;
     prezzo: "",
     note: "",
     supermercato: "San Cesareo",
-    punto_vendita: puntoVendita,
     offerta: prodotto.offerta,
 pezzi_offerta: prodotto.pezzi_offerta,
 data_inizio_offerta: prodotto.data_inizio_offerta,
-data_fine_offerta: prodotto.data_fine_offerta
+data_fine_offerta: prodotto.data_fine_offerta,
+punto_vendita: prodotto.punto_vendita
 }]);
        console.log("Errore:", error);
      
@@ -615,7 +666,7 @@ if (importCSVBtn && csvFile) {
         csvFile.click();
     };
 
-    csvFile.onchange = async (e) => {
+    csvFile.onchange = (e) => {
 
         const file = e.target.files[0];
 
@@ -643,14 +694,7 @@ if (importCSVBtn && csvFile) {
       const repartoSelezionato = repartoCSV ? repartoCSV.value : "";
       const repartoFile = repartoSelezionato || reparti[nomeFile] || "Altro";
       
-      const puntoVendita = await getPuntoVenditaCorrente();
 
-      if (!puntoVendita) {
-          alert("Impossibile determinare il punto vendita.");
-          return;
-      }
-
-      console.log("Punto vendita importazione:", puntoVendita);
       console.log("Reparto assegnato:", repartoSelezionato || repartoFile);        
         const reader = new FileReader();
 
@@ -725,7 +769,7 @@ if (importCSVBtn && csvFile) {
                         quantita: "",
                         prezzo: "",
                         note: "",
-                        punto_vendita: puntoVendita
+                        punto_vendita: await getPuntoVenditaCorrente()
                     });
                 }
 
@@ -744,7 +788,7 @@ const { error: erroreReparto } = await window.supabaseClient
     .from("prodotti")
     .delete()
     .eq("reparto", repartoFile)
-    .eq("punto_vendita", puntoVendita);
+    .eq("punto_vendita", await getPuntoVenditaCorrente());
 
 if (erroreReparto) {
     console.error("Errore cancellazione reparto:", erroreReparto);
@@ -827,12 +871,27 @@ if (prodottiImportati) {
                 }
 
                 // Ricarica i prodotti da Supabase
-                const { data, error } =
-                    await window.supabaseClient
-                        .from("prodotti")
-                        .select("*")
-                        .eq("punto_vendita", puntoVendita)
-                        .order("id", { ascending: true });
+                const configurazioneDopoImport =
+                    await caricaConfigurazionePuntoVendita();
+
+                if (!configurazioneDopoImport?.puntoVendita) {
+                    alert("Impossibile determinare il punto vendita.");
+                    return;
+                }
+
+                let queryDopoImport = window.supabaseClient
+                    .from("prodotti")
+                    .select("*")
+                    .order("id", { ascending: true });
+
+                if (configurazioneDopoImport.ruolo !== "admin") {
+                    queryDopoImport = queryDopoImport.eq(
+                        "punto_vendita",
+                        configurazioneDopoImport.puntoVendita
+                    );
+                }
+
+                const { data, error } = await queryDopoImport;
 
                 if (error) {
                     console.error(error);
@@ -842,7 +901,17 @@ if (prodottiImportati) {
                     return;
                 }
 
-                Prodotti.carica(data);
+                let prodottiRicaricati = data || [];
+
+                if (configurazioneDopoImport.ruolo === "admin") {
+                    prodottiRicaricati = prodottiRicaricati.filter(
+                        prodotto =>
+                            prodotto.punto_vendita ===
+                            configurazioneDopoImport.puntoVendita
+                    );
+                }
+
+                Prodotti.carica(prodottiRicaricati);
 
                 renderTabella();
 
