@@ -28,61 +28,97 @@
 </style>
 
 <style id="categorie-visual-style">
-.categorie-grid, #listaReparti {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(140px, 1fr));
-    gap: 18px;
+#listaReparti{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(170px,1fr));
+    gap:22px;
 }
-.categoria-card-visuale {
-    min-height: 155px;
-    padding: 14px 12px 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    text-align: center;
-    border-radius: 16px;
+.categoria-card-visuale{
+    min-height:190px;
+    padding:12px 12px 10px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    text-align:center;
+    border-radius:18px;
+    overflow:hidden;
 }
-.categoria-immagine {
-    width: 88px;
-    height: 72px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 52px;
-    line-height: 1;
-    margin: 2px auto 8px;
+.categoria-immagine{
+    width:118px;
+    height:118px;
+    margin:0 auto 10px;
+    border-radius:14px;
+    overflow:hidden;
+    background:#eef1f5;
+    box-shadow:0 4px 12px rgba(0,0,0,.10);
 }
-.categoria-nome {
-    font-weight: 700;
-    font-size: 15px;
-    line-height: 1.2;
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.categoria-immagine img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
 }
-.categoria-card-visuale strong {
-    font-size: 12px;
-    opacity: .75;
-    margin-top: 6px;
+.categoria-nome{
+    font-weight:700;
+    font-size:15px;
+    line-height:1.2;
+    min-height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
-.categoria-card-visuale button {
-    align-self: flex-end;
-    margin-top: 6px;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    opacity: .7;
+.categoria-card-visuale strong{
+    font-size:12px;
+    opacity:.75;
+    margin-top:5px;
 }
-@media (max-width: 1200px) {
-    .categorie-grid, #listaReparti { grid-template-columns: repeat(4, minmax(140px, 1fr)); }
+.categoria-card-visuale button{
+    align-self:flex-end;
+    margin-top:4px;
+    border:0;
+    background:transparent;
+    cursor:pointer;
+    opacity:.65;
 }
-@media (max-width: 850px) {
-    .categorie-grid, #listaReparti { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
+@media(max-width:1200px){#listaReparti{grid-template-columns:repeat(3,minmax(160px,1fr));}}
+@media(max-width:800px){#listaReparti{grid-template-columns:repeat(2,minmax(140px,1fr));}}
+@media(max-width:520px){#listaReparti{grid-template-columns:1fr 1fr;gap:12px}.categoria-immagine{width:96px;height:96px}}
+</style>
+
+<style id="dashboard-layout-style">
+.dashboard-main-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 350px;
+    gap:20px;
+    align-items:start;
+    margin-top:20px;
 }
-@media (max-width: 600px) {
-    .categorie-grid, #listaReparti { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+.dashboard-category-area{
+    min-width:0;
+}
+.dashboard-category-area .table-area{
+    margin-top:0 !important;
+}
+.dashboard-tools{
+    display:flex !important;
+    flex-direction:column;
+    gap:16px;
+    margin:0 !important;
+}
+.dashboard-tools .widget{
+    margin:0 !important;
+}
+.dashboard-tools .widget h3{
+    margin-top:0;
+}
+@media(max-width:1100px){
+    .dashboard-main-layout{grid-template-columns:minmax(0,1fr) 310px;}
+}
+@media(max-width:900px){
+    .dashboard-main-layout{grid-template-columns:1fr;}
+    .dashboard-tools{order:2;}
+    .dashboard-category-area{order:1;}
 }
 </style>
 
@@ -91,8 +127,6 @@
 <body>
 
 <div class="layout">
-
-    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -122,7 +156,7 @@
             <a>Report</a>
 
            <a href="ai-gdo.html">AI GDO</a>
-            
+
             <a>Impostazioni</a>
 
             <a href="#" onclick="eseguiLogout(); return false;">ðª Esci</a>
@@ -130,8 +164,6 @@
         </nav>
 
     </aside>
-
-    <!-- CONTENUTO -->
 
     <main>
 
@@ -151,8 +183,30 @@
             </div>
         </header>
 
-        <section class="dashboard-tools" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:20px 0;">
-            <div class="widget" style="margin:0;">
+        <section class="cards">
+            <div class="card black" id="cardScaduti"><h2 id="scaduti">0</h2><p>Scaduti</p></div>
+            <div class="card red" id="cardEntro3"><h2 id="entro3">0</h2><p>Entro 3 giorni</p></div>
+            <div class="card orange" id="cardEntro7"><h2 id="entro7">0</h2><p>Entro 7 giorni</p></div>
+            <div class="card yellow" id="cardEntro10"><h2 id="entro10">0</h2><p>Entro 10 giorni</p></div>
+            <div class="card green" id="cardEntro15"><h2 id="entro15">0</h2><p>Entro 15 giorni</p></div>
+            <div class="card blue" id="cardTotale"><h2 id="totale">0</h2><p>Totale Referenze</p></div>
+        </section>
+
+        <section class="dashboard-main-layout">
+            <div class="dashboard-category-area">
+        <section class="table-area" style="margin-top:20px;">
+            <div class="table-header">
+                <div>
+                    <h2>ð¦ Referenze per categoria</h2>
+                    <p style="margin:5px 0 0;color:#667085;">Ogni categoria Ã¨ una lista indipendente. Clicca una categoria per visualizzare solo le sue referenze.</p>
+                </div>
+                <button class="new-product" type="button" onclick="deselezionaReparto()">Tutte le categorie</button>
+            </div>
+            <div id="listaReparti" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:18px;"></div>
+        </section>
+            </div>
+        <aside class="dashboard-tools">
+            <div class="widget">
                 <h3>ð¥ Importazione lista prodotti</h3>
                 <p style="margin:0 0 10px;color:#667085;">Scegli una categoria e importa esclusivamente la sua lista.</p>
                 <select id="repartoCSV" style="width:100%;padding:12px 14px;font-size:16px;min-height:48px;margin-bottom:12px;box-sizing:border-box;border-radius:8px;">
@@ -169,13 +223,13 @@
                 </div>
             </div>
 
-            <div class="widget" style="margin:0;">
+            <div class="widget">
                 <h3>â Nuovo prodotto</h3>
                 <p style="margin:0 0 18px;color:#667085;">Inserisci manualmente una referenza nella categoria desiderata.</p>
                 <button id="newProduct" class="new-product" type="button" style="width:100%;min-height:48px;">+ Nuovo prodotto</button>
             </div>
 
-            <div class="widget" style="margin:0;">
+            <div class="widget">
                 <h3>â¡ Azioni rapide</h3>
                 <p style="margin:0 0 12px;color:#667085;">Esporta i dati della dashboard.</p>
                 <div style="display:grid;gap:10px;">
@@ -183,26 +237,8 @@
                     <button id="exportPDF">ð Genera PDF</button>
                 </div>
             </div>
-        </section>
+        </aside>
 
-        <section class="cards">
-            <div class="card black" id="cardScaduti"><h2 id="scaduti">0</h2><p>Scaduti</p></div>
-            <div class="card red" id="cardEntro3"><h2 id="entro3">0</h2><p>Entro 3 giorni</p></div>
-            <div class="card orange" id="cardEntro7"><h2 id="entro7">0</h2><p>Entro 7 giorni</p></div>
-            <div class="card yellow" id="cardEntro10"><h2 id="entro10">0</h2><p>Entro 10 giorni</p></div>
-            <div class="card green" id="cardEntro15"><h2 id="entro15">0</h2><p>Entro 15 giorni</p></div>
-            <div class="card blue" id="cardTotale"><h2 id="totale">0</h2><p>Totale Referenze</p></div>
-        </section>
-
-        <section class="table-area" style="margin-top:20px;">
-            <div class="table-header">
-                <div>
-                    <h2>ð¦ Referenze per categoria</h2>
-                    <p style="margin:5px 0 0;color:#667085;">Ogni categoria Ã¨ una lista indipendente. Clicca una categoria per visualizzare solo le sue referenze.</p>
-                </div>
-                <button class="new-product" type="button" onclick="deselezionaReparto()">Tutte le categorie</button>
-            </div>
-            <div id="listaReparti" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:18px;"></div>
         </section>
 
         <section class="table-area" style="margin-top:20px;">
@@ -210,11 +246,10 @@
                 <div>
                     <h2>ð Prodotti</h2>
                     <p style="margin:5px 0 0;color:#667085;">Le referenze della categoria selezionata vengono mostrate qui.</p>
-                    <p id="statoVenditeMedie" style="margin:6px 0 0;color:#667085;font-size:13px;">Seleziona una categoria per calcolare automaticamente la vendita media settimanale.</p>
                 </div>
             </div>
             <table>
-                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Vendita media settimanale</th><th>Azioni</th></tr></thead>
+                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Azioni</th></tr></thead>
                 <tbody id="productTable"></tbody>
             </table>
 
@@ -237,8 +272,6 @@
 
     </main>
 
-<!-- FINESTRA NUOVO PRODOTTO -->
-
 <div id="productModal" class="modal">
 
     <div class="modal-box">
@@ -256,7 +289,6 @@
         <input id="scadenza" type="date">
 
         <input id="quantita" type="number" placeholder="QuantitÃ "> 
-        
 
         <input id="prezzo" type="number" step="0.01" placeholder="Prezzo">
 
@@ -286,7 +318,6 @@
     <input type="date" id="data_fine_offerta">
 
 </div>      
-        
 
         <div class="modal-buttons">
 
