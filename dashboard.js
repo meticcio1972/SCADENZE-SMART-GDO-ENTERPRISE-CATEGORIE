@@ -371,6 +371,62 @@ function selezionaReparto(reparto) {
 // dal caricamento generale dei prodotti.
 // =====================================
 
+async function aggiornaMedieSettimanaliDashboard() {
+
+    const celle = Array.from(document.querySelectorAll("#productTable .media-settimanale-dashboard"));
+    if (!celle.length) return;
+
+    const client = window.supabaseClient;
+    if (!client) return;
+
+    const normalizzaCodice = codice =>
+        String(codice ?? "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/\.0$/, "");
+
+    const codici = [...new Set(
+        celle.map(c => normalizzaCodice(c.dataset.codice)).filter(Boolean)
+    )];
+
+    const totali = new Map();
+
+    for (let i = 0; i < codici.length; i += 100) {
+        const gruppo = codici.slice(i, i + 100);
+
+        const { data, error } = await client
+            .from("storico_vendite")
+            .select("codice, quantita")
+            .in("codice", gruppo);
+
+        if (error) {
+            console.error("Errore lettura storico_vendite per medie settimanali:", error);
+            continue;
+        }
+
+        (data || []).forEach(riga => {
+            const codice = normalizzaCodice(riga.codice);
+            const quantita = Number(riga.quantita) || 0;
+            totali.set(codice, (totali.get(codice) || 0) + quantita);
+        });
+    }
+
+    const GIORNI_STORICO = 243;
+
+    celle.forEach(cella => {
+        const codice = normalizzaCodice(cella.dataset.codice);
+        const totale = totali.get(codice);
+
+        if (totale === undefined) {
+            cella.textContent = "N/D";
+            return;
+        }
+
+        const media = (totale / GIORNI_STORICO) * 7;
+        cella.textContent = media.toFixed(1);
+    });
+}
+
 function renderTabellaDashboard(lista) {
 
     const tbody = document.getElementById("productTable");
@@ -405,9 +461,8 @@ function renderTabellaDashboard(lista) {
                 <td>${p.reparto || ""}</td>
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
-                <td class="media-settimanale-dashboard"
-                    data-codice="${String(p.codice || "").trim()}">
-                    Calcolo...
+                <td class="media-settimanale-dashboard" data-codice="${String(p.codice || "").replace(/\"/g, "&quot;")}">
+                    —
                 </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${Number(p.id)})" title="Modifica">
@@ -421,9 +476,7 @@ function renderTabellaDashboard(lista) {
         `;
     });
 
-    if (typeof avviaCalcoloVenditeMedieDashboard === "function") {
-        avviaCalcoloVenditeMedieDashboard();
-    }
+    aggiornaMedieSettimanaliDashboard();
 }
 
 // =====================================
