@@ -124,72 +124,17 @@
 
 
 <style id="vendite-medie-table-style">
-/* Allineamento stabile della tabella Dashboard */
-#productTable {
-    width: 100%;
-}
-
-.table-area table {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-}
-
-.table-area table th,
-.table-area table td {
-    vertical-align: middle;
-    box-sizing: border-box;
-}
-
-.table-area table th:nth-child(1),
-.table-area table td:nth-child(1) {
-    width: 10%;
-}
-
-.table-area table th:nth-child(2),
-.table-area table td:nth-child(2) {
-    width: 27%;
-    text-align: left;
-}
-
-.table-area table th:nth-child(3),
-.table-area table td:nth-child(3) {
-    width: 13%;
-}
-
-.table-area table th:nth-child(4),
-.table-area table td:nth-child(4) {
-    width: 13%;
-}
-
-.table-area table th:nth-child(5),
-.table-area table td:nth-child(5) {
-    width: 8%;
-    text-align: center;
-}
-
-.table-area table th:nth-child(6),
-.table-area table td:nth-child(6) {
-    width: 19%;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.table-area table th:nth-child(7),
-.table-area table td:nth-child(7) {
-    width: 10%;
-    text-align: center;
-}
-
-.table-area table th:nth-child(6) {
-    line-height: 1.15;
-}
-
-.media-settimanale-dashboard {
-    font-weight: 700;
-    text-align: center !important;
-    white-space: nowrap;
-}
+#productTable { width:100%; }
+.table-area table { width:100%; table-layout:fixed; border-collapse:collapse; }
+.table-area table th, .table-area table td { vertical-align:middle; box-sizing:border-box; }
+.table-area table th:nth-child(1), .table-area table td:nth-child(1) { width:10%; }
+.table-area table th:nth-child(2), .table-area table td:nth-child(2) { width:27%; text-align:left; }
+.table-area table th:nth-child(3), .table-area table td:nth-child(3) { width:13%; }
+.table-area table th:nth-child(4), .table-area table td:nth-child(4) { width:13%; }
+.table-area table th:nth-child(5), .table-area table td:nth-child(5) { width:8%; text-align:center; }
+.table-area table th:nth-child(6), .table-area table td:nth-child(6) { width:19%; text-align:center; white-space:nowrap; }
+.table-area table th:nth-child(7), .table-area table td:nth-child(7) { width:10%; text-align:center; }
+.media-settimanale-dashboard { font-weight:700; text-align:center !important; white-space:nowrap; }
 </style>
 
 </head>
@@ -230,7 +175,7 @@
 
             <a>Impostazioni</a>
 
-            <a href="#" onclick="eseguiLogout(); return false;">ðª Esci</a>
+            <a href="#" onclick="eseguiLogout(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Esci</a>
 
         </nav>
 
@@ -243,7 +188,7 @@
                 <input id="ricerca" type="text" placeholder="Cerca prodotto...">
             </div>
             <div class="user-area">
-                <div class="circle">ð</div>
+                <div class="circle"><i class="fa-solid fa-bell"></i></div>
                 <div class="profile">
                     <div class="avatar"></div>
                     <div class="profile-name">
@@ -268,7 +213,7 @@
         <section class="table-area" style="margin-top:20px;">
             <div class="table-header">
                 <div>
-                    <h2>ð¦ Referenze per categoria</h2>
+                    <h2><i class="fa-solid fa-box"></i> Referenze per categoria</h2>
                     <p style="margin:5px 0 0;color:#667085;">Ogni categoria Ã¨ una lista indipendente. Clicca una categoria per visualizzare solo le sue referenze.</p>
                 </div>
                 <button class="new-product" type="button" onclick="deselezionaReparto()">Tutte le categorie</button>
@@ -278,7 +223,7 @@
             </div>
         <aside class="dashboard-tools">
             <div class="widget">
-                <h3>ð¥ Importazione lista prodotti</h3>
+                <h3><i class="fa-solid fa-file-import"></i> Importazione lista prodotti</h3>
                 <p style="margin:0 0 10px;color:#667085;">Scegli una categoria e importa esclusivamente la sua lista.</p>
                 <select id="repartoCSV" style="width:100%;padding:12px 14px;font-size:16px;min-height:48px;margin-bottom:12px;box-sizing:border-box;border-radius:8px;">
                     <option value="">Seleziona categoria</option>
@@ -287,25 +232,25 @@
                 <input type="file" id="csvFile" accept=".csv" style="display:none">
                 <div style="margin-top:14px;font-size:13px;line-height:1.6;">
                     <div><strong>Stato:</strong> <span id="statoImportazione">Nessuna importazione</span></div>
-                    <div><strong>Categoria:</strong> <span id="repartoImportazione">â</span></div>
-                    <div><strong>File:</strong> <span id="fileImportazione">â</span></div>
+                    <div><strong>Categoria:</strong> <span id="repartoImportazione">&mdash;</span></div>
+                    <div><strong>File:</strong> <span id="fileImportazione">&mdash;</span></div>
                     <div><strong>Prodotti:</strong> <span id="prodottiImportati">0</span></div>
-                    <div><strong>Ultimo import:</strong> <span id="ultimoImport">â</span></div>
+                    <div><strong>Ultimo import:</strong> <span id="ultimoImport">&mdash;</span></div>
                 </div>
             </div>
 
             <div class="widget">
-                <h3>â Nuovo prodotto</h3>
+                <h3><i class="fa-solid fa-plus"></i> Nuovo prodotto</h3>
                 <p style="margin:0 0 18px;color:#667085;">Inserisci manualmente una referenza nella categoria desiderata.</p>
                 <button id="newProduct" class="new-product" type="button" style="width:100%;min-height:48px;">+ Nuovo prodotto</button>
             </div>
 
             <div class="widget">
-                <h3>â¡ Azioni rapide</h3>
+                <h3><i class="fa-solid fa-bolt"></i> Azioni rapide</h3>
                 <p style="margin:0 0 12px;color:#667085;">Esporta i dati della dashboard.</p>
                 <div style="display:grid;gap:10px;">
-                    <button id="exportCSV">ð Esporta Excel</button>
-                    <button id="exportPDF">ð Genera PDF</button>
+                    <button id="exportCSV"><i class="fa-solid fa-chart-column"></i> Esporta Excel</button>
+                    <button id="exportPDF"><i class="fa-solid fa-file-pdf"></i> Genera PDF</button>
                 </div>
             </div>
         </aside>
@@ -315,19 +260,19 @@
         <section class="table-area" style="margin-top:20px;">
             <div class="table-header">
                 <div>
-                    <h2>ð Prodotti</h2>
+                    <h2><i class="fa-solid fa-clipboard"></i> Prodotti</h2>
                     <p style="margin:5px 0 0;color:#667085;">Le referenze della categoria selezionata vengono mostrate qui.</p>
                 </div>
             </div>
             <table>
-                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Vendita media settimanale</th><th>Azioni</th></tr></thead>
+                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Azioni</th></tr></thead>
                 <tbody id="productTable"></tbody>
             </table>
 
             <div id="paginaOfferte" style="display:none;">
                 <div class="table-header">
-                    <h2>ð·ï¸ Prodotti in Offerta</h2>
-                    <button id="tornaDashboard" class="new-product" type="button">â Torna alla Dashboard</button>
+                    <h2><i class="fa-solid fa-tag"></i> Prodotti in Offerta</h2>
+                    <button id="tornaDashboard" class="new-product" type="button">&larr; Torna alla Dashboard</button>
                 </div>
                 <table>
                     <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Pezzi Offerta</th></tr></thead>
@@ -337,7 +282,7 @@
         </section>
 
         <section style="margin-top:18px;padding:16px 20px;background:#eef6ff;border:1px solid #cfe3ff;border-radius:12px;color:#24415f;">
-            <strong>ð Liste indipendenti</strong>
+            <strong><i class="fa-solid fa-lock"></i> Liste indipendenti</strong>
             <span style="margin-left:8px;">Latte UHT, Cioccolato, Caramelle e tutte le altre categorie possono essere importate e gestite separatamente.</span>
         </section>
 
@@ -366,7 +311,7 @@
         <textarea id="note" placeholder="Note"></textarea>
         <hr style="margin:15px 0;">
 
-<h3>ð·ï¸ Offerta</h3>
+<h3><i class="fa-solid fa-tag"></i> Offerta</h3>
 
 <label style="display:flex;align-items:center;gap:10px;margin-bottom:10px;white-space:nowrap;">
     <input type="checkbox" id="offerta">
