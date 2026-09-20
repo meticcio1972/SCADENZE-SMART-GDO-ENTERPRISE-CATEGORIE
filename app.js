@@ -1,4 +1,4 @@
-"use strict"; 
+use strict"; 
 
 /*
 =====================================
@@ -1122,4 +1122,3 @@ async function eliminaListaReparto(reparto) {
 
     // Ricarica la dashboard e aggiorna i conteggi
     location.reload();
-}
