@@ -1,138 +1,67 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scadenze Smart GDO</title>
-
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+body{font-family:Arial,sans-serif}
+.table-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.toolbar-scadenze{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:15px 0}
+#ricerca{min-width:260px;padding:10px;border-radius:8px;border:1px solid #ccc}
+#btnVenditeMedie{padding:10px 16px;border:0;border-radius:8px;cursor:pointer;background:#2563eb;color:#fff;font-weight:700}
+#btnVenditeMedie:disabled{opacity:.6;cursor:wait}
+#statoVenditeMedie{font-size:13px;color:#555}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 8px;border-bottom:1px solid #ddd;text-align:left}
+th{white-space:nowrap}
+.media-settimanale{font-weight:700;white-space:nowrap}
+</style>
 </head>
 
 <body>
 
 <header class="table-header">
-
     <h1 id="titoloPagina">Scadenze</h1>
-
-    <button class="btn-back"
-            onclick="window.location.href='index.html'">
-        ⬅ Dashboard
-    </button>
-
+    <button class="btn-back" onclick="window.location.href='index.html'">Dashboard</button>
 </header>
 
 <section class="table-area">
 
-    <input
-        type="text"
-        id="ricerca"
-        placeholder="🔍 Cerca prodotto..."
-    >
-
-    <table>
-
-        <thead>
-
-            <tr>
-
-             <tr>
-    <th>Codice</th>
-    <th>Descrizione</th>
-    <th>Reparto</th>
-    <th>Scadenza</th>
-    <th>Giorni</th>
-    <th>Azioni</th>
-</tr>
-
-        </thead>
-
-        <tbody id="tabellaScadenze">
-
-        </tbody>
-
-    </table>
-
-<div id="productModal" class="modal">
-
-    <div class="modal-content">
-
-        <h2>Modifica prodotto</h2>
-
-        <input id="codice" placeholder="Codice">
-        <input id="descrizione" placeholder="Descrizione">
-        <input id="categoria" placeholder="Reparto">
-
-        <input id="scadenza" type="date">
-
-        <input id="quantita" placeholder="Quantità">
-        <input id="prezzo" placeholder="Prezzo">
-        
-
-<h3>🏷️ Offerta</h3>
-
-<label style="display:flex;align-items:center;gap:8px;">
-    <input type="checkbox" id="offerta">
-    <span>Metti in offerta</span>
-</label>
-
-<div id="pezziOffertaBox" style="display:none;margin-top:10px;">
-
-    <label>Pezzi in offerta</label>
-    <input
-        type="number"
-        id="pezzi_offerta"
-        min="0"
-        placeholder="Pezzi">
-
-</div>
-
-<div id="dateOffertaBox" style="display:none;margin-top:10px;">
-
-    <label>Data inizio offerta</label>
-    <input
-        type="date"
-        id="data_inizio_offerta">
-
-    <label>Data fine offerta</label>
-    <input
-        type="date"
-        id="data_fine_offerta">
-
-</div>
-
-<textarea id="note" placeholder="Note"></textarea>
-        
-
-        <div class="modal-buttons">
-
-            <button id="saveProduct">Salva</button>
-
-            <button id="closeModal">Chiudi</button>
-
-        </div>
-
+    <div class="toolbar-scadenze">
+        <input type="text" id="ricerca" placeholder="Cerca prodotto...">
+        <button id="btnVenditeMedie" type="button">Vendite medie</button>
+        <span id="statoVenditeMedie"></span>
     </div>
 
-</div>
-    
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Codice</th>
+                    <th>Descrizione</th>
+                    <th>Reparto</th>
+                    <th>Scadenza</th>
+                    <th>Giorni</th>
+                    <th>Quantita</th>
+                    <th>Media settimanale</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="tabellaScadenze"></tbody>
+        </table>
+    </div>
+
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="supabase.js"></script>
 <script src="prodotti.js"></script>
-<script src="storage.js"></script>
-<script src="database.js"></script>
-<script src="dashboard.js"></script>
-<script src="app.js"></script>
-    
 <script src="scadenze.js"></script>
 
 </body>
-
 </html>
