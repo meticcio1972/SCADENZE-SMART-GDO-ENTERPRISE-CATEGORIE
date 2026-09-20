@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("â Scadenze Smart GDO Enterprise avviato");
+    console.log("Ã¢ÂÂ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -143,14 +143,16 @@ function formattaData(data) {
 
   let filtroReparto = "";
 
-function renderTabella() {
+function renderTabella(listaDaMostrare = null) {
     console.time("RENDER TABELLA");
 
     const tbody = document.getElementById("productTable");
 
     if (!tbody) return;
 
-    const lista = Prodotti.tutti();
+    const lista = Array.isArray(listaDaMostrare)
+        ? listaDaMostrare
+        : Prodotti.tutti();
 
     const righe = [];
 
@@ -163,13 +165,18 @@ function renderTabella() {
             return;
         }
 
+        const codice = String(p.codice || "").trim();
+
         righe.push(`
             <tr>
-                <td>${p.codice}</td>
-                <td>${p.descrizione}</td>
-                <td>${p.reparto}</td>
+                <td>${codice}</td>
+                <td>${p.descrizione || ""}</td>
+                <td>${p.reparto || ""}</td>
                 <td>${formattaData(p.scadenza)}</td>
-                <td>${p.giorni}</td>
+                <td>${p.giorni ?? ""}</td>
+                <td class="media-settimanale-dashboard" data-codice="${codice}">
+                    Calcolo...
+                </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${p.id})">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -186,6 +193,11 @@ function renderTabella() {
     tbody.innerHTML = righe.join("");
 
     console.timeEnd("RENDER TABELLA");
+
+    // Calcola la media solo per le referenze attualmente visualizzate.
+    if (typeof aggiornaVenditeMedieDashboard === "function") {
+        aggiornaVenditeMedieDashboard();
+    }
 }
 
 const menuReparto = document.getElementById("repartoCSV");
@@ -321,7 +333,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto Ã¨ stato salvato, ma non Ã¨ stato registrato nello storico.");
+        alert("Il prodotto ÃÂ¨ stato salvato, ma non ÃÂ¨ stato registrato nello storico.");
         return;
     }
 
@@ -374,6 +386,17 @@ function renderTabellaFiltrata(filtro) {
 
     let lista = Prodotti.tutti();
 
+    // Mantiene sempre il reparto selezionato dalla Dashboard.
+    if (
+        typeof Dashboard !== "undefined" &&
+        Dashboard.repartoSelezionato
+    ) {
+        lista = lista.filter(
+            p => (p.reparto || "").toLowerCase() ===
+                 Dashboard.repartoSelezionato.toLowerCase()
+        );
+    }
+
     switch (filtro) {
 
         case "scaduti":
@@ -397,21 +420,26 @@ function renderTabellaFiltrata(filtro) {
             break;
 
         default:
-            lista = Prodotti.tutti();
+            break;
     }
 
     const tbody = document.getElementById("productTable");
+    if (!tbody) return;
+
     tbody.innerHTML = "";
 
     lista.forEach((p, index) => {
 
         tbody.innerHTML += `
         <tr>
-            <td>${p.codice}</td>
-            <td>${p.descrizione}</td>
-            <td>${p.reparto}</td>
+            <td>${p.codice || ""}</td>
+            <td>${p.descrizione || ""}</td>
+            <td>${p.reparto || ""}</td>
             <td>${formattaData(p.scadenza)}</td>
-            <td>${p.giorni}</td>
+            <td>${p.giorni ?? ""}</td>
+            <td class="media-settimanale-dashboard" data-codice="${String(p.codice || "").trim()}">
+                Calcolo...
+            </td>
             <td>
     ${
         ["entro3", "entro7", "entro10", "entro15"].includes(filtro)
@@ -432,10 +460,14 @@ function renderTabellaFiltrata(filtro) {
     </button>
 </td>
 </tr>
-`;                
+`;
     });
 
+    if (typeof aggiornaVenditeMedieDashboard === "function") {
+        aggiornaVenditeMedieDashboard();
+    }
 }
+
 function modificaProdotto(id) {
  console.log(document.getElementById("offerta"));
 console.log(document.getElementById("pezzi_offerta"));
@@ -714,7 +746,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "ð¡ Importazione in corso...";
+    statoImportazione.textContent = "Ã°ÂÂÂ¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -798,7 +830,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "ð¢ Completato";
+    statoImportazione.textContent = "Ã°ÂÂÂ¢ Completato";
 }
 
 if (ultimoImport) {
@@ -833,28 +865,44 @@ if (ultimoImport) {
     };
 }
 
-document.getElementById("ricerca")?.addEventListener("input", function () { 
+document.getElementById("ricerca")?.addEventListener("input", function () {
 
     const testo = this.value.toLowerCase();
 
-    const lista = Prodotti.tutti().filter(p =>
+    let lista = Prodotti.tutti().filter(p =>
         (p.codice || "").toLowerCase().includes(testo) ||
         (p.descrizione || "").toLowerCase().includes(testo) ||
         (p.reparto || "").toLowerCase().includes(testo)
     );
 
+    if (
+        typeof Dashboard !== "undefined" &&
+        Dashboard.repartoSelezionato
+    ) {
+        lista = lista.filter(
+            p => (p.reparto || "").toLowerCase() ===
+                 Dashboard.repartoSelezionato.toLowerCase()
+        );
+    }
+
     const tbody = document.getElementById("productTable");
+    if (!tbody) return;
+
     tbody.innerHTML = "";
 
     lista.forEach((p, index) => {
 
-     tbody.innerHTML +=
+        tbody.innerHTML +=
     '<tr>' +
-        '<td>' + p.codice + '</td>' +
-        '<td>' + p.descrizione + '</td>' +
-        '<td>' + p.reparto + '</td>' +
+        '<td>' + (p.codice || '') + '</td>' +
+        '<td>' + (p.descrizione || '') + '</td>' +
+        '<td>' + (p.reparto || '') + '</td>' +
         '<td>' + formattaData(p.scadenza) + '</td>' +
-        '<td>' + p.giorni + '</td>' +
+        '<td>' + (p.giorni ?? '') + '</td>' +
+        '<td class="media-settimanale-dashboard" data-codice="' +
+            String(p.codice || '').trim() + '">' +
+            'Calcolo...' +
+        '</td>' +
         '<td>' +
             '<button class="btn-edit" onclick="modificaProdotto(' + p.id + ')">' +
                 '<i class="fa-solid fa-pen-to-square"></i>' +
@@ -866,7 +914,12 @@ document.getElementById("ricerca")?.addEventListener("input", function () {
     '</tr>';
     });
 
+    if (typeof aggiornaVenditeMedieDashboard === "function") {
+        aggiornaVenditeMedieDashboard();
+    }
+
 });
+
 const menuOfferte = document.getElementById("menuOfferte");
 const paginaOfferte = document.getElementById("paginaOfferte");
 const dashboard = document.getElementById("dashboard");
@@ -926,3 +979,181 @@ async function eliminaListaReparto(reparto) {
     location.reload();
 }
 
+
+
+/*
+==========================================================
+VENDITA MEDIA SETTIMANALE
+Calcolo locale sulla tabella Dashboard.
+Periodo storico: 01/01/2026 - 31/08/2026 = 243 giorni.
+==========================================================
+*/
+
+const CACHE_VENDITE_MEDIE_DASHBOARD = new Map();
+let richiestaVenditeMedieDashboard = null;
+let timerVenditeMedieDashboard = null;
+
+function normalizzaCodiceVenditeMedie(codice) {
+    let s = String(codice ?? "").trim().replace(/\s+/g, "");
+
+    if (/^\d+\.0+$/.test(s)) {
+        s = s.replace(/\.0+$/, "");
+    }
+
+    return s;
+}
+
+function formattaMediaSettimanaleDashboard(valore) {
+    if (valore === null || valore === undefined || Number.isNaN(Number(valore))) {
+        return "N/D";
+    }
+
+    return Number(valore).toLocaleString("it-IT", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    }) + " pz/settimana";
+}
+
+function aggiornaCelleVenditeMedieDashboard() {
+    const celle = document.querySelectorAll(".media-settimanale-dashboard");
+
+    celle.forEach(cella => {
+        const codice = normalizzaCodiceVenditeMedie(
+            cella.dataset.codice || ""
+        );
+
+        if (!codice) {
+            cella.textContent = "N/D";
+            return;
+        }
+
+        if (CACHE_VENDITE_MEDIE_DASHBOARD.has(codice)) {
+            cella.textContent = formattaMediaSettimanaleDashboard(
+                CACHE_VENDITE_MEDIE_DASHBOARD.get(codice)
+            );
+        } else {
+            cella.textContent = "Calcolo...";
+        }
+    });
+}
+
+async function aggiornaVenditeMedieDashboard() {
+    clearTimeout(timerVenditeMedieDashboard);
+
+    timerVenditeMedieDashboard = setTimeout(async () => {
+
+        const celle = Array.from(
+            document.querySelectorAll(".media-settimanale-dashboard")
+        );
+
+        const codici = [
+            ...new Set(
+                celle
+                    .map(cella =>
+                        normalizzaCodiceVenditeMedie(cella.dataset.codice)
+                    )
+                    .filter(Boolean)
+            )
+        ];
+
+        if (!codici.length || !window.supabaseClient) {
+            return;
+        }
+
+        aggiornaCelleVenditeMedieDashboard();
+
+        if (richiestaVenditeMedieDashboard) {
+            return;
+        }
+
+        const nuoviCodici = codici.filter(
+            codice => !CACHE_VENDITE_MEDIE_DASHBOARD.has(codice)
+        );
+
+        if (!nuoviCodici.length) {
+            aggiornaCelleVenditeMedieDashboard();
+            return;
+        }
+
+        richiestaVenditeMedieDashboard = (async () => {
+            try {
+
+                const venditePerCodice = new Map();
+                const batch = 100;
+
+                for (let i = 0; i < nuoviCodici.length; i += batch) {
+
+                    const gruppo = nuoviCodici.slice(i, i + batch);
+
+                    const { data, error } =
+                        await window.supabaseClient
+                            .from("storico_vendite")
+                            .select("codice, quantita")
+                            .in("codice", gruppo);
+
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+
+                    for (const riga of data || []) {
+
+                        const codice =
+                            normalizzaCodiceVenditeMedie(riga.codice);
+
+                        const quantita = Number(riga.quantita);
+
+                        if (!codice || Number.isNaN(quantita)) {
+                            continue;
+                        }
+
+                        venditePerCodice.set(
+                            codice,
+                            (venditePerCodice.get(codice) || 0) + quantita
+                        );
+                    }
+                }
+
+                for (const codice of nuoviCodici) {
+
+                    if (!venditePerCodice.has(codice)) {
+                        CACHE_VENDITE_MEDIE_DASHBOARD.set(codice, null);
+                        continue;
+                    }
+
+                    const totale =
+                        venditePerCodice.get(codice) || 0;
+
+                    const mediaSettimanale =
+                        (totale / 243) * 7;
+
+                    CACHE_VENDITE_MEDIE_DASHBOARD.set(
+                        codice,
+                        Math.round(mediaSettimanale * 10) / 10
+                    );
+                }
+
+                aggiornaCelleVenditeMedieDashboard();
+
+            } catch (errore) {
+
+                console.error(
+                    "Errore calcolo vendita media settimanale:",
+                    errore
+                );
+
+                document
+                    .querySelectorAll(".media-settimanale-dashboard")
+                    .forEach(cella => {
+                        if (cella.textContent === "Calcolo...") {
+                            cella.textContent = "N/D";
+                        }
+                    });
+
+            } finally {
+                richiestaVenditeMedieDashboard = null;
+            }
+
+        })();
+
+    }, 120);
+}
