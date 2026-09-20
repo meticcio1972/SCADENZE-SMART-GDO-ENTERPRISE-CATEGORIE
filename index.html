@@ -122,6 +122,76 @@
 }
 </style>
 
+
+<style id="vendite-medie-table-style">
+/* Allineamento stabile della tabella Dashboard */
+#productTable {
+    width: 100%;
+}
+
+.table-area table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.table-area table th,
+.table-area table td {
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+.table-area table th:nth-child(1),
+.table-area table td:nth-child(1) {
+    width: 10%;
+}
+
+.table-area table th:nth-child(2),
+.table-area table td:nth-child(2) {
+    width: 27%;
+    text-align: left;
+}
+
+.table-area table th:nth-child(3),
+.table-area table td:nth-child(3) {
+    width: 13%;
+}
+
+.table-area table th:nth-child(4),
+.table-area table td:nth-child(4) {
+    width: 13%;
+}
+
+.table-area table th:nth-child(5),
+.table-area table td:nth-child(5) {
+    width: 8%;
+    text-align: center;
+}
+
+.table-area table th:nth-child(6),
+.table-area table td:nth-child(6) {
+    width: 19%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.table-area table th:nth-child(7),
+.table-area table td:nth-child(7) {
+    width: 10%;
+    text-align: center;
+}
+
+.table-area table th:nth-child(6) {
+    line-height: 1.15;
+}
+
+.media-settimanale-dashboard {
+    font-weight: 700;
+    text-align: center !important;
+    white-space: nowrap;
+}
+</style>
+
 </head>
 
 <body>
@@ -250,7 +320,7 @@
                 </div>
             </div>
             <table>
-                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Azioni</th></tr></thead>
+                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Vendita media settimanale</th><th>Azioni</th></tr></thead>
                 <tbody id="productTable"></tbody>
             </table>
 
