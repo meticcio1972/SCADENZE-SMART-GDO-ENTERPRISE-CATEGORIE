@@ -1,5 +1,9 @@
-export async function GET() {
+let ultimaRichiesta = "";
+let ultimoTimestamp = 0;
 
+const COOLDOWN_MS = 20000;
+
+export async function GET() {
     return new Response(
         JSON.stringify({
             ok: true,
@@ -8,35 +12,61 @@ export async function GET() {
         {
             status: 200,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json; charset=UTF-8"
             }
         }
     );
 }
 
-
 export async function POST(request) {
-
     try {
-
         const body = await request.json();
-
-        const messaggio = body.messaggio || "";
+        const messaggio = String(body.messaggio || "").trim();
 
         if (!messaggio) {
             return new Response(
                 JSON.stringify({
+                    ok: false,
                     error: "Messaggio AI mancante"
                 }),
                 {
                     status: 400,
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json; charset=UTF-8"
                     }
                 }
             );
         }
 
+        const adesso = Date.now();
+
+        if (
+            messaggio === ultimaRichiesta &&
+            adesso - ultimoTimestamp < COOLDOWN_MS
+        ) {
+            const secondi = Math.ceil(
+                (COOLDOWN_MS - (adesso - ultimoTimestamp)) / 1000
+            );
+
+            return new Response(
+                JSON.stringify({
+                    ok: false,
+                    error:
+                        `Richiesta duplicata. Attendi ${secondi} secondi prima di rilanciare l'analisi.`
+                }),
+                {
+                    status: 429,
+                    headers: {
+                        "Content-Type": "application/json; charset=UTF-8",
+                        "Retry-After": String(secondi),
+                        "Cache-Control": "no-store"
+                    }
+                }
+            );
+        }
+
+        ultimaRichiesta = messaggio;
+        ultimoTimestamp = adesso;
 
         const rispostaOpenAI = await fetch(
             "https://api.openai.com/v1/responses",
@@ -48,56 +78,94 @@ export async function POST(request) {
                 },
                 body: JSON.stringify({
                     model: "gpt-5.6-luna",
+                    max_output_tokens: 1200,
                     input: messaggio
                 })
             }
         );
 
-
         const dati = await rispostaOpenAI.json();
 
-
         if (!rispostaOpenAI.ok) {
-
             console.error("Errore OpenAI:", dati);
+
+            const retryAfterHeader =
+                rispostaOpenAI.headers.get("retry-after");
+
+            const retryAfterSeconds = retryAfterHeader
+                ? parseInt(retryAfterHeader, 10)
+                : null;
+
+            if (rispostaOpenAI.status === 429) {
+                const messaggio429 =
+                    retryAfterSeconds && !Number.isNaN(retryAfterSeconds)
+                        ? `OpenAI sta applicando un limite temporaneo. Attendi circa ${retryAfterSeconds} secondi e poi riprova.`
+                        : "OpenAI sta applicando un limite temporaneo alle richieste. Attendi un po' e poi riprova. Non premere ripetutamente il pulsante.";
+
+                return new Response(
+                    JSON.stringify({
+                        ok: false,
+                        error: messaggio429,
+                        rate_limit: true,
+                        retry_after_seconds:
+                            retryAfterSeconds || null
+                    }),
+                    {
+                        status: 429,
+                        headers: {
+                            "Content-Type":
+                                "application/json; charset=UTF-8",
+                            ...(retryAfterSeconds &&
+                            !Number.isNaN(retryAfterSeconds)
+                                ? {
+                                      "Retry-After":
+                                          String(retryAfterSeconds)
+                                  }
+                                : {}),
+                            "Cache-Control": "no-store"
+                        }
+                    }
+                );
+            }
 
             return new Response(
                 JSON.stringify({
-                    error: dati.error?.message || "Errore OpenAI"
+                    ok: false,
+                    error:
+                        dati?.error?.message ||
+                        "Errore OpenAI"
                 }),
                 {
                     status: rispostaOpenAI.status,
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type":
+                            "application/json; charset=UTF-8",
+                        "Cache-Control": "no-store"
                     }
                 }
             );
         }
 
-
         let testo = "";
 
-
-        if (dati.output) {
-
+        if (Array.isArray(dati.output)) {
             for (const elemento of dati.output) {
+                if (!Array.isArray(elemento.content)) continue;
 
-                if (elemento.content) {
-
-                    for (const contenuto of elemento.content) {
-
-                        if (contenuto.text) {
-                            testo += contenuto.text;
-                        }
-
+                for (const contenuto of elemento.content) {
+                    if (
+                        contenuto &&
+                        typeof contenuto.text === "string"
+                    ) {
+                        testo += contenuto.text;
                     }
-
                 }
-
             }
-
         }
 
+        if (!testo.trim()) {
+            testo = "L'AI non ha restituito un testo utilizzabile.";
+        }
 
         return new Response(
             JSON.stringify({
@@ -107,24 +175,26 @@ export async function POST(request) {
             {
                 status: 200,
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type":
+                        "application/json; charset=UTF-8",
+                    "Cache-Control": "no-store"
                 }
             }
         );
-
-
     } catch (errore) {
-
         console.error("Errore AI GDO:", errore);
 
         return new Response(
             JSON.stringify({
+                ok: false,
                 error: "Errore interno AI GDO"
             }),
             {
                 status: 500,
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type":
+                        "application/json; charset=UTF-8",
+                    "Cache-Control": "no-store"
                 }
             }
         );
