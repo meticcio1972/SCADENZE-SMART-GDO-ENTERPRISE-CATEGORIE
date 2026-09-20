@@ -122,6 +122,23 @@
 }
 </style>
 
+
+<style>
+.media-settimanale-dashboard {
+    font-weight: 700;
+    white-space: nowrap;
+}
+.media-settimanale-dashboard.nd {
+    color: #777;
+    font-weight: 500;
+}
+#statoVenditeMedieDashboard {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #667085;
+}
+</style>
+
 </head>
 
 <body>
@@ -249,7 +266,7 @@
                 </div>
             </div>
             <table>
-                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Azioni</th></tr></thead>
+                <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Vendita media settimanale</th><th>Azioni</th></tr></thead>
                 <tbody id="productTable"></tbody>
             </table>
 
@@ -336,6 +353,7 @@
 <script src="prodotti.js"></script>
 <script src="dashboard.js"></script>
 <script src="app.js"></script>
+<script src="vendite-medie-dashboard.js"></script>
 
 </body>
 
