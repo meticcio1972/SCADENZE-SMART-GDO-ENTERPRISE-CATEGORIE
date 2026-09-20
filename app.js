@@ -165,16 +165,15 @@ function renderTabella(listaDaMostrare = null) {
             return;
         }
 
-        const codice = String(p.codice || "").trim();
-
         righe.push(`
             <tr>
-                <td>${codice}</td>
-                <td>${p.descrizione || ""}</td>
-                <td>${p.reparto || ""}</td>
+                <td>${p.codice}</td>
+                <td>${p.descrizione}</td>
+                <td>${p.reparto}</td>
                 <td>${formattaData(p.scadenza)}</td>
-                <td>${p.giorni ?? ""}</td>
-                <td class="media-settimanale-dashboard" data-codice="${codice}">
+                <td>${p.giorni}</td>
+                <td class="media-settimanale-dashboard"
+                    data-codice="${String(p.codice || "").trim()}">
                     Calcolo...
                 </td>
                 <td>
@@ -194,7 +193,6 @@ function renderTabella(listaDaMostrare = null) {
 
     console.timeEnd("RENDER TABELLA");
 
-    // Calcola la media solo per le referenze attualmente visualizzate.
     if (typeof aggiornaVenditeMedieDashboard === "function") {
         aggiornaVenditeMedieDashboard();
     }
@@ -386,17 +384,6 @@ function renderTabellaFiltrata(filtro) {
 
     let lista = Prodotti.tutti();
 
-    // Mantiene sempre il reparto selezionato dalla Dashboard.
-    if (
-        typeof Dashboard !== "undefined" &&
-        Dashboard.repartoSelezionato
-    ) {
-        lista = lista.filter(
-            p => (p.reparto || "").toLowerCase() ===
-                 Dashboard.repartoSelezionato.toLowerCase()
-        );
-    }
-
     switch (filtro) {
 
         case "scaduti":
@@ -420,24 +407,23 @@ function renderTabellaFiltrata(filtro) {
             break;
 
         default:
-            break;
+            lista = Prodotti.tutti();
     }
 
     const tbody = document.getElementById("productTable");
-    if (!tbody) return;
-
     tbody.innerHTML = "";
 
     lista.forEach((p, index) => {
 
         tbody.innerHTML += `
         <tr>
-            <td>${p.codice || ""}</td>
-            <td>${p.descrizione || ""}</td>
-            <td>${p.reparto || ""}</td>
+            <td>${p.codice}</td>
+            <td>${p.descrizione}</td>
+            <td>${p.reparto}</td>
             <td>${formattaData(p.scadenza)}</td>
-            <td>${p.giorni ?? ""}</td>
-            <td class="media-settimanale-dashboard" data-codice="${String(p.codice || "").trim()}">
+            <td>${p.giorni}</td>
+            <td class="media-settimanale-dashboard"
+                data-codice="${String(p.codice || "").trim()}">
                 Calcolo...
             </td>
             <td>
@@ -460,14 +446,14 @@ function renderTabellaFiltrata(filtro) {
     </button>
 </td>
 </tr>
-`;
+`;                
     });
 
     if (typeof aggiornaVenditeMedieDashboard === "function") {
         aggiornaVenditeMedieDashboard();
     }
-}
 
+}
 function modificaProdotto(id) {
  console.log(document.getElementById("offerta"));
 console.log(document.getElementById("pezzi_offerta"));
@@ -865,46 +851,35 @@ if (ultimoImport) {
     };
 }
 
-document.getElementById("ricerca")?.addEventListener("input", function () {
+document.getElementById("ricerca")?.addEventListener("input", function () { 
 
     const testo = this.value.toLowerCase();
 
-    let lista = Prodotti.tutti().filter(p =>
+    const lista = Prodotti.tutti().filter(p =>
         (p.codice || "").toLowerCase().includes(testo) ||
         (p.descrizione || "").toLowerCase().includes(testo) ||
         (p.reparto || "").toLowerCase().includes(testo)
     );
 
-    if (
-        typeof Dashboard !== "undefined" &&
-        Dashboard.repartoSelezionato
-    ) {
-        lista = lista.filter(
-            p => (p.reparto || "").toLowerCase() ===
-                 Dashboard.repartoSelezionato.toLowerCase()
-        );
-    }
-
     const tbody = document.getElementById("productTable");
-    if (!tbody) return;
-
     tbody.innerHTML = "";
 
     lista.forEach((p, index) => {
 
-        tbody.innerHTML +=
+     tbody.innerHTML +=
     '<tr>' +
-        '<td>' + (p.codice || '') + '</td>' +
-        '<td>' + (p.descrizione || '') + '</td>' +
-        '<td>' + (p.reparto || '') + '</td>' +
+        '<td>' + p.codice + '</td>' +
+        '<td>' + p.descrizione + '</td>' +
+        '<td>' + p.reparto + '</td>' +
         '<td>' + formattaData(p.scadenza) + '</td>' +
-        '<td>' + (p.giorni ?? '') + '</td>' +
+        '<td>' + p.giorni + '</td>' +
         '<td class="media-settimanale-dashboard" data-codice="' +
-            String(p.codice || '').trim() + '">' +
+            String(p.codice || '').trim() +
+        '">' +
             'Calcolo...' +
         '</td>' +
         '<td>' +
-            '<button class="btn-edit" onclick="modificaProdotto(' + p.id + ')">' +
+            '<button class="btn-edit" onclick="modificaProdotto(' + p.id + ')">' 
                 '<i class="fa-solid fa-pen-to-square"></i>' +
             '</button>' +
             '<button class="btn-delete" onclick="eliminaProdotto(' + index + ')">' +
@@ -919,7 +894,6 @@ document.getElementById("ricerca")?.addEventListener("input", function () {
     }
 
 });
-
 const menuOfferte = document.getElementById("menuOfferte");
 const paginaOfferte = document.getElementById("paginaOfferte");
 const dashboard = document.getElementById("dashboard");
@@ -980,31 +954,50 @@ async function eliminaListaReparto(reparto) {
 }
 
 
-
 /*
 ==========================================================
-VENDITA MEDIA SETTIMANALE
-Calcolo locale sulla tabella Dashboard.
-Periodo storico: 01/01/2026 - 31/08/2026 = 243 giorni.
+VENDITA MEDIA SETTIMANALE - INTEGRATA NELLA DASHBOARD
+==========================================================
+
+Periodo storico:
+01/01/2026 - 31/08/2026 = 243 giorni
+
+Formula:
+vendite totali / 243 * 7
+
+La funzione viene richiamata ogni volta che una funzione
+ridisegna #productTable. In questo modo funziona sia con
+"Tutte le referenze" sia con Entro 3/7/10/15 giorni,
+Scaduti, reparto e ricerca.
 ==========================================================
 */
 
-const CACHE_VENDITE_MEDIE_DASHBOARD = new Map();
+const PERIODO_STORICO_VENDITE_DASHBOARD = 243;
+
+const cacheVenditeMedieDashboard = new Map();
 let richiestaVenditeMedieDashboard = null;
-let timerVenditeMedieDashboard = null;
+let filtroVenditeMedieInAttesa = false;
 
-function normalizzaCodiceVenditeMedie(codice) {
-    let s = String(codice ?? "").trim().replace(/\s+/g, "");
+function normalizzaCodiceVenditeDashboard(codice) {
+    let valore = String(codice ?? "")
+        .trim()
+        .replace(/\s+/g, "");
 
-    if (/^\d+\.0+$/.test(s)) {
-        s = s.replace(/\.0+$/, "");
+    if (!valore) return "";
+
+    if (/^\d+\.0+$/.test(valore)) {
+        valore = valore.replace(/\.0+$/, "");
     }
 
-    return s;
+    return valore;
 }
 
 function formattaMediaSettimanaleDashboard(valore) {
-    if (valore === null || valore === undefined || Number.isNaN(Number(valore))) {
+    if (
+        valore === null ||
+        valore === undefined ||
+        Number.isNaN(Number(valore))
+    ) {
         return "N/D";
     }
 
@@ -1014,11 +1007,31 @@ function formattaMediaSettimanaleDashboard(valore) {
     }) + " pz/settimana";
 }
 
+function codiciPresentiNellaTabellaDashboard() {
+    return [
+        ...new Set(
+            Array.from(
+                document.querySelectorAll(
+                    "#productTable .media-settimanale-dashboard"
+                )
+            )
+            .map(cella =>
+                normalizzaCodiceVenditeDashboard(
+                    cella.dataset.codice || ""
+                )
+            )
+            .filter(Boolean)
+        )
+    ];
+}
+
 function aggiornaCelleVenditeMedieDashboard() {
-    const celle = document.querySelectorAll(".media-settimanale-dashboard");
+    const celle = document.querySelectorAll(
+        "#productTable .media-settimanale-dashboard"
+    );
 
     celle.forEach(cella => {
-        const codice = normalizzaCodiceVenditeMedie(
+        const codice = normalizzaCodiceVenditeDashboard(
             cella.dataset.codice || ""
         );
 
@@ -1027,10 +1040,11 @@ function aggiornaCelleVenditeMedieDashboard() {
             return;
         }
 
-        if (CACHE_VENDITE_MEDIE_DASHBOARD.has(codice)) {
-            cella.textContent = formattaMediaSettimanaleDashboard(
-                CACHE_VENDITE_MEDIE_DASHBOARD.get(codice)
-            );
+        if (cacheVenditeMedieDashboard.has(codice)) {
+            cella.textContent =
+                formattaMediaSettimanaleDashboard(
+                    cacheVenditeMedieDashboard.get(codice)
+                );
         } else {
             cella.textContent = "Calcolo...";
         }
@@ -1038,122 +1052,118 @@ function aggiornaCelleVenditeMedieDashboard() {
 }
 
 async function aggiornaVenditeMedieDashboard() {
-    clearTimeout(timerVenditeMedieDashboard);
 
-    timerVenditeMedieDashboard = setTimeout(async () => {
+    const codici = codiciPresentiNellaTabellaDashboard();
 
-        const celle = Array.from(
-            document.querySelectorAll(".media-settimanale-dashboard")
-        );
+    if (!codici.length) return;
 
-        const codici = [
-            ...new Set(
-                celle
-                    .map(cella =>
-                        normalizzaCodiceVenditeMedie(cella.dataset.codice)
-                    )
-                    .filter(Boolean)
-            )
-        ];
+    aggiornaCelleVenditeMedieDashboard();
 
-        if (!codici.length || !window.supabaseClient) {
-            return;
-        }
+    // Se una richiesta Ã¨ giÃ  attiva, al termine controllerÃ 
+    // nuovamente la tabella attuale.
+    if (richiestaVenditeMedieDashboard) {
+        filtroVenditeMedieInAttesa = true;
+        return;
+    }
 
+    const codiciDaCercare = codici.filter(
+        codice => !cacheVenditeMedieDashboard.has(codice)
+    );
+
+    if (!codiciDaCercare.length) {
         aggiornaCelleVenditeMedieDashboard();
+        return;
+    }
 
-        if (richiestaVenditeMedieDashboard) {
-            return;
-        }
+    richiestaVenditeMedieDashboard = (async () => {
 
-        const nuoviCodici = codici.filter(
-            codice => !CACHE_VENDITE_MEDIE_DASHBOARD.has(codice)
-        );
+        try {
 
-        if (!nuoviCodici.length) {
-            aggiornaCelleVenditeMedieDashboard();
-            return;
-        }
+            const venditePerCodice = new Map();
+            const BATCH = 100;
 
-        richiestaVenditeMedieDashboard = (async () => {
-            try {
+            for (
+                let i = 0;
+                i < codiciDaCercare.length;
+                i += BATCH
+            ) {
 
-                const venditePerCodice = new Map();
-                const batch = 100;
+                const gruppo = codiciDaCercare.slice(i, i + BATCH);
 
-                for (let i = 0; i < nuoviCodici.length; i += batch) {
+                const { data, error } =
+                    await window.supabaseClient
+                        .from("storico_vendite")
+                        .select("codice, quantita")
+                        .in("codice", gruppo);
 
-                    const gruppo = nuoviCodici.slice(i, i + batch);
-
-                    const { data, error } =
-                        await window.supabaseClient
-                            .from("storico_vendite")
-                            .select("codice, quantita")
-                            .in("codice", gruppo);
-
-                    if (error) {
-                        throw new Error(error.message);
-                    }
-
-                    for (const riga of data || []) {
-
-                        const codice =
-                            normalizzaCodiceVenditeMedie(riga.codice);
-
-                        const quantita = Number(riga.quantita);
-
-                        if (!codice || Number.isNaN(quantita)) {
-                            continue;
-                        }
-
-                        venditePerCodice.set(
-                            codice,
-                            (venditePerCodice.get(codice) || 0) + quantita
-                        );
-                    }
+                if (error) {
+                    throw new Error(error.message);
                 }
 
-                for (const codice of nuoviCodici) {
+                for (const riga of data || []) {
 
-                    if (!venditePerCodice.has(codice)) {
-                        CACHE_VENDITE_MEDIE_DASHBOARD.set(codice, null);
+                    const codice =
+                        normalizzaCodiceVenditeDashboard(
+                            riga.codice
+                        );
+
+                    const quantita = Number(riga.quantita);
+
+                    if (
+                        !codice ||
+                        Number.isNaN(quantita)
+                    ) {
                         continue;
                     }
 
-                    const totale =
-                        venditePerCodice.get(codice) || 0;
-
-                    const mediaSettimanale =
-                        (totale / 243) * 7;
-
-                    CACHE_VENDITE_MEDIE_DASHBOARD.set(
+                    venditePerCodice.set(
                         codice,
-                        Math.round(mediaSettimanale * 10) / 10
+                        (venditePerCodice.get(codice) || 0) +
+                        quantita
                     );
                 }
-
-                aggiornaCelleVenditeMedieDashboard();
-
-            } catch (errore) {
-
-                console.error(
-                    "Errore calcolo vendita media settimanale:",
-                    errore
-                );
-
-                document
-                    .querySelectorAll(".media-settimanale-dashboard")
-                    .forEach(cella => {
-                        if (cella.textContent === "Calcolo...") {
-                            cella.textContent = "N/D";
-                        }
-                    });
-
-            } finally {
-                richiestaVenditeMedieDashboard = null;
             }
 
-        })();
+            for (const codice of codiciDaCercare) {
 
-    }, 120);
+                if (!venditePerCodice.has(codice)) {
+                    cacheVenditeMedieDashboard.set(
+                        codice,
+                        null
+                    );
+                    continue;
+                }
+
+                const totale =
+                    venditePerCodice.get(codice) || 0;
+
+                const media =
+                    (totale / PERIODO_STORICO_VENDITE_DASHBOARD) * 7;
+
+                cacheVenditeMedieDashboard.set(
+                    codice,
+                    Math.round(media * 10) / 10
+                );
+            }
+
+            aggiornaCelleVenditeMedieDashboard();
+
+        } catch (errore) {
+
+            console.error(
+                "Errore calcolo vendita media settimanale:",
+                errore
+            );
+
+        } finally {
+
+            richiestaVenditeMedieDashboard = null;
+
+            if (filtroVenditeMedieInAttesa) {
+                filtroVenditeMedieInAttesa = false;
+                aggiornaVenditeMedieDashboard();
+            }
+        }
+
+    })();
 }
