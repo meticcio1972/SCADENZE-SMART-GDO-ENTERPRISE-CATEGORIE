@@ -63,6 +63,57 @@ const CATEGORIE_GDO = [
     "Altro"
 ];
 
+// =====================================
+// PUNTO VENDITA CORRENTE
+// =====================================
+// La gestione del punto vendita è centralizzata in punti-vendita.js.
+// Questo file NON deve ridefinire getPuntoVenditaCorrente().
+
+const PUNTI_VENDITA_DASHBOARD = ["Casilina", "Ciliegie"];
+
+function aggiornaSelettorePuntoVendita() {
+    const selettore = document.getElementById("selettorePuntoVendita");
+    const etichetta = document.getElementById("puntoVenditaAttivo");
+
+    const config = window.configPuntoVendita || {};
+    const puntoVendita = config.puntoVendita || "Casilina";
+    const admin = config.ruolo === "admin";
+
+    window.puntoVenditaCorrente = puntoVendita;
+
+    if (selettore) {
+        selettore.value = puntoVendita;
+        selettore.disabled = !admin;
+        selettore.style.display = admin ? "block" : "none";
+    }
+
+    if (etichetta) {
+        etichetta.textContent = "Attivo: " + puntoVendita;
+    }
+}
+
+async function cambiaPuntoVendita(puntoVendita) {
+    if (!PUNTI_VENDITA_DASHBOARD.includes(puntoVendita)) return;
+
+    const admin = await utenteEAdmin();
+    if (!admin) return;
+
+    const salvato = await impostaPuntoVendita(puntoVendita);
+    if (!salvato) return;
+
+    window.puntoVenditaCorrente = puntoVendita;
+    aggiornaSelettorePuntoVendita();
+
+    // Ricarica i prodotti del nuovo punto vendita.
+    if (typeof ricaricaProdotti === "function") {
+        await ricaricaProdotti();
+    }
+
+    const celle = document.querySelectorAll("#productTable .media-settimanale-dashboard");
+    celle.forEach(cella => { cella.textContent = "Calcolo..."; });
+    await aggiornaMedieSettimanaliDashboard();
+}
+
 const Dashboard = {
 
     repartoSelezionato: null,
@@ -397,6 +448,7 @@ async function aggiornaMedieSettimanaliDashboard() {
         const { data, error } = await client
             .from("storico_vendite")
             .select("codice, quantita")
+            .eq("punto_vendita", (window.configPuntoVendita?.puntoVendita || window.puntoVenditaCorrente))
             .in("codice", gruppo);
 
         if (error) {
@@ -650,4 +702,23 @@ document.addEventListener("DOMContentLoaded", () => {
         selezionaReparto(reparto);
     });
 
+});
+
+// =====================================
+// SELETTORE PUNTO VENDITA
+// =====================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (typeof caricaConfigurazionePuntoVendita === "function") {
+        await caricaConfigurazionePuntoVendita();
+    }
+
+    aggiornaSelettorePuntoVendita();
+
+    const selettore = document.getElementById("selettorePuntoVendita");
+    if (!selettore) return;
+
+    selettore.addEventListener("change", async () => {
+        await cambiaPuntoVendita(selettore.value);
+    });
 });
