@@ -38,29 +38,8 @@ function ricalcolaGiorni(data) {
 
 async function caricaTuttiProdotti() {
 
-    const configurazione = await caricaConfigurazionePuntoVendita();
-
-    if (!configurazione?.puntoVendita) {
-        return {
-            data: null,
-            error: new Error("Punto vendita non disponibile")
-        };
-    }
-
-    const puntoVendita = configurazione.puntoVendita;
-    const admin = configurazione.ruolo === "admin";
-
     const dimensionePagina = 1000;
 
-    /*
-       ADMIN:
-       Supabase RLS gli permette di leggere entrambi i punti vendita.
-       Carichiamo tutto e poi mostriamo solamente il punto vendita
-       selezionato.
-
-       UTENTE NORMALE:
-       chiediamo direttamente solo il proprio punto vendita.
-    */
     const richieste = [
         window.supabaseClient
             .from("prodotti")
@@ -81,13 +60,7 @@ async function caricaTuttiProdotti() {
             .range(dimensionePagina * 2, dimensionePagina * 3 - 1)
     ];
 
-    const richiesteFinali = admin
-        ? richieste
-        : richieste.map(richiesta =>
-            richiesta.eq("punto_vendita", puntoVendita)
-        );
-
-    const risultati = await Promise.all(richiesteFinali);
+    const risultati = await Promise.all(richieste);
 
     for (const risultato of risultati) {
         if (risultato.error) {
@@ -95,22 +68,9 @@ async function caricaTuttiProdotti() {
         }
     }
 
-    let tutti = risultati.flatMap(r => r.data || []);
+    const tutti = risultati.flatMap(r => r.data || []);
 
-    if (admin) {
-        tutti = tutti.filter(
-            prodotto => prodotto.punto_vendita === puntoVendita
-        );
-    }
-
-    console.log(
-        "Punto vendita:",
-        puntoVendita,
-        "| Ruolo:",
-        configurazione.ruolo,
-        "| Prodotti caricati:",
-        tutti.length
-    );
+    console.log("Prodotti caricati:", tutti.length);
 
     return { data: tutti, error: null };
 }
@@ -125,26 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    const configurazionePuntoVendita =
-        await caricaConfigurazionePuntoVendita();
-
-    if (!configurazionePuntoVendita?.puntoVendita) {
-        console.error("Punto vendita non disponibile.");
-        alert("Impossibile determinare il punto vendita dell'utente.");
-        return;
-    }
-
-    console.log(
-        "Punto vendita corrente:",
-        configurazionePuntoVendita.puntoVendita
-    );
-
-    console.log(
-        "Ruolo utente:",
-        configurazionePuntoVendita.ruolo
-    );
-
-    console.log("Scadenze Smart GDO Enterprise avviato");
+    console.log("â Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -172,42 +113,17 @@ console.log("Prodotti caricati:", data.length);
 }
 async function ricaricaProdotti() {
 
-    const configurazione = await caricaConfigurazionePuntoVendita();
-
-    if (!configurazione?.puntoVendita) {
-        console.error("Punto vendita non disponibile.");
-        return;
-    }
-
-    const puntoVendita = configurazione.puntoVendita;
-    const admin = configurazione.ruolo === "admin";
-
-    let query = window.supabaseClient
+    const { data, error } = await window.supabaseClient
         .from("prodotti")
         .select("*")
         .order("id", { ascending: true });
-
-    if (!admin) {
-        query = query.eq("punto_vendita", puntoVendita);
-    }
-
-    const { data, error } = await query;
 
     if (error) {
         console.error(error);
         return;
     }
 
-    let prodotti = data || [];
-
-    if (admin) {
-        prodotti = prodotti.filter(
-            prodotto => prodotto.punto_vendita === puntoVendita
-        );
-    }
-
-    Prodotti.carica(ricalcolaGiorni(prodotti));
-
+    Prodotti.carica(ricalcolaGiorni(data));
     if (typeof renderTabella === "function") {
         renderTabella();
     }
@@ -227,33 +143,236 @@ function formattaData(data) {
 
   let filtroReparto = "";
 
-function renderTabella() {
+// ============================================================
+// VENDITE MEDIE SETTIMANALI PER LA CATEGORIA SELEZIONATA
+// ============================================================
+const STORICO_VENDITE_TABLE = "storico_vendite";
+const CACHE_VENDITE_MEDIE = new Map();
+let richiestaVenditeToken = 0;
+
+function escapeHtmlVendite(v) {
+    return String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function normalizzaCodiceVendite(v) {
+    let s = String(v ?? "").trim();
+    // Alcuni import CSV/database possono trasformare un codice numerico
+    // come 31399 in "31399.0". Lo riportiamo al codice originale.
+    if (/^\d+\.0+$/.test(s)) s = s.replace(/\.0+$/, "");
+    return s;
+}
+
+function parseDataPeriodoVendite(v) {
+    if (!v) return null;
+    const s = String(v).trim();
+
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) {
+        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        if (!Number.isNaN(d.getTime())) return d;
+    }
+
+    m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+    if (m) {
+        const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+        if (!Number.isNaN(d.getTime())) return d;
+    }
+
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function estraiPeriodoVendite(v) {
+    if (!v) return null;
+    const s = String(v);
+
+    const dateISO = [...s.matchAll(/(\d{4}-\d{1,2}-\d{1,2})/g)]
+        .map(m => parseDataPeriodoVendite(m[1]))
+        .filter(Boolean);
+
+    if (dateISO.length >= 2) {
+        return { inizio: dateISO[0], fine: dateISO[1] };
+    }
+
+    const dateIT = [...s.matchAll(/(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{4})/g)]
+        .map(m => parseDataPeriodoVendite(m[1]))
+        .filter(Boolean);
+
+    if (dateIT.length >= 2) {
+        return { inizio: dateIT[0], fine: dateIT[1] };
+    }
+
+    return null;
+}
+
+function aggiornaPeriodoVendite(periodo, globale) {
+    if (!periodo) return;
+
+    if (!globale.inizio || periodo.inizio < globale.inizio) {
+        globale.inizio = new Date(periodo.inizio);
+    }
+    if (!globale.fine || periodo.fine > globale.fine) {
+        globale.fine = new Date(periodo.fine);
+    }
+}
+
+function giorniPeriodoVendite(periodo) {
+    if (!periodo?.inizio || !periodo?.fine) return null;
+
+    const a = new Date(periodo.inizio);
+    const b = new Date(periodo.fine);
+    a.setHours(0,0,0,0);
+    b.setHours(0,0,0,0);
+
+    const giorni = Math.floor((b - a) / 86400000) + 1;
+    return giorni > 0 ? giorni : null;
+}
+
+function formattaPeriodoVendite(periodo) {
+    if (!periodo?.inizio || !periodo?.fine) return "";
+    const f = d => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+    return `${f(periodo.inizio)} - ${f(periodo.fine)}`;
+}
+
+async function caricaVenditeMediePerLista(lista) {
+    const codici = [...new Set(
+        (lista || [])
+            .map(p => normalizzaCodiceVendite(p.codice))
+            .filter(Boolean)
+    )];
+
+    if (!codici.length) return;
+
+    const nonInCache = codici.filter(c => !CACHE_VENDITE_MEDIE.has(c));
+    if (!nonInCache.length) return;
+
+    const token = ++richiestaVenditeToken;
+    const stato = document.getElementById("statoVenditeMedie");
+
+    if (stato) {
+        stato.textContent = `Calcolo vendite medie per ${nonInCache.length} referenze...`;
+    }
+
+    try {
+        const righe = [];
+        const batch = 100;
+
+        for (let i = 0; i < nonInCache.length; i += batch) {
+            const gruppo = nonInCache.slice(i, i + batch);
+
+            const { data, error } = await window.supabaseClient
+                .from(STORICO_VENDITE_TABLE)
+                .select("codice,descrizione,quantita,periodo")
+                .in("codice", gruppo);
+
+            if (error) throw new Error(error.message);
+            righe.push(...(data || []));
+        }
+
+        const venditePerCodice = new Map();
+        const periodoGlobale = { inizio: null, fine: null };
+
+        for (const riga of righe) {
+            const codice = normalizzaCodiceVendite(riga.codice);
+            if (!codice) continue;
+
+            const q = Number(riga.quantita);
+            if (!Number.isNaN(q)) {
+                venditePerCodice.set(
+                    codice,
+                    (venditePerCodice.get(codice) || 0) + q
+                );
+            }
+
+            aggiornaPeriodoVendite(
+                estraiPeriodoVendite(riga.periodo),
+                periodoGlobale
+            );
+        }
+
+        // Lo storico vendite utilizzato dal gestionale copre
+        // 01/01/2026 - 31/08/2026 = 243 giorni.
+        // Se il campo "periodo" non e' leggibile, usiamo comunque
+        // il periodo ufficiale dello storico invece di trasformare
+        // tutte le referenze in N/D.
+        const giorni = giorniPeriodoVendite(periodoGlobale) || 243;
+
+        for (const codice of nonInCache) {
+            if (!venditePerCodice.has(codice) || !giorni) {
+                CACHE_VENDITE_MEDIE.set(codice, null);
+                continue;
+            }
+
+            const totale = venditePerCodice.get(codice) || 0;
+            const mediaSettimanale = (totale / giorni) * 7;
+
+            CACHE_VENDITE_MEDIE.set(
+                codice,
+                Math.round(mediaSettimanale * 10) / 10
+            );
+        }
+
+        if (token !== richiestaVenditeToken) return;
+
+        const reparto = Dashboard?.repartoSelezionato || "";
+        const visibili = (Prodotti.tutti() || []).filter(p => {
+            if (reparto && String(p.reparto || "").trim().toLowerCase() !== reparto.trim().toLowerCase()) return false;
+            return true;
+        });
+
+        renderTabella(visibili);
+
+        if (stato) {
+            const trovate = nonInCache.filter(c => CACHE_VENDITE_MEDIE.get(c) !== null).length;
+            const periodoTesto = giorni ? formattaPeriodoVendite(periodoGlobale) : "periodo non disponibile";
+            stato.textContent = `${trovate} referenze con storico. Periodo: ${periodoTesto}${giorni ? ` (${giorni} giorni)` : ""}.`;
+        }
+
+    } catch (errore) {
+        console.error("Errore vendite medie:", errore);
+        if (token === richiestaVenditeToken && stato) {
+            stato.textContent = "Errore vendite medie: " + errore.message;
+        }
+    }
+}
+
+function renderTabella(listaArgomento) {
     console.time("RENDER TABELLA");
 
     const tbody = document.getElementById("productTable");
-
     if (!tbody) return;
 
-    const lista = Prodotti.tutti();
+    let lista = Array.isArray(listaArgomento) ? listaArgomento : Prodotti.tutti();
+
+    if (!Array.isArray(listaArgomento) && filtroReparto) {
+        lista = lista.filter(p =>
+            (p.reparto || "").toLowerCase() === filtroReparto.toLowerCase()
+        );
+    }
 
     const righe = [];
 
     lista.forEach((p, index) => {
-
-        if (
-            filtroReparto &&
-            (p.reparto || "").toLowerCase() !== filtroReparto.toLowerCase()
-        ) {
-            return;
-        }
+        const codice = normalizzaCodiceVendite(p.codice);
+        const media = CACHE_VENDITE_MEDIE.get(codice);
+        const mediaTesto =
+            typeof media === "number"
+                ? `${media.toFixed(1)} pz/settimana`
+                : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "â");
 
         righe.push(`
             <tr>
-                <td>${p.codice}</td>
-                <td>${p.descrizione}</td>
-                <td>${p.reparto}</td>
-                <td>${formattaData(p.scadenza)}</td>
-                <td>${p.giorni}</td>
+                <td>${escapeHtmlVendite(p.codice)}</td>
+                <td>${escapeHtmlVendite(p.descrizione)}</td>
+                <td>${escapeHtmlVendite(p.reparto)}</td>
+                <td>${escapeHtmlVendite(formattaData(p.scadenza))}</td>
+                <td>${escapeHtmlVendite(p.giorni)}</td>
+                <td class="media-settimanale">${escapeHtmlVendite(mediaTesto)}</td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${p.id})">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -269,6 +388,16 @@ function renderTabella() {
 
     tbody.innerHTML = righe.join("");
 
+    // Le vendite medie vengono richieste solo quando l'utente ha selezionato
+    // una categoria: non interroghiamo lo storico per tutte le referenze.
+    const repartoAttivo = typeof Dashboard !== "undefined"
+        ? Dashboard.repartoSelezionato
+        : null;
+
+    if (repartoAttivo && lista.length) {
+        caricaVenditeMediePerLista(lista);
+    }
+
     console.timeEnd("RENDER TABELLA");
 }
 
@@ -279,7 +408,8 @@ if (menuReparto) {
         filtroReparto = menuReparto.value;
         renderTabella();
     });
-} 
+}
+
 // ===== MODALE NUOVO PRODOTTO =====
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -351,14 +481,8 @@ const prodotto = {
     offerta: document.getElementById("offerta")?.checked || false,
 pezzi_offerta: parseInt(document.getElementById("pezzi_offerta")?.value || "0"),
 data_inizio_offerta: document.getElementById("data_inizio_offerta")?.value || null,
-data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null,
-punto_vendita: await getPuntoVenditaCorrente()
+data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null 
 };
-
-if (!prodotto.punto_vendita) {
-    alert("Impossibile determinare il punto vendita.");
-    return;
-}
 
 
     if (window.idProdottoInModifica !== undefined) {
@@ -406,13 +530,12 @@ if (
             giorni: prodotto.giorni,
             stato: "in_offerta",
             intervento: "Metti in offerta",
-            pezzi_offerta: prodotto.pezzi_offerta,
-            punto_vendita: prodotto.punto_vendita
+            pezzi_offerta: prodotto.pezzi_offerta
         }]);
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto ÃÂ¨ stato salvato, ma non ÃÂ¨ stato registrato nello storico.");
+        alert("Il prodotto Ã¨ stato salvato, ma non Ã¨ stato registrato nello storico.");
         return;
     }
 
@@ -442,8 +565,7 @@ window.idProdottoInModifica = undefined;
     offerta: prodotto.offerta,
 pezzi_offerta: prodotto.pezzi_offerta,
 data_inizio_offerta: prodotto.data_inizio_offerta,
-data_fine_offerta: prodotto.data_fine_offerta,
-punto_vendita: prodotto.punto_vendita
+data_fine_offerta: prodotto.data_fine_offerta
 }]);
        console.log("Errore:", error);
      
@@ -768,8 +890,7 @@ if (importCSVBtn && csvFile) {
                         giorni: giorni,
                         quantita: "",
                         prezzo: "",
-                        note: "",
-                        punto_vendita: await getPuntoVenditaCorrente()
+                        note: ""
                     });
                 }
 
@@ -787,8 +908,7 @@ if (importCSVBtn && csvFile) {
 const { error: erroreReparto } = await window.supabaseClient
     .from("prodotti")
     .delete()
-    .eq("reparto", repartoFile)
-    .eq("punto_vendita", await getPuntoVenditaCorrente());
+    .eq("reparto", repartoFile);
 
 if (erroreReparto) {
     console.error("Errore cancellazione reparto:", erroreReparto);
@@ -808,7 +928,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "Ã°ÂÂÂ¡ Importazione in corso...";
+    statoImportazione.textContent = "ð¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -871,27 +991,11 @@ if (prodottiImportati) {
                 }
 
                 // Ricarica i prodotti da Supabase
-                const configurazioneDopoImport =
-                    await caricaConfigurazionePuntoVendita();
-
-                if (!configurazioneDopoImport?.puntoVendita) {
-                    alert("Impossibile determinare il punto vendita.");
-                    return;
-                }
-
-                let queryDopoImport = window.supabaseClient
-                    .from("prodotti")
-                    .select("*")
-                    .order("id", { ascending: true });
-
-                if (configurazioneDopoImport.ruolo !== "admin") {
-                    queryDopoImport = queryDopoImport.eq(
-                        "punto_vendita",
-                        configurazioneDopoImport.puntoVendita
-                    );
-                }
-
-                const { data, error } = await queryDopoImport;
+                const { data, error } =
+                    await window.supabaseClient
+                        .from("prodotti")
+                        .select("*")
+                        .order("id", { ascending: true });
 
                 if (error) {
                     console.error(error);
@@ -901,24 +1005,14 @@ if (prodottiImportati) {
                     return;
                 }
 
-                let prodottiRicaricati = data || [];
-
-                if (configurazioneDopoImport.ruolo === "admin") {
-                    prodottiRicaricati = prodottiRicaricati.filter(
-                        prodotto =>
-                            prodotto.punto_vendita ===
-                            configurazioneDopoImport.puntoVendita
-                    );
-                }
-
-                Prodotti.carica(prodottiRicaricati);
+                Prodotti.carica(data);
 
                 renderTabella();
 
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "Ã°ÂÂÂ¢ Completato";
+    statoImportazione.textContent = "ð¢ Completato";
 }
 
 if (ultimoImport) {
@@ -953,40 +1047,33 @@ if (ultimoImport) {
     };
 }
 
-document.getElementById("ricerca")?.addEventListener("input", function () { 
+document.getElementById("ricerca")?.addEventListener("input", function () {
 
-    const testo = this.value.toLowerCase();
+    const testo = this.value.toLowerCase().trim();
+    let lista = Prodotti.tutti();
 
-    const lista = Prodotti.tutti().filter(p =>
-        (p.codice || "").toLowerCase().includes(testo) ||
-        (p.descrizione || "").toLowerCase().includes(testo) ||
-        (p.reparto || "").toLowerCase().includes(testo)
-    );
+    const repartoAttivo = typeof Dashboard !== "undefined"
+        ? Dashboard.repartoSelezionato
+        : null;
 
-    const tbody = document.getElementById("productTable");
-    tbody.innerHTML = "";
+    if (repartoAttivo) {
+        lista = lista.filter(p =>
+            String(p.reparto || "").trim().toLowerCase() ===
+            String(repartoAttivo).trim().toLowerCase()
+        );
+    }
 
-    lista.forEach((p, index) => {
+    if (testo) {
+        lista = lista.filter(p =>
+            (p.codice || "").toLowerCase().includes(testo) ||
+            (p.descrizione || "").toLowerCase().includes(testo) ||
+            (p.reparto || "").toLowerCase().includes(testo)
+        );
+    }
 
-     tbody.innerHTML +=
-    '<tr>' +
-        '<td>' + p.codice + '</td>' +
-        '<td>' + p.descrizione + '</td>' +
-        '<td>' + p.reparto + '</td>' +
-        '<td>' + formattaData(p.scadenza) + '</td>' +
-        '<td>' + p.giorni + '</td>' +
-        '<td>' +
-            '<button class="btn-edit" onclick="modificaProdotto(' + p.id + ')">' +
-                '<i class="fa-solid fa-pen-to-square"></i>' +
-            '</button>' +
-            '<button class="btn-delete" onclick="eliminaProdotto(' + index + ')">' +
-                '<i class="fa-solid fa-trash"></i>' +
-            '</button>' +
-        '</td>' +
-    '</tr>';
-    });
-
+    renderTabella(lista);
 });
+
 const menuOfferte = document.getElementById("menuOfferte");
 const paginaOfferte = document.getElementById("paginaOfferte");
 const dashboard = document.getElementById("dashboard");
@@ -1029,18 +1116,10 @@ async function eliminaListaReparto(reparto) {
 
     if (!conferma) return;
 
-    const puntoVendita = await getPuntoVenditaCorrente();
-
-    if (!puntoVendita) {
-        alert("Impossibile determinare il punto vendita.");
-        return;
-    }
-
     const { error } = await window.supabaseClient
         .from("prodotti")
         .delete()
-        .eq("reparto", reparto)
-        .eq("punto_vendita", puntoVendita);
+        .eq("reparto", reparto);
 
     if (error) {
         console.error("Errore eliminazione lista:", error);
