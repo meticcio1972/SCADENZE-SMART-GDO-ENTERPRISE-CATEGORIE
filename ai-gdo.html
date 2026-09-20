@@ -1,202 +1,359 @@
-let ultimaRichiesta = "";  
-let ultimoTimestamp = 0;
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI GDO - Scadenze Smart GDO</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/table.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-top:20px}
+.ai-card{background:#0f1728;padding:20px;border-radius:12px}
+.ai-card h3{color:#fff;margin:10px 0 8px}.ai-card p{color:#aebbd0;margin:0;line-height:1.5}
+.ai-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.ai-stat{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb}.ai-stat span{display:block;color:#667085;font-size:13px}.ai-stat strong{display:block;color:#111827;font-size:25px;margin-top:7px}
+.ai-note{color:#aebbd0;margin-top:12px;font-size:14px}
+.ai-result{display:none;background:#0f1728;padding:25px;border-radius:12px;margin-top:25px;color:#fff;line-height:1.6}
+.ai-button{margin-top:12px}
+@media(max-width:900px){.ai-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.ai-stats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<div class="logo"><h1>SCADENZE</h1><span>SMART GDO</span><small>ENTERPRISE</small></div>
+<nav>
+<a href="index.html">Dashboard</a>
+<a>Prodotti</a>
+<a href="storico-scadenze.html">Storico scadenze</a>
+<a href="offerte.html">offerte</a>
+<a href="storico-vendite.html">Storico vendite</a>
+<a>Documenti</a>
+<a>Report</a>
+<a class="active" href="ai-gdo.html">AI GDO</a>
+<a>Impostazioni</a>
+</nav>
+</aside>
 
-const COOLDOWN_MS = 20000;
+<main>
+<header class="topbar">
+<div class="search-box"><input type="text" placeholder="Cerca..."></div>
+<div class="user-area"><div class="circle">ð</div><div class="profile"><div class="avatar"></div><div class="profile-name"><strong>Andrea</strong><span>Responsabile</span></div></div></div>
+</header>
 
-export async function GET() {
-    return new Response(
-        JSON.stringify({
-            ok: true,
-            risposta: "COLLEGAMENTO AI GDO RIUSCITO"
-        }),
-        {
-            status: 200,
-            headers: {
-                "Content-Type": "application/json; charset=UTF-8"
-            }
-        }
-    );
+<section class="table-area">
+<div class="table-header">
+<h2>ð¤ AI GDO</h2>
+<button class="new-product" type="button" id="btnCollegaAI" onclick="collegaAI()">ð¤ Collega Intelligenza Artificiale</button>
+</div>
+
+<div style="background:#162238;padding:30px;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h2 style="color:#fff;margin-top:0">ð® Cosa farÃ  AI GDO</h2>
+<div class="ai-grid">
+<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi scadenze</h3><p>Individua le situazioni che richiedono attenzione.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð</div><h3>Analisi vendite</h3><p>Collega vendite storiche, velocitÃ  di vendita e scadenze.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð§ </div><h3>Ragionamento</h3><p>Collega scadenze, offerte e storico per trovare schemi.</p></div>
+<div class="ai-card"><div style="font-size:28px">ð®</div><h3>Previsioni</h3><p>Stima se la vendita puÃ² assorbire la merce prima della scadenza.</p></div>
+</div>
+</div>
+
+<div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h2 style="color:#fff;margin-top:0">ð Dati collegati all'AI</h2>
+<p style="color:#aebbd0;font-size:16px">Prima vengono lette le referenze presenti nelle liste; poi lo storico vendite viene cercato solo per queste referenze.</p>
+<div class="ai-stats">
+<div class="ai-stat"><span>Referenze prodotto</span><strong id="statProdotti">â</strong></div>
+<div class="ai-stat"><span>Righe storico vendite</span><strong id="statVendite">â</strong></div>
+<div class="ai-stat"><span>Pezzi venduti periodo</span><strong id="statPezzi">â</strong></div>
+<div class="ai-stat"><span>Referenze collegate</span><strong id="statCollegate">â</strong></div>
+</div>
+<div id="statoDati" class="ai-note">â³ Collegamento ai dati in corso...</div>
+</div>
+
+<div style="background:#162238;padding:30px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h2 style="color:#fff;margin-top:0">ð§  Analisi intelligente GDO</h2>
+<p style="color:#aebbd0;font-size:16px">
+L'AI analizzerÃ  insieme scadenze, vendite storiche e offerte. Per ogni referenza potrÃ  confrontare la quantitÃ  venduta nel periodo con la velocitÃ  media settimanale e la situazione di scadenza.
+</p>
+<button class="new-product ai-button" type="button" id="btnAnalizzaGDO" onclick="analizzaSituazioneGDO()">ð§  Analizza situazione GDO</button>
+<div id="risultatoAI" class="ai-result"></div>
+</div>
+</section>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script>
+const STORICO_TABLE="storico_vendite";
+let cacheGDO=null;
+
+function fmt(n){return Number(n||0).toLocaleString("it-IT",{maximumFractionDigits:2})}
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function parsePeriodo(s){
+ const m=String(s||"").match(/(\d{1,2})\/(\d{1,2})\/(\d{4}).*?(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+ if(!m)return null;
+ const a=new Date(Number(m[3]),Number(m[2])-1,Number(m[1])),b=new Date(Number(m[6]),Number(m[5])-1,Number(m[4]));
+ const giorni=Math.max(1,Math.round((b-a)/86400000)+1);
+ return {inizio:a.toISOString().slice(0,10),fine:b.toISOString().slice(0,10),giorni};
+}
+async function leggiStoricoVendite(codici){
+ const codiciUnici=[...new Set((codici||[]).map(x=>String(x||"").trim()).filter(Boolean))];
+ if(!codiciUnici.length)return [];
+
+ let righe=[];
+ const batch=100;
+
+ // Legge lo storico SOLO per le referenze presenti nelle liste/prodotti.
+ // Non scarica piÃ¹ tutto lo storico del gestionale.
+ for(let i=0;i<codiciUnici.length;i+=batch){
+  const gruppo=codiciUnici.slice(i,i+batch);
+  const {data,error}=await window.supabaseClient
+   .from(STORICO_TABLE)
+   .select("id,codice,descrizione,quantita,periodo")
+   .in("codice",gruppo)
+   .order("id",{ascending:true});
+
+  if(error)throw new Error("Errore storico vendite: "+error.message);
+  righe.push(...(data||[]));
+ }
+
+ return righe;
+}
+function aggregaVendite(righe){
+ const map=new Map(); let periodo=null;
+ for(const r of righe){
+  if(!periodo&&r.periodo)periodo=parsePeriodo(r.periodo);
+  const codice=String(r.codice||"").trim(); if(!codice)continue;
+  if(!map.has(codice))map.set(codice,{codice,descrizione:r.descrizione||"",vendite_periodo:0});
+  const x=map.get(codice); x.vendite_periodo+=Number(r.quantita)||0;
+ }
+ const giorni=periodo?.giorni||null;
+ for(const x of map.values()){
+  x.media_giornaliera=giorni?x.vendite_periodo/giorni:null;
+  x.media_settimanale=giorni?x.media_giornaliera*7:null;
+ }
+ return {map,periodo,giorni};
+}
+async function caricaDati(){
+ const stato=document.getElementById("statoDati");
+ try{
+  stato.textContent="â³ Leggo prima le referenze presenti nelle liste...";
+
+  // PRIMA: carichiamo le referenze realmente presenti nel gestionale/liste.
+  const {data:prodotti,error:ep}=await window.supabaseClient
+   .from("prodotti")
+   .select("*")
+   .order("id",{ascending:true});
+
+  if(ep)throw new Error("Errore prodotti: "+ep.message);
+
+  const listaProdotti=prodotti||[];
+  const codici=listaProdotti
+   .map(p=>String(p.codice||"").trim())
+   .filter(Boolean);
+
+  stato.textContent=`â³ Trovate ${fmt(listaProdotti.length)} referenze. Ora cerco nello storico solo queste...`;
+
+  // DOPO: incrociamo SOLO queste referenze con lo storico vendite.
+  const righe=await leggiStoricoVendite(codici);
+
+  const agg=aggregaVendite(righe);
+  const pMap=new Map(listaProdotti.map(p=>[String(p.codice||"").trim(),p]));
+  const collegati=[...agg.map.values()].filter(v=>pMap.has(v.codice));
+
+  cacheGDO={
+   prodotti:listaProdotti,
+   storicoRighe:righe,
+   vendite:agg.map,
+   periodo:agg.periodo,
+   giorni:agg.giorni,
+   pMap
+  };
+
+  document.getElementById("statProdotti").textContent=fmt(listaProdotti.length);
+  document.getElementById("statVendite").textContent=fmt(righe.length);
+  document.getElementById("statPezzi").textContent=fmt(
+   righe.reduce((s,r)=>s+(Number(r.quantita)||0),0)
+  );
+  document.getElementById("statCollegate").textContent=fmt(collegati.length);
+
+  stato.textContent=
+   `ð¢ Dati collegati. ${fmt(listaProdotti.length)} referenze nelle liste, `+
+   `${fmt(righe.length)} righe storico relative a queste referenze e `+
+   `${fmt(collegati.length)} referenze collegate.`;
+
+ }catch(e){
+  console.error(e);
+  stato.textContent="ð´ "+e.message;
+ }
+}
+async function collegaAI(){
+ const b=document.getElementById("btnCollegaAI");b.disabled=true;b.textContent="ð¤ Collegamento in corso...";
+ try{
+  const r=await fetch("/api/ai-gdo",{method:"GET"}),d=await r.json();
+  if(!r.ok)throw new Error(d.error||"Errore nel collegamento");
+  alert(d.risposta||"Collegamento riuscito");b.textContent="ð¢ Intelligenza Artificiale collegata";
+ }catch(e){console.error(e);alert("â Collegamento non riuscito: "+e.message);b.textContent="ð´ Collegamento non riuscito"}finally{b.disabled=false}
+}
+function parseDataAI(v){
+ if(!v)return null;
+ const s=String(v).trim();
+ let m=s.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);
+ if(m){const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));if(!Number.isNaN(d.getTime()))return d;}
+ m=s.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})/);
+ if(m){const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));if(!Number.isNaN(d.getTime()))return d;}
+ const d=new Date(s);
+ return Number.isNaN(d.getTime())?null:d;
 }
 
-export async function POST(request) {
-    try {
-        const body = await request.json();
-        const messaggio = String(body.messaggio || "").trim();
-
-        if (!messaggio) {
-            return new Response(
-                JSON.stringify({
-                    ok: false,
-                    error: "Messaggio AI mancante"
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "application/json; charset=UTF-8"
-                    }
-                }
-            );
-        }
-
-        const adesso = Date.now();
-
-        if (
-            messaggio === ultimaRichiesta &&
-            adesso - ultimoTimestamp < COOLDOWN_MS
-        ) {
-            const secondi = Math.ceil(
-                (COOLDOWN_MS - (adesso - ultimoTimestamp)) / 1000
-            );
-
-            return new Response(
-                JSON.stringify({
-                    ok: false,
-                    error:
-                        `Richiesta duplicata. Attendi ${secondi} secondi prima di rilanciare l'analisi.`
-                }),
-                {
-                    status: 429,
-                    headers: {
-                        "Content-Type": "application/json; charset=UTF-8",
-                        "Retry-After": String(secondi),
-                        "Cache-Control": "no-store"
-                    }
-                }
-            );
-        }
-
-        ultimaRichiesta = messaggio;
-        ultimoTimestamp = adesso;
-
-        const rispostaOpenAI = await fetch(
-            "https://api.openai.com/v1/responses",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-5.6-luna",
-                    max_output_tokens: 1200,
-                    input: messaggio
-                })
-            }
-        );
-
-        const dati = await rispostaOpenAI.json();
-
-        if (!rispostaOpenAI.ok) {
-            console.error("Errore OpenAI:", dati);
-
-            const retryAfterHeader =
-                rispostaOpenAI.headers.get("retry-after");
-
-            const retryAfterSeconds = retryAfterHeader
-                ? parseInt(retryAfterHeader, 10)
-                : null;
-
-            if (rispostaOpenAI.status === 429) {
-                const messaggio429 =
-                    retryAfterSeconds && !Number.isNaN(retryAfterSeconds)
-                        ? `OpenAI sta applicando un limite temporaneo. Attendi circa ${retryAfterSeconds} secondi e poi riprova.`
-                        : "OpenAI sta applicando un limite temporaneo alle richieste. Attendi un po' e poi riprova. Non premere ripetutamente il pulsante.";
-
-                return new Response(
-                    JSON.stringify({
-                        ok: false,
-                        error: messaggio429,
-                        rate_limit: true,
-                        retry_after_seconds:
-                            retryAfterSeconds || null
-                    }),
-                    {
-                        status: 429,
-                        headers: {
-                            "Content-Type":
-                                "application/json; charset=UTF-8",
-                            ...(retryAfterSeconds &&
-                            !Number.isNaN(retryAfterSeconds)
-                                ? {
-                                      "Retry-After":
-                                          String(retryAfterSeconds)
-                                  }
-                                : {}),
-                            "Cache-Control": "no-store"
-                        }
-                    }
-                );
-            }
-
-            return new Response(
-                JSON.stringify({
-                    ok: false,
-                    error:
-                        dati?.error?.message ||
-                        "Errore OpenAI"
-                }),
-                {
-                    status: rispostaOpenAI.status,
-                    headers: {
-                        "Content-Type":
-                            "application/json; charset=UTF-8",
-                        "Cache-Control": "no-store"
-                    }
-                }
-            );
-        }
-
-        let testo = "";
-
-        if (Array.isArray(dati.output)) {
-            for (const elemento of dati.output) {
-                if (!Array.isArray(elemento.content)) continue;
-
-                for (const contenuto of elemento.content) {
-                    if (
-                        contenuto &&
-                        typeof contenuto.text === "string"
-                    ) {
-                        testo += contenuto.text;
-                    }
-                }
-            }
-        }
-
-        if (!testo.trim()) {
-            testo = "L'AI non ha restituito un testo utilizzabile.";
-        }
-
-        return new Response(
-            JSON.stringify({
-                ok: true,
-                risposta: testo
-            }),
-            {
-                status: 200,
-                headers: {
-                    "Content-Type":
-                        "application/json; charset=UTF-8",
-                    "Cache-Control": "no-store"
-                }
-            }
-        );
-    } catch (errore) {
-        console.error("Errore AI GDO:", errore);
-
-        return new Response(
-            JSON.stringify({
-                ok: false,
-                error: "Errore interno AI GDO"
-            }),
-            {
-                status: 500,
-                headers: {
-                    "Content-Type":
-                        "application/json; charset=UTF-8",
-                    "Cache-Control": "no-store"
-                }
-            }
-        );
-    }
+function giorniAllaScadenzaAI(v){
+ const d=parseDataAI(v);
+ if(!d)return null;
+ const oggi=new Date();
+ oggi.setHours(0,0,0,0);
+ d.setHours(0,0,0,0);
+ return Math.ceil((d-oggi)/86400000);
 }
+
+function costruisciDatiAI(){
+ const {prodotti,vendite,periodo}=cacheGDO;
+ const candidati=[];
+
+ // Il calcolo della velocitÃ  viene fatto QUI, prima dell'AI.
+ // L'AI riceve quindi giÃ  la media settimanale corretta.
+ const settimane=periodo?.giorni ? periodo.giorni/7 : null;
+
+ for(const p of prodotti){
+  const codice=String(p.codice||"").trim();
+  if(!codice)continue;
+
+  const v=vendite.get(codice);
+  const giorniScadenza=giorniAllaScadenzaAI(p.scadenza);
+  const venditePeriodo=Number(v?.vendite_periodo||0);
+  const mediaSettimanale=(
+   settimane && settimane>0
+  ) ? venditePeriodo/settimane : null;
+
+  const haOfferta=p.offerta!==null && p.offerta!==undefined &&
+   String(p.offerta).trim()!=="";
+
+  if((giorniScadenza!==null && giorniScadenza<=14) || haOfferta || venditePeriodo>0){
+   let priorita=0;
+
+   if(giorniScadenza!==null){
+    if(giorniScadenza<0)priorita+=1000;
+    else if(giorniScadenza<=3)priorita+=900;
+    else if(giorniScadenza<=7)priorita+=700;
+    else if(giorniScadenza<=14)priorita+=500;
+   }
+
+   if(haOfferta)priorita+=100;
+
+   // La velocitÃ  di vendita Ã¨ utile per decidere quali casi
+   // meritano l'analisi, ma non viene mai inviata come dato grezzo ambiguo.
+   if(venditePeriodo>0)priorita+=Math.min(100,venditePeriodo/10);
+
+   candidati.push({
+    priorita,
+    codice,
+    descrizione:p.descrizione||v?.descrizione||"",
+    reparto:p.reparto||null,
+    scadenza:p.scadenza||null,
+    giorni_alla_scadenza:giorniScadenza,
+    offerta:p.offerta??null,
+    vendite_periodo:Math.round(venditePeriodo*100)/100,
+    media_settimanale:mediaSettimanale!==null
+      ? Math.round(mediaSettimanale*10)/10
+      : null
+   });
+  }
+ }
+
+ candidati.sort((a,b)=>b.priorita-a.priorita);
+
+ // Solo le informazioni essenziali delle 8 referenze prioritarie.
+ return candidati.slice(0,8).map(({priorita,...r})=>r);
+}
+
+async function analizzaSituazioneGDO(){
+ const b=document.getElementById("btnAnalizzaGDO"),r=document.getElementById("risultatoAI");
+ b.disabled=true;b.textContent="ð§  Analisi in corso...";r.style.display="block";
+ r.innerHTML="â³ Sto selezionando le situazioni piÃ¹ rilevanti...";
+
+ try{
+  if(!cacheGDO)await caricaDati();
+  if(!cacheGDO)throw new Error("Dati GDO non disponibili.");
+
+  const datiGDO=costruisciDatiAI();
+
+  if(!datiGDO.length){
+   r.innerHTML="â¹ï¸ Nessuna situazione prioritaria trovata.";
+   return;
+  }
+
+  r.innerHTML=`â³ Invio all'AI di ${datiGDO.length} situazioni prioritarie...`;
+
+  const messaggio=`
+Sei AI GDO. Analizza le referenze prioritarie di un supermercato usando ESCLUSIVAMENTE i dati forniti.
+
+La media_settimanale Ã¨ giÃ  stata calcolata dal sistema:
+media_settimanale = vendite_periodo / settimane del periodo.
+NON ricalcolarla e NON confonderla con vendite_periodo.
+
+Per ogni referenza valuta:
+- giorni alla scadenza;
+- vendite totali del periodo;
+- media vendite settimanale;
+- eventuale offerta;
+- se la velocitÃ  di vendita Ã¨ compatibile con una scadenza vicina.
+
+Non inventare giacenze, ultima vendita o quantitÃ  presenti.
+
+Rispondi in modo sintetico con:
+ð´ PRIORITÃ
+ð  ATTENZIONE
+ð¢ OPPORTUNITÃ
+
+Per ogni prodotto importante scrivi:
+CODICE â DESCRIZIONE
+Scadenza: X giorni
+Vendite periodo: X pezzi
+Media: X pezzi/settimana
+Azione: ...
+
+DATI:
+${JSON.stringify(datiGDO)}
+`;
+
+  const resp=await fetch("/api/ai-gdo",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({messaggio})
+  });
+
+  const data=await resp.json();
+  if(!resp.ok)throw new Error(data.error||"Errore durante l'analisi AI");
+
+  const testo=data.risposta||"â ï¸ L'AI non ha restituito una risposta.";
+  r.innerHTML=escapeHtml(testo)
+   .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+   .replace(/^### (.*)$/gm,"<h3>$1</h3>")
+   .replace(/^#### (.*)$/gm,"<h4>$1</h4>")
+   .replace(/\n/g,"<br>");
+
+ }catch(e){
+  console.error(e);
+  r.innerHTML="â Errore durante l'analisi: "+escapeHtml(e.message);
+ }finally{
+  b.disabled=false;b.textContent="ð§  Analizza situazione GDO";
+ }
+}
+
+document.addEventListener("DOMContentLoaded",caricaDati);
+</script>
+</body>
+</html>
