@@ -38,6 +38,15 @@ function ricalcolaGiorni(data) {
 
 async function caricaTuttiProdotti() {
 
+    const puntoVendita = await getPuntoVenditaCorrente();
+
+    if (!puntoVendita) {
+        return {
+            data: null,
+            error: new Error("Punto vendita non disponibile")
+        };
+    }
+
     const dimensionePagina = 1000;
 
     const richieste = [
@@ -45,18 +54,21 @@ async function caricaTuttiProdotti() {
             .from("prodotti")
             .select("*")
             .order("id", { ascending: true })
+            .eq("punto_vendita", puntoVendita)
             .range(0, dimensionePagina - 1),
 
         window.supabaseClient
             .from("prodotti")
             .select("*")
             .order("id", { ascending: true })
+            .eq("punto_vendita", puntoVendita)
             .range(dimensionePagina, dimensionePagina * 2 - 1),
 
         window.supabaseClient
             .from("prodotti")
             .select("*")
             .order("id", { ascending: true })
+            .eq("punto_vendita", puntoVendita)
             .range(dimensionePagina * 2, dimensionePagina * 3 - 1)
     ];
 
@@ -84,6 +96,18 @@ async function caricaTuttiProdotti() {
         window.location.replace("login.html");
         return;
     }
+
+    const configurazionePuntoVendita =
+        await caricaConfigurazionePuntoVendita();
+
+    if (!configurazionePuntoVendita?.puntoVendita) {
+        console.error("Punto vendita non disponibile.");
+        alert("Impossibile determinare il punto vendita dell'utente.");
+        return;
+    }
+
+    console.log("Punto vendita corrente:", configurazionePuntoVendita.puntoVendita);
+    console.log("Ruolo utente:", configurazionePuntoVendita.ruolo);
 
     console.log("Ã¢ÂÂ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
@@ -113,9 +137,17 @@ console.log("Prodotti caricati:", data.length);
 }
 async function ricaricaProdotti() {
 
+    const puntoVendita = await getPuntoVenditaCorrente();
+
+    if (!puntoVendita) {
+        console.error("Punto vendita non disponibile.");
+        return;
+    }
+
     const { data, error } = await window.supabaseClient
         .from("prodotti")
         .select("*")
+        .eq("punto_vendita", puntoVendita)
         .order("id", { ascending: true });
 
     if (error) {
@@ -170,10 +202,6 @@ function renderTabella() {
                 <td>${p.reparto}</td>
                 <td>${formattaData(p.scadenza)}</td>
                 <td>${p.giorni}</td>
-                <td class="media-settimanale-dashboard"
-                    data-codice="${String(p.codice || "").trim()}">
-                    Calcolo...
-                </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${p.id})">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -190,10 +218,6 @@ function renderTabella() {
     tbody.innerHTML = righe.join("");
 
     console.timeEnd("RENDER TABELLA");
-
-    if (typeof avviaCalcoloVenditeMedieDashboard === "function") {
-        avviaCalcoloVenditeMedieDashboard();
-    }
 }
 
 const menuReparto = document.getElementById("repartoCSV");
@@ -266,6 +290,13 @@ const giorni = Math.ceil(
     (dataScadenza - oggi) / (1000 * 60 * 60 * 24)
 );
 
+const puntoVendita = await getPuntoVenditaCorrente();
+
+if (!puntoVendita) {
+    alert("Impossibile determinare il punto vendita.");
+    return;
+}
+
 const prodotto = {
     codice: document.getElementById("codice").value,
     descrizione: document.getElementById("descrizione").value,
@@ -324,7 +355,8 @@ if (
             giorni: prodotto.giorni,
             stato: "in_offerta",
             intervento: "Metti in offerta",
-            pezzi_offerta: prodotto.pezzi_offerta
+            pezzi_offerta: prodotto.pezzi_offerta,
+            punto_vendita: puntoVendita
         }]);
 
     if (erroreStorico) {
@@ -356,6 +388,7 @@ window.idProdottoInModifica = undefined;
     prezzo: "",
     note: "",
     supermercato: "San Cesareo",
+    punto_vendita: puntoVendita,
     offerta: prodotto.offerta,
 pezzi_offerta: prodotto.pezzi_offerta,
 data_inizio_offerta: prodotto.data_inizio_offerta,
@@ -420,10 +453,6 @@ function renderTabellaFiltrata(filtro) {
             <td>${p.reparto}</td>
             <td>${formattaData(p.scadenza)}</td>
             <td>${p.giorni}</td>
-            <td class="media-settimanale-dashboard"
-                data-codice="${String(p.codice || "").trim()}">
-                Calcolo...
-            </td>
             <td>
     ${
         ["entro3", "entro7", "entro10", "entro15"].includes(filtro)
@@ -446,10 +475,6 @@ function renderTabellaFiltrata(filtro) {
 </tr>
 `;                
     });
-
-    if (typeof avviaCalcoloVenditeMedieDashboard === "function") {
-        avviaCalcoloVenditeMedieDashboard();
-    }
 
 }
 function modificaProdotto(id) {
@@ -590,7 +615,7 @@ if (importCSVBtn && csvFile) {
         csvFile.click();
     };
 
-    csvFile.onchange = (e) => {
+    csvFile.onchange = async (e) => {
 
         const file = e.target.files[0];
 
@@ -618,7 +643,14 @@ if (importCSVBtn && csvFile) {
       const repartoSelezionato = repartoCSV ? repartoCSV.value : "";
       const repartoFile = repartoSelezionato || reparti[nomeFile] || "Altro";
       
+      const puntoVendita = await getPuntoVenditaCorrente();
 
+      if (!puntoVendita) {
+          alert("Impossibile determinare il punto vendita.");
+          return;
+      }
+
+      console.log("Punto vendita importazione:", puntoVendita);
       console.log("Reparto assegnato:", repartoSelezionato || repartoFile);        
         const reader = new FileReader();
 
@@ -692,7 +724,8 @@ if (importCSVBtn && csvFile) {
                         giorni: giorni,
                         quantita: "",
                         prezzo: "",
-                        note: ""
+                        note: "",
+                        punto_vendita: puntoVendita
                     });
                 }
 
@@ -710,7 +743,8 @@ if (importCSVBtn && csvFile) {
 const { error: erroreReparto } = await window.supabaseClient
     .from("prodotti")
     .delete()
-    .eq("reparto", repartoFile);
+    .eq("reparto", repartoFile)
+    .eq("punto_vendita", puntoVendita);
 
 if (erroreReparto) {
     console.error("Errore cancellazione reparto:", erroreReparto);
@@ -797,6 +831,7 @@ if (prodottiImportati) {
                     await window.supabaseClient
                         .from("prodotti")
                         .select("*")
+                        .eq("punto_vendita", puntoVendita)
                         .order("id", { ascending: true });
 
                 if (error) {
@@ -871,11 +906,6 @@ document.getElementById("ricerca")?.addEventListener("input", function () {
         '<td>' + p.reparto + '</td>' +
         '<td>' + formattaData(p.scadenza) + '</td>' +
         '<td>' + p.giorni + '</td>' +
-        '<td class="media-settimanale-dashboard" data-codice="' +
-            String(p.codice || "").trim() +
-        '">' +
-            'Calcolo...' +
-        '</td>' +
         '<td>' +
             '<button class="btn-edit" onclick="modificaProdotto(' + p.id + ')">' +
                 '<i class="fa-solid fa-pen-to-square"></i>' +
@@ -886,11 +916,6 @@ document.getElementById("ricerca")?.addEventListener("input", function () {
         '</td>' +
     '</tr>';
     });
-
-
-    if (typeof avviaCalcoloVenditeMedieDashboard === "function") {
-        avviaCalcoloVenditeMedieDashboard();
-    }
 
 });
 const menuOfferte = document.getElementById("menuOfferte");
@@ -935,10 +960,18 @@ async function eliminaListaReparto(reparto) {
 
     if (!conferma) return;
 
+    const puntoVendita = await getPuntoVenditaCorrente();
+
+    if (!puntoVendita) {
+        alert("Impossibile determinare il punto vendita.");
+        return;
+    }
+
     const { error } = await window.supabaseClient
         .from("prodotti")
         .delete()
-        .eq("reparto", reparto);
+        .eq("reparto", reparto)
+        .eq("punto_vendita", puntoVendita);
 
     if (error) {
         console.error("Errore eliminazione lista:", error);
@@ -952,154 +985,3 @@ async function eliminaListaReparto(reparto) {
     location.reload();
 }
 
-
-/*
-==========================================================
-VENDITA MEDIA SETTIMANALE
-Periodo storico: 01/01/2026 - 31/08/2026 = 243 giorni.
-Formula: totale vendite / 243 * 7.
-==========================================================
-*/
-
-const GIORNI_STORICO_VENDITE = 243;
-const cacheVenditeMedieDashboard = new Map();
-let richiestaVenditeMedieDashboard = null;
-let ricalcoloVenditeMedieRichiesto = false;
-
-function normalizzaCodiceVenditeDashboard(codice) {
-    let valore = String(codice ?? "").trim().replace(/\s+/g, "");
-    if (!valore) return "";
-    if (/^\d+\.0+$/.test(valore)) {
-        valore = valore.replace(/\.0+$/, "");
-    }
-    return valore;
-}
-
-function formattaVenditaMediaDashboard(valore) {
-    if (valore === null || valore === undefined || Number.isNaN(Number(valore))) {
-        return "N/D";
-    }
-    return Number(valore).toLocaleString("it-IT", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1
-    }) + " pz/settimana";
-}
-
-function avviaCalcoloVenditeMedieDashboard() {
-    const celle = document.querySelectorAll("#productTable .media-settimanale-dashboard");
-    if (!celle.length) return;
-
-    celle.forEach(cella => {
-        const codice = normalizzaCodiceVenditeDashboard(cella.dataset.codice);
-
-        if (!codice) {
-            cella.textContent = "N/D";
-        } else if (cacheVenditeMedieDashboard.has(codice)) {
-            cella.textContent = formattaVenditaMediaDashboard(
-                cacheVenditeMedieDashboard.get(codice)
-            );
-        } else {
-            cella.textContent = "Calcolo...";
-        }
-    });
-
-    const codici = [
-        ...new Set(
-            Array.from(celle)
-                .map(cella => normalizzaCodiceVenditeDashboard(cella.dataset.codice))
-                .filter(Boolean)
-        )
-    ];
-
-    if (!codici.length) return;
-
-    if (richiestaVenditeMedieDashboard) {
-        ricalcoloVenditeMedieRichiesto = true;
-        return;
-    }
-
-    const codiciDaCercare = codici.filter(
-        codice => !cacheVenditeMedieDashboard.has(codice)
-    );
-
-    if (!codiciDaCercare.length) return;
-
-    richiestaVenditeMedieDashboard =
-        calcolaVenditeMedieDashboard(codiciDaCercare);
-}
-
-async function calcolaVenditeMedieDashboard(codici) {
-    try {
-        const venditePerCodice = new Map();
-        const BATCH = 100;
-
-        for (let i = 0; i < codici.length; i += BATCH) {
-            const gruppo = codici.slice(i, i + BATCH);
-
-            const { data, error } = await window.supabaseClient
-                .from("storico_vendite")
-                .select("codice, quantita")
-                .in("codice", gruppo);
-
-            if (error) throw new Error(error.message);
-
-            for (const riga of data || []) {
-                const codice = normalizzaCodiceVenditeDashboard(riga.codice);
-                const quantita = Number(riga.quantita);
-
-                if (!codice || Number.isNaN(quantita)) continue;
-
-                venditePerCodice.set(
-                    codice,
-                    (venditePerCodice.get(codice) || 0) + quantita
-                );
-            }
-        }
-
-        for (const codice of codici) {
-            if (!venditePerCodice.has(codice)) {
-                cacheVenditeMedieDashboard.set(codice, null);
-                continue;
-            }
-
-            const totale = venditePerCodice.get(codice) || 0;
-            const media = (totale / GIORNI_STORICO_VENDITE) * 7;
-
-            cacheVenditeMedieDashboard.set(
-                codice,
-                Math.round(media * 10) / 10
-            );
-        }
-
-        aggiornaValoriVenditeMedieDashboard();
-
-    } catch (errore) {
-        console.error("Errore vendita media settimanale:", errore);
-    } finally {
-        richiestaVenditeMedieDashboard = null;
-
-        if (ricalcoloVenditeMedieRichiesto) {
-            ricalcoloVenditeMedieRichiesto = false;
-            avviaCalcoloVenditeMedieDashboard();
-        }
-    }
-}
-
-function aggiornaValoriVenditeMedieDashboard() {
-    document.querySelectorAll(
-        "#productTable .media-settimanale-dashboard"
-    ).forEach(cella => {
-        const codice = normalizzaCodiceVenditeDashboard(cella.dataset.codice);
-
-        if (!codice) {
-            cella.textContent = "N/D";
-            return;
-        }
-
-        if (cacheVenditeMedieDashboard.has(codice)) {
-            cella.textContent = formattaVenditaMediaDashboard(
-                cacheVenditeMedieDashboard.get(codice)
-            );
-        }
-    });
-}
