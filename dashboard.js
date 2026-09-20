@@ -1,4 +1,4 @@
-"use strict";
+use strict";
 
 /*
 =====================================
@@ -562,22 +562,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function apriScadenze(tipo) {
 
+    // Se è selezionato un reparto, il contatore deve filtrare
+    // direttamente la tabella della Dashboard, mantenendo il reparto.
+    if (Dashboard.repartoSelezionato) {
+        filtraDashboard(tipo);
+        return;
+    }
+
+    // Se non è selezionato alcun reparto, manteniamo
+    // il comportamento precedente e apriamo la pagina Scadenze.
     let url =
         `scadenze.html?tipo=${tipo}`;
 
-
-    if (Dashboard.repartoSelezionato) {
-
-        url +=
-            `&reparto=${encodeURIComponent(
-                Dashboard.repartoSelezionato
-            )}`;
-
-    }
-
-
     window.location.href = url;
-
 }
 // =====================================
 // SELETTORE REPARTO DAL MENU
