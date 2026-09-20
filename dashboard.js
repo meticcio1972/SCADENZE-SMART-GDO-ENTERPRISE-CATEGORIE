@@ -1,4 +1,4 @@
-use strict";
+"use strict";
 
 /*
 =====================================
@@ -363,12 +363,12 @@ function selezionaReparto(reparto) {
 }
 
 
+
 // =====================================
 // TABELLA DASHBOARD FILTRATA
-// Mostra esattamente la lista ricevuta.
-// Non usa Prodotti.tutti(), quindi quando
-// selezioniamo un reparto non ricompaiono
-// le altre famiglie.
+// Mostra solo la lista ricevuta, mantenendo
+// la tabella della Dashboard indipendente
+// dal caricamento generale dei prodotti.
 // =====================================
 
 function renderTabellaDashboard(lista) {
@@ -383,7 +383,7 @@ function renderTabellaDashboard(lista) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" style="text-align:center;">
-                    Nessun prodotto presente in questo reparto.
+                    Nessun prodotto presente.
                 </td>
             </tr>
         `;
@@ -406,15 +406,10 @@ function renderTabellaDashboard(lista) {
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
                 <td>
-                    <button class="btn-edit"
-                        onclick="modificaProdotto(${Number(p.id)})"
-                        title="Modifica">
+                    <button class="btn-edit" onclick="modificaProdotto(${Number(p.id)})" title="Modifica">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-
-                    <button class="btn-delete"
-                        onclick="eliminaProdotto(${indiceGlobale})"
-                        title="Elimina">
+                    <button class="btn-delete" onclick="eliminaProdotto(${indiceGlobale})" title="Elimina">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -562,19 +557,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function apriScadenze(tipo) {
 
-    // Se è selezionato un reparto, il contatore deve filtrare
-    // direttamente la tabella della Dashboard, mantenendo il reparto.
     if (Dashboard.repartoSelezionato) {
         filtraDashboard(tipo);
         return;
     }
 
-    // Se non è selezionato alcun reparto, manteniamo
-    // il comportamento precedente e apriamo la pagina Scadenze.
     let url =
         `scadenze.html?tipo=${tipo}`;
 
     window.location.href = url;
+
 }
 // =====================================
 // SELETTORE REPARTO DAL MENU
