@@ -124,7 +124,11 @@ async function ricaricaProdotti() {
     }
 
     Prodotti.carica(ricalcolaGiorni(data));
-    if (typeof renderTabella === "function") {
+
+    // Dopo il salvataggio mantieni il filtro dal quale l'utente Ã¨ partito.
+    if (filtroDashboardAttivo) {
+        renderTabellaFiltrata(filtroDashboardAttivo);
+    } else if (typeof renderTabella === "function") {
         renderTabella();
     }
 
@@ -142,6 +146,11 @@ function formattaData(data) {
 } 
 
   let filtroReparto = "";
+
+// Mantiene il filtro della dashboard anche dopo il salvataggio/modifica
+// di una referenza. Senza questo stato, ricaricaProdotti() ridisegna
+// la tabella completa e perde il filtro "Scaduti/Entro 3/7/10/15".
+let filtroDashboardAttivo = "";
 
 // ============================================================
 // VENDITE MEDIE SETTIMANALI PER LA CATEGORIA SELEZIONATA
@@ -586,6 +595,10 @@ data_fine_offerta: prodotto.data_fine_offerta
 });
 function renderTabellaFiltrata(filtro) {
 
+    // Memorizza il filtro scelto dalla dashboard, cosÃ¬ rimane attivo
+    // anche dopo modifica + salvataggio + ricarica dei dati.
+    filtroDashboardAttivo = filtro || "";
+
     let lista = Prodotti.tutti();
 
     switch (filtro) {
@@ -614,61 +627,12 @@ function renderTabellaFiltrata(filtro) {
             lista = Prodotti.tutti();
     }
 
-    const tbody = document.getElementById("productTable");
-    tbody.innerHTML = "";
-
-    lista.forEach((p, index) => {
-
-        tbody.innerHTML += `
-        <tr>
-            <td>${p.codice}</td>
-            <td>${p.descrizione}</td>
-            <td>${p.reparto}</td>
-            <td>${formattaData(p.scadenza)}</td>
-            <td>${p.giorni}</td>
-            <td class="media-settimanale">
-                ${
-                    (() => {
-                        const codice = normalizzaCodiceVendite(p.codice);
-                        const media = CACHE_VENDITE_MEDIE.get(codice);
-                        return typeof media === "number"
-                            ? `${media.toFixed(1)} pz/settimana`
-                            : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "-");
-                    })()
-                }
-            </td>
-            <td>
-    ${
-        ["entro3", "entro7", "entro10", "entro15"].includes(filtro)
-        ? `
-            <button class="btn-offerta" onclick="mettiInOfferta(${p.id}, '${filtro}')">
-                <i class="fa-solid fa-tag"></i>
-            </button>
-          `
-        : ""
-    }
-
-    <button class="btn-edit" onclick="modificaProdotto(${p.id})">
-        <i class="fa-solid fa-pen-to-square"></i>
-    </button>
-
-    <button class="btn-delete" onclick="eliminaProdotto(${index})">
-        <i class="fa-solid fa-trash"></i>
-    </button>
-</td>
-</tr>
-`;                
-    });
-
-    const repartoAttivo = typeof Dashboard !== "undefined"
-        ? Dashboard.repartoSelezionato
-        : null;
-
-    if (repartoAttivo && lista.length) {
-        caricaVenditeMediePerLista(lista);
-    }
+    // Usa il renderer principale: in questo modo manteniamo anche
+    // la colonna "Vendite medie settimanali" e tutta la logica attuale.
+    renderTabella(lista);
 
 }
+
 function modificaProdotto(id) {
  console.log(document.getElementById("offerta"));
 console.log(document.getElementById("pezzi_offerta"));
