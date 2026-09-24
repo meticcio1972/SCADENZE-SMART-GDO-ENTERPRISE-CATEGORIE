@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("Ã¢ÂÂ Scadenze Smart GDO Enterprise avviato");
+    console.log("ÃÂ¢ÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -577,7 +577,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto ÃÂ¨ stato salvato, ma non ÃÂ¨ stato registrato nello storico.");
+        alert("Il prodotto ÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂ¨ stato registrato nello storico.");
         return;
     }
 
@@ -936,7 +936,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "Ã°ÂÂÂ¡ Importazione in corso...";
+    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -1020,7 +1020,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "Ã°ÂÂÂ¢ Completato";
+    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¢ Completato";
 }
 
 if (ultimoImport) {
@@ -1140,4 +1140,3 @@ async function eliminaListaReparto(reparto) {
     // Ricarica la dashboard e aggiorna i conteggi
     location.reload();
 }
-
