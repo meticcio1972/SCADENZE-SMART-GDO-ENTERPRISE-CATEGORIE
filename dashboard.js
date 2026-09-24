@@ -454,8 +454,17 @@ function renderTabellaDashboard(lista) {
             x => String(x.id) === String(p.id)
         );
 
+        const statoLavorazione = p.stato_lavorazione || "DA_LAVORARE";
+        const stileStato = {
+            DA_LAVORARE: "background:rgba(239,68,68,.08);",
+            IN_OFFERTA: "background:rgba(249,115,22,.08);",
+            OCCHI_PEZZI: "background:rgba(234,179,8,.10);",
+            LAVORATO: "background:rgba(34,197,94,.08);",
+            NON_LAVORARE: "background:rgba(107,114,128,.08);"
+        }[statoLavorazione] || "";
+
         tbody.innerHTML += `
-            <tr>
+            <tr style="${stileStato}">
                 <td>${p.codice || ""}</td>
                 <td>${p.descrizione || ""}</td>
                 <td>${p.reparto || ""}</td>
