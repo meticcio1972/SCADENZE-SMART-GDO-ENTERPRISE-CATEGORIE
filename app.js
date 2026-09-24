@@ -491,6 +491,8 @@ if (chkOfferta && boxPezzi) {
 
     nuovoProdottoBtn.onclick = () => {
         modal.style.display = "flex";
+        const statoLavorazione = document.getElementById("stato_lavorazione");
+        if (statoLavorazione) statoLavorazione.value = "DA_LAVORARE";
     };
 
 }
@@ -523,7 +525,8 @@ const prodotto = {
     offerta: document.getElementById("offerta")?.checked || false,
 pezzi_offerta: parseInt(document.getElementById("pezzi_offerta")?.value || "0"),
 data_inizio_offerta: document.getElementById("data_inizio_offerta")?.value || null,
-data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null 
+data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null,
+stato_lavorazione: document.getElementById("stato_lavorazione")?.value || "DA_LAVORARE"
 };
 
 
@@ -540,7 +543,8 @@ data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null
         offerta: prodotto.offerta,
         pezzi_offerta: prodotto.pezzi_offerta,
         data_inizio_offerta: prodotto.data_inizio_offerta,
-        data_fine_offerta: prodotto.data_fine_offerta
+        data_fine_offerta: prodotto.data_fine_offerta,
+        stato_lavorazione: prodotto.stato_lavorazione
     })
     .eq("id", window.idProdottoInModifica)
     .select();
@@ -607,7 +611,8 @@ window.idProdottoInModifica = undefined;
     offerta: prodotto.offerta,
 pezzi_offerta: prodotto.pezzi_offerta,
 data_inizio_offerta: prodotto.data_inizio_offerta,
-data_fine_offerta: prodotto.data_fine_offerta
+data_fine_offerta: prodotto.data_fine_offerta,
+stato_lavorazione: prodotto.stato_lavorazione
 }]);
        console.log("Errore:", error);
      
@@ -675,6 +680,11 @@ console.log(document.getElementById("productModal"));
     document.getElementById("quantita").value = p.quantita || "";
     document.getElementById("prezzo").value = p.prezzo || "";
     document.getElementById("note").value = p.note || "";
+
+    const statoLavorazione = document.getElementById("stato_lavorazione");
+    if (statoLavorazione) {
+        statoLavorazione.value = p.stato_lavorazione || "DA_LAVORARE";
+    }
     const chk = document.getElementById("offerta");
 const pezzi = document.getElementById("pezzi_offerta");
 
@@ -1140,3 +1150,9 @@ async function eliminaListaReparto(reparto) {
     // Ricarica la dashboard e aggiorna i conteggi
     location.reload();
 }
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    preparaCampoStatoLavorazione();
+});
