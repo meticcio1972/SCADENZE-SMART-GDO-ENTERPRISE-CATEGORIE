@@ -433,11 +433,12 @@ async function aggiornaMedieSettimanaliDashboard() {
 // ============================================================
 function indicatoreStatoLavorazioneDashboard(stato) {
     const stati = {
-        DA_LAVORARE:  { colore: "#ef4444", testo: "DA LAVORARE" },
-        IN_OFFERTA:   { colore: "#f97316", testo: "IN OFFERTA" },
-        OCCHI_PEZZI:  { colore: "#eab308", testo: "OCCHI PEZZI" },
-        LAVORATO:     { colore: "#22c55e", testo: "LAVORATO" },
-        NON_LAVORARE: { colore: "#6b7280", testo: "NON LAVORARE" }
+        DA_LAVORARE:   { colore: "#ef4444", testo: "DA LAVORARE" },
+        IN_OFFERTA:    { colore: "#f97316", testo: "IN OFFERTA" },
+        OCCHI_PEZZI:   { colore: "#eab308", testo: "OCCHI PEZZI" },
+        LAVORATO:      { colore: "#22c55e", testo: "LAVORATO" },
+        NON_LAVORARE:  { colore: "#6b7280", testo: "NON LAVORARE" },
+        RESO_FORNITORE:{ colore: "#3b82f6", testo: "RESO A FORNITORE" }
     };
 
     const s = stati[stato] || stati.DA_LAVORARE;
