@@ -427,6 +427,38 @@ async function aggiornaMedieSettimanaliDashboard() {
     });
 }
 
+
+// ============================================================
+// INDICATORE STATO LAVORAZIONE NELLA TABELLA DASHBOARD
+// ============================================================
+function indicatoreStatoLavorazioneDashboard(stato) {
+    const stati = {
+        DA_LAVORARE:  { colore: "#ef4444", testo: "DA LAVORARE" },
+        IN_OFFERTA:   { colore: "#f97316", testo: "IN OFFERTA" },
+        OCCHI_PEZZI:  { colore: "#eab308", testo: "OCCHI PEZZI" },
+        LAVORATO:     { colore: "#22c55e", testo: "LAVORATO" },
+        NON_LAVORARE: { colore: "#6b7280", testo: "NON LAVORARE" }
+    };
+
+    const s = stati[stato] || stati.DA_LAVORARE;
+
+    return `
+        <span title="${s.testo}"
+              aria-label="${s.testo}"
+              style="
+                display:inline-block;
+                width:13px;
+                height:13px;
+                min-width:13px;
+                border-radius:50%;
+                background:${s.colore};
+                margin-right:8px;
+                vertical-align:middle;
+                box-shadow:0 0 0 2px rgba(255,255,255,.18);
+              "></span>
+    `;
+}
+
 function renderTabellaDashboard(lista) {
 
     const tbody = document.getElementById("productTable");
@@ -454,19 +486,10 @@ function renderTabellaDashboard(lista) {
             x => String(x.id) === String(p.id)
         );
 
-        const statoLavorazione = p.stato_lavorazione || "DA_LAVORARE";
-        const stileStato = {
-            DA_LAVORARE: "background:rgba(239,68,68,.08);",
-            IN_OFFERTA: "background:rgba(249,115,22,.08);",
-            OCCHI_PEZZI: "background:rgba(234,179,8,.10);",
-            LAVORATO: "background:rgba(34,197,94,.08);",
-            NON_LAVORARE: "background:rgba(107,114,128,.08);"
-        }[statoLavorazione] || "";
-
         tbody.innerHTML += `
-            <tr style="${stileStato}">
+            <tr>
                 <td>${p.codice || ""}</td>
-                <td>${p.descrizione || ""}</td>
+                <td>${indicatoreStatoLavorazioneDashboard(p.stato_lavorazione)}${p.descrizione || ""}</td>
                 <td>${p.reparto || ""}</td>
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
