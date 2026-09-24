@@ -125,15 +125,17 @@ async function ricaricaProdotti() {
 
     Prodotti.carica(ricalcolaGiorni(data));
 
-    // Dopo il salvataggio mantieni il filtro dal quale l'utente Ã¨ partito.
+    // Aggiorna prima la Dashboard. Alcune funzioni della Dashboard
+    // possono ridisegnare la tabella: il filtro deve essere applicato
+    // come ULTIMA operazione.
+    if (typeof Dashboard !== "undefined") {
+        Dashboard.aggiorna();
+    }
+
     if (filtroDashboardAttivo) {
         renderTabellaFiltrata(filtroDashboardAttivo);
     } else if (typeof renderTabella === "function") {
         renderTabella();
-    }
-
-    if (typeof Dashboard !== "undefined") {
-        Dashboard.aggiorna();
     }
 }
 function formattaData(data) {
@@ -358,6 +360,12 @@ function renderTabella(listaArgomento) {
 
     let lista = Array.isArray(listaArgomento) ? listaArgomento : Prodotti.tutti();
 
+    // Se la funzione viene richiamata senza una lista esplicita (come
+    // dopo un salvataggio), conserva anche il filtro di scadenza attivo.
+    if (!Array.isArray(listaArgomento) && filtroDashboardAttivo) {
+        lista = applicaFiltroScadenza(lista, filtroDashboardAttivo);
+    }
+
     if (!Array.isArray(listaArgomento) && filtroReparto) {
         lista = lista.filter(p =>
             (p.reparto || "").toLowerCase() === filtroReparto.toLowerCase()
@@ -418,6 +426,31 @@ if (menuReparto) {
         renderTabella();
     });
 }
+
+// ============================================================
+// FILTRO CARDS DASHBOARD: memorizza la lista di lavoro scelta
+// anche se il codice della Dashboard gestisce il click altrove.
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+    const mappaFiltriDashboard = {
+        cardScaduti: "scaduti",
+        cardEntro3: "entro3",
+        cardEntro7: "entro7",
+        cardEntro10: "entro10",
+        cardEntro15: "entro15",
+        cardTotale: ""
+    };
+
+    Object.entries(mappaFiltriDashboard).forEach(([id, filtro]) => {
+        const card = document.getElementById(id);
+        if (!card) return;
+
+        card.addEventListener("click", () => {
+            filtroDashboardAttivo = filtro;
+            console.log("Filtro Dashboard memorizzato:", filtro || "tutti");
+        }, true);
+    });
+});
 
 // ===== MODALE NUOVO PRODOTTO =====
 
@@ -593,42 +626,34 @@ data_fine_offerta: prodotto.data_fine_offerta
 
 };
 });
-function renderTabellaFiltrata(filtro) {
-
-    // Memorizza il filtro scelto dalla dashboard, cosÃ¬ rimane attivo
-    // anche dopo modifica + salvataggio + ricarica dei dati.
-    filtroDashboardAttivo = filtro || "";
-
-    let lista = Prodotti.tutti();
+function applicaFiltroScadenza(lista, filtro) {
+    const dati = Array.isArray(lista) ? lista : [];
 
     switch (filtro) {
-
         case "scaduti":
-            lista = lista.filter(p => p.giorni < 0);
-            break;
-
+            return dati.filter(p => p.giorni < 0);
         case "entro3":
-            lista = lista.filter(p => p.giorni >= 0 && p.giorni <= 3);
-            break;
-
+            return dati.filter(p => p.giorni >= 0 && p.giorni <= 3);
         case "entro7":
-            lista = lista.filter(p => p.giorni >= 4 && p.giorni <= 7);
-            break;
-
+            return dati.filter(p => p.giorni >= 4 && p.giorni <= 7);
         case "entro10":
-            lista = lista.filter(p => p.giorni >= 8 && p.giorni <= 10);
-            break;
-
+            return dati.filter(p => p.giorni >= 8 && p.giorni <= 10);
         case "entro15":
-            lista = lista.filter(p => p.giorni >= 11 && p.giorni <= 15);
-            break;
-
+            return dati.filter(p => p.giorni >= 11 && p.giorni <= 15);
         default:
-            lista = Prodotti.tutti();
+            return dati;
     }
+}
 
-    // Usa il renderer principale: in questo modo manteniamo anche
-    // la colonna "Vendite medie settimanali" e tutta la logica attuale.
+function renderTabellaFiltrata(filtro) {
+
+    // Memorizza SEMPRE la scelta della dashboard prima di ridisegnare.
+    filtroDashboardAttivo = filtro || "";
+
+    const lista = applicaFiltroScadenza(Prodotti.tutti(), filtroDashboardAttivo);
+
+    // Usa il renderer principale: manteniamo anche la colonna
+    // "Vendite medie settimanali".
     renderTabella(lista);
 
 }
