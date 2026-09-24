@@ -352,6 +352,39 @@ async function caricaVenditeMediePerLista(lista) {
     }
 }
 
+
+// ============================================================
+// INDICATORE STATO LAVORAZIONE NELLA LISTA PRODOTTI
+// ============================================================
+function indicatoreStatoLavorazione(stato) {
+    const stati = {
+        DA_LAVORARE:   { colore: "#ef4444", testo: "DA LAVORARE" },
+        IN_OFFERTA:    { colore: "#f97316", testo: "IN OFFERTA" },
+        OCCHI_PEZZI:   { colore: "#eab308", testo: "OCCHI PEZZI" },
+        LAVORATO:      { colore: "#22c55e", testo: "LAVORATO" },
+        NON_LAVORARE:  { colore: "#6b7280", testo: "NON LAVORARE" },
+        RESO_FORNITORE:{ colore: "#3b82f6", testo: "RESO A FORNITORE" }
+    };
+
+    const s = stati[stato] || stati.DA_LAVORARE;
+
+    return `
+        <span title="${s.testo}"
+              aria-label="${s.testo}"
+              style="
+                display:inline-block;
+                width:13px;
+                height:13px;
+                min-width:13px;
+                border-radius:50%;
+                background:${s.colore};
+                margin-right:8px;
+                vertical-align:middle;
+                box-shadow:0 0 0 2px rgba(255,255,255,.18);
+              "></span>
+    `;
+}
+
 function renderTabella(listaArgomento) {
     console.time("RENDER TABELLA");
 
@@ -385,7 +418,7 @@ function renderTabella(listaArgomento) {
         righe.push(`
             <tr>
                 <td>${escapeHtmlVendite(p.codice)}</td>
-                <td>${escapeHtmlVendite(p.descrizione)}</td>
+                <td>${indicatoreStatoLavorazione(p.stato_lavorazione)}${escapeHtmlVendite(p.descrizione)}</td>
                 <td>${escapeHtmlVendite(p.reparto)}</td>
                 <td>${escapeHtmlVendite(formattaData(p.scadenza))}</td>
                 <td>${escapeHtmlVendite(p.giorni)}</td>
@@ -478,11 +511,12 @@ function preparaCampoStatoLavorazione() {
         </label>
         <select id="stato_lavorazione"
                 style="width:100%;padding:12px;border-radius:8px;font-size:16px;">
-            <option value="DA_LAVORARE">ð´ DA LAVORARE</option>
-            <option value="IN_OFFERTA">ð  IN OFFERTA</option>
-            <option value="OCCHI_PEZZI">ð¡ OCCHI PEZZI</option>
-            <option value="LAVORATO">ð¢ LAVORATO</option>
-            <option value="NON_LAVORARE">â« NON LAVORARE</option>
+            <option value="DA_LAVORARE">DA LAVORARE</option>
+            <option value="IN_OFFERTA">IN OFFERTA</option>
+            <option value="OCCHI_PEZZI">OCCHI PEZZI</option>
+            <option value="LAVORATO">LAVORATO</option>
+            <option value="NON_LAVORARE">NON LAVORARE</option>
+            <option value="RESO_FORNITORE">RESO A FORNITORE</option>
         </select>
     `;
 
