@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("ÃÂ¢ÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
+    console.log("ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -452,9 +452,52 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+
+// ============================================================
+// STATO LAVORAZIONE
+// Crea il campo nel modale senza richiedere modifiche a index.html.
+// ============================================================
+function preparaCampoStatoLavorazione() {
+    const modalBox = document.querySelector("#productModal .modal-box");
+    if (!modalBox) return;
+
+    // Evita di crearlo due volte
+    if (document.getElementById("stato_lavorazione")) return;
+
+    const separatoreOfferta = modalBox.querySelector('hr[style*="margin:15px 0"]');
+
+    const contenitore = document.createElement("div");
+    contenitore.id = "statoLavorazioneBox";
+    contenitore.style.cssText =
+        "margin:15px 0;padding:14px 0;border-top:1px solid rgba(255,255,255,.25);";
+
+    contenitore.innerHTML = `
+        <label for="stato_lavorazione"
+               style="display:block;font-weight:700;margin-bottom:8px;">
+            Stato lavorazione
+        </label>
+        <select id="stato_lavorazione"
+                style="width:100%;padding:12px;border-radius:8px;font-size:16px;">
+            <option value="DA_LAVORARE">ð´ DA LAVORARE</option>
+            <option value="IN_OFFERTA">ð  IN OFFERTA</option>
+            <option value="OCCHI_PEZZI">ð¡ OCCHI PEZZI</option>
+            <option value="LAVORATO">ð¢ LAVORATO</option>
+            <option value="NON_LAVORARE">â« NON LAVORARE</option>
+        </select>
+    `;
+
+    if (separatoreOfferta) {
+        modalBox.insertBefore(contenitore, separatoreOfferta);
+    } else {
+        modalBox.appendChild(contenitore);
+    }
+}
+
 // ===== MODALE NUOVO PRODOTTO =====
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    preparaCampoStatoLavorazione();
 
     const modal = document.getElementById("productModal");
     console.log("Modal:", modal);
@@ -581,7 +624,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto ÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂ¨ stato registrato nello storico.");
+        alert("Il prodotto ÃÂÃÂÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂÃÂÃÂ¨ stato registrato nello storico.");
         return;
     }
 
@@ -946,7 +989,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¡ Importazione in corso...";
+    statoImportazione.textContent = "ÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -1030,7 +1073,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¢ Completato";
+    statoImportazione.textContent = "ÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ¢ Completato";
 }
 
 if (ultimoImport) {
