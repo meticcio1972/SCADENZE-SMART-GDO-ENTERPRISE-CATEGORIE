@@ -427,83 +427,20 @@ async function aggiornaMedieSettimanaliDashboard() {
     });
 }
 
-
-// ============================================================
-// INDICATORE STATO LAVORAZIONE NELLA TABELLA DASHBOARD
-// ============================================================
 function indicatoreStatoLavorazioneDashboard(stato) {
-    const stati = {
-        DA_LAVORARE:   { colore: "#ef4444", testo: "DA LAVORARE" },
-        IN_OFFERTA:    { colore: "#f97316", testo: "IN OFFERTA" },
-        OCCHI_PEZZI:   { colore: "#eab308", testo: "OCCHI PEZZI" },
-        LAVORATO:      { colore: "#22c55e", testo: "LAVORATO" },
-        NON_LAVORARE:  { colore: "#6b7280", testo: "NON LAVORARE" },
-        RESO_FORNITORE:{ colore: "#3b82f6", testo: "RESO A FORNITORE" }
+    const colori = {
+        DA_LAVORARE: "#ef4444",
+        IN_OFFERTA: "#f59e0b",
+        OCCHI_PEZZI: "#facc15",
+        LAVORATO: "#22c55e",
+        NON_LAVORARE: "#6b7280",
+        RESO_FORNITORE: "#3b82f6"
     };
 
-    const s = stati[stato] || stati.DA_LAVORARE;
+    const colore = colori[String(stato || "DA_LAVORARE").trim()] || colori.DA_LAVORARE;
 
-    return `
-        <span title="${s.testo}"
-              aria-label="${s.testo}"
-              style="
-                display:inline-block;
-                width:13px;
-                height:13px;
-                min-width:13px;
-                border-radius:50%;
-                background:${s.colore};
-                margin-right:8px;
-                vertical-align:middle;
-                box-shadow:0 0 0 2px rgba(255,255,255,.18);
-              "></span>
-    `;
+    return `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colore};margin-right:10px;vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.12);"></span>`;
 }
-
-
-// ============================================================
-// LEGENDA STATO LAVORAZIONE - DASHBOARD
-// ============================================================
-function inserisciLegendaStatoLavorazioneDashboard() {
-    if (document.getElementById("legendaStatoLavorazione")) return;
-
-    const tbody = document.getElementById("productTable");
-    if (!tbody) return;
-
-    const table = tbody.closest("table");
-    if (!table || !table.parentElement) return;
-
-    const wrapper = table.parentElement;
-    const legenda = document.createElement("div");
-
-    legenda.innerHTML = `
-<!-- LEGENDA STATO LAVORAZIONE -->
-<div id="legendaStatoLavorazione"
-     style="
-       display:flex;
-       flex-wrap:wrap;
-       align-items:center;
-       gap:10px 16px;
-       margin:0 0 14px 0;
-       padding:10px 14px;
-       border-radius:10px;
-       background:rgba(255,255,255,.08);
-       font-size:13px;
-       line-height:1.4;
-     ">
-  <strong style="margin-right:4px;">Legenda:</strong>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ef4444;margin-right:5px;"></i>DA LAVORARE</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#f97316;margin-right:5px;"></i>IN OFFERTA</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#eab308;margin-right:5px;"></i>OCCHI PEZZI</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#22c55e;margin-right:5px;"></i>LAVORATO</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#6b7280;margin-right:5px;"></i>NON LAVORARE</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#3b82f6;margin-right:5px;"></i>RESO A FORNITORE</span>
-</div>
-`;
-    wrapper.insertBefore(legenda.firstElementChild, table);
-}
-
-document.addEventListener("DOMContentLoaded", inserisciLegendaStatoLavorazioneDashboard);
 
 function renderTabellaDashboard(lista) {
 
@@ -729,3 +666,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
