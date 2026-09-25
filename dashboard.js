@@ -427,19 +427,30 @@ async function aggiornaMedieSettimanaliDashboard() {
     });
 }
 
-function indicatoreStatoLavorazioneDashboard(stato) {
+function indicatoreStatoLavorazioneDashboard(p) {
+    // L'offerta ha priorita visiva: se il prodotto e in offerta,
+    // il pallino deve essere sempre ARANCIONE.
+    const statoRaw = p?.offerta ? "IN_OFFERTA" : (p?.stato_lavorazione || "DA_LAVORARE");
+    const stato = statoRaw === "OCCHI_PEZZI" ? "DA_LAVORARE" : statoRaw;
+
     const colori = {
         DA_LAVORARE: "#ef4444",
         IN_OFFERTA: "#f59e0b",
-        OCCHI_PEZZI: "#facc15",
         LAVORATO: "#22c55e",
-        NON_LAVORARE: "#6b7280",
-        RESO_FORNITORE: "#3b82f6"
+        NON_LAVORARE: "#64748b",
+        RESO_FORNITORE: "#2563eb"
     };
 
-    const colore = colori[String(stato || "DA_LAVORARE").trim()] || colori.DA_LAVORARE;
+    const colore = colori[stato] || colori.DA_LAVORARE;
+    const titolo = {
+        DA_LAVORARE: "DA LAVORARE",
+        IN_OFFERTA: "IN OFFERTA",
+        LAVORATO: "LAVORATO",
+        NON_LAVORARE: "NON LAVORARE",
+        RESO_FORNITORE: "RESO A FORNITORE"
+    }[stato] || "DA LAVORARE";
 
-    return `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colore};margin-right:10px;vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.12);"></span>`;
+    return `<span title="${titolo}" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colore};margin-right:9px;vertical-align:middle;"></span>`;
 }
 
 function renderTabellaDashboard(lista) {
@@ -472,7 +483,7 @@ function renderTabellaDashboard(lista) {
         tbody.innerHTML += `
             <tr>
                 <td>${p.codice || ""}</td>
-                <td>${indicatoreStatoLavorazioneDashboard(p.stato_lavorazione)}${p.descrizione || ""}</td>
+                <td>${indicatoreStatoLavorazioneDashboard(p)}${p.descrizione || ""}</td>
                 <td>${p.reparto || ""}</td>
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
@@ -666,4 +677,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
-
