@@ -352,83 +352,31 @@ async function caricaVenditeMediePerLista(lista) {
     }
 }
 
+function indicatoreStatoLavorazione(p) {
+    // L'offerta ha priorita visiva: se il prodotto e in offerta,
+    // il pallino deve essere sempre ARANCIONE.
+    const statoRaw = p?.offerta ? "IN_OFFERTA" : (p?.stato_lavorazione || "DA_LAVORARE");
+    const stato = statoRaw === "OCCHI_PEZZI" ? "DA_LAVORARE" : statoRaw;
 
-// ============================================================
-// INDICATORE STATO LAVORAZIONE NELLA LISTA PRODOTTI
-// ============================================================
-function indicatoreStatoLavorazione(stato) {
-    const stati = {
-        DA_LAVORARE:   { colore: "#ef4444", testo: "DA LAVORARE" },
-        IN_OFFERTA:    { colore: "#f97316", testo: "IN OFFERTA" },
-        OCCHI_PEZZI:   { colore: "#eab308", testo: "OCCHI PEZZI" },
-        LAVORATO:      { colore: "#22c55e", testo: "LAVORATO" },
-        NON_LAVORARE:  { colore: "#6b7280", testo: "NON LAVORARE" },
-        RESO_FORNITORE:{ colore: "#3b82f6", testo: "RESO A FORNITORE" }
+    const colori = {
+        DA_LAVORARE: "#ef4444",
+        IN_OFFERTA: "#f59e0b",
+        LAVORATO: "#22c55e",
+        NON_LAVORARE: "#64748b",
+        RESO_FORNITORE: "#2563eb"
     };
 
-    const s = stati[stato] || stati.DA_LAVORARE;
+    const colore = colori[stato] || colori.DA_LAVORARE;
+    const titolo = {
+        DA_LAVORARE: "DA LAVORARE",
+        IN_OFFERTA: "IN OFFERTA",
+        LAVORATO: "LAVORATO",
+        NON_LAVORARE: "NON LAVORARE",
+        RESO_FORNITORE: "RESO A FORNITORE"
+    }[stato] || "DA LAVORARE";
 
-    return `
-        <span title="${s.testo}"
-              aria-label="${s.testo}"
-              style="
-                display:inline-block;
-                width:13px;
-                height:13px;
-                min-width:13px;
-                border-radius:50%;
-                background:${s.colore};
-                margin-right:8px;
-                vertical-align:middle;
-                box-shadow:0 0 0 2px rgba(255,255,255,.18);
-              "></span>
-    `;
+    return `<span title="${titolo}" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colore};margin-right:9px;vertical-align:middle;"></span>`;
 }
-
-
-// ============================================================
-// LEGENDA STATO LAVORAZIONE
-// ============================================================
-function inserisciLegendaStatoLavorazione() {
-    if (document.getElementById("legendaStatoLavorazione")) return;
-
-    const tbody = document.getElementById("productTable");
-    if (!tbody) return;
-
-    const table = tbody.closest("table");
-    if (!table || !table.parentElement) return;
-
-    const wrapper = table.parentElement;
-
-    const legenda = document.createElement("div");
-    legenda.innerHTML = `
-<!-- LEGENDA STATO LAVORAZIONE -->
-<div id="legendaStatoLavorazione"
-     style="
-       display:flex;
-       flex-wrap:wrap;
-       align-items:center;
-       gap:10px 16px;
-       margin:0 0 14px 0;
-       padding:10px 14px;
-       border-radius:10px;
-       background:rgba(255,255,255,.08);
-       font-size:13px;
-       line-height:1.4;
-     ">
-  <strong style="margin-right:4px;">Legenda:</strong>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ef4444;margin-right:5px;"></i>DA LAVORARE</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#f97316;margin-right:5px;"></i>IN OFFERTA</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#eab308;margin-right:5px;"></i>OCCHI PEZZI</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#22c55e;margin-right:5px;"></i>LAVORATO</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#6b7280;margin-right:5px;"></i>NON LAVORARE</span>
-  <span><i style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#3b82f6;margin-right:5px;"></i>RESO A FORNITORE</span>
-</div>
-`;
-    wrapper.insertBefore(legenda.firstElementChild, table);
-}
-
-document.addEventListener("DOMContentLoaded", inserisciLegendaStatoLavorazione);
 
 function renderTabella(listaArgomento) {
     console.time("RENDER TABELLA");
@@ -463,7 +411,7 @@ function renderTabella(listaArgomento) {
         righe.push(`
             <tr>
                 <td>${escapeHtmlVendite(p.codice)}</td>
-                <td>${indicatoreStatoLavorazione(p.stato_lavorazione)}${escapeHtmlVendite(p.descrizione)}</td>
+                <td>${indicatoreStatoLavorazione(p)}${escapeHtmlVendite(p.descrizione)}</td>
                 <td>${escapeHtmlVendite(p.reparto)}</td>
                 <td>${escapeHtmlVendite(formattaData(p.scadenza))}</td>
                 <td>${escapeHtmlVendite(p.giorni)}</td>
@@ -530,53 +478,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-
-// ============================================================
-// STATO LAVORAZIONE
-// Crea il campo nel modale senza richiedere modifiche a index.html.
-// ============================================================
-function preparaCampoStatoLavorazione() {
-    const modalBox = document.querySelector("#productModal .modal-box");
-    if (!modalBox) return;
-
-    // Evita di crearlo due volte
-    if (document.getElementById("stato_lavorazione")) return;
-
-    const separatoreOfferta = modalBox.querySelector('hr[style*="margin:15px 0"]');
-
-    const contenitore = document.createElement("div");
-    contenitore.id = "statoLavorazioneBox";
-    contenitore.style.cssText =
-        "margin:15px 0;padding:14px 0;border-top:1px solid rgba(255,255,255,.25);";
-
-    contenitore.innerHTML = `
-        <label for="stato_lavorazione"
-               style="display:block;font-weight:700;margin-bottom:8px;">
-            Stato lavorazione
-        </label>
-        <select id="stato_lavorazione"
-                style="width:100%;padding:12px;border-radius:8px;font-size:16px;">
-            <option value="DA_LAVORARE">DA LAVORARE</option>
-            <option value="IN_OFFERTA">IN OFFERTA</option>
-            <option value="OCCHI_PEZZI">OCCHI PEZZI</option>
-            <option value="LAVORATO">LAVORATO</option>
-            <option value="NON_LAVORARE">NON LAVORARE</option>
-            <option value="RESO_FORNITORE">RESO A FORNITORE</option>
-        </select>
-    `;
-
-    if (separatoreOfferta) {
-        modalBox.insertBefore(contenitore, separatoreOfferta);
-    } else {
-        modalBox.appendChild(contenitore);
-    }
-}
-
 // ===== MODALE NUOVO PRODOTTO =====
 
 document.addEventListener("DOMContentLoaded", () => {
-
-    preparaCampoStatoLavorazione();
 
     const modal = document.getElementById("productModal");
     console.log("Modal:", modal);
@@ -648,7 +552,7 @@ const prodotto = {
 pezzi_offerta: parseInt(document.getElementById("pezzi_offerta")?.value || "0"),
 data_inizio_offerta: document.getElementById("data_inizio_offerta")?.value || null,
 data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null,
-stato_lavorazione: document.getElementById("stato_lavorazione")?.value || "DA_LAVORARE"
+stato_lavorazione: document.getElementById("offerta")?.checked ? "IN_OFFERTA" : ((document.getElementById("stato_lavorazione")?.value === "OCCHI_PEZZI" || !document.getElementById("stato_lavorazione")?.value) ? "DA_LAVORARE" : document.getElementById("stato_lavorazione")?.value)
 };
 
 
@@ -805,7 +709,7 @@ console.log(document.getElementById("productModal"));
 
     const statoLavorazione = document.getElementById("stato_lavorazione");
     if (statoLavorazione) {
-        statoLavorazione.value = p.stato_lavorazione || "DA_LAVORARE";
+        statoLavorazione.value = p.offerta ? "IN_OFFERTA" : (p.stato_lavorazione === "OCCHI_PEZZI" ? "DA_LAVORARE" : (p.stato_lavorazione || "DA_LAVORARE"));
     }
     const chk = document.getElementById("offerta");
 const pezzi = document.getElementById("pezzi_offerta");
@@ -1275,6 +1179,20 @@ async function eliminaListaReparto(reparto) {
 
 
 
+function rimuoviStatoOcchiPezzi() {
+    const select = document.getElementById("stato_lavorazione");
+    if (select) {
+        select.querySelectorAll('option[value="OCCHI_PEZZI"]').forEach(o => o.remove());
+        if (select.value === "OCCHI_PEZZI") select.value = "DA_LAVORARE";
+    }
+
+    // Se la legenda esiste gia, rimuove solo la voce OCCHI PEZZI.
+    document.querySelectorAll("#legendaStatoLavorazione span, #legendaStatoLavorazione div").forEach(el => {
+        if ((el.textContent || "").toUpperCase().includes("OCCHI PEZZI")) el.remove();
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    preparaCampoStatoLavorazione();
+    if (typeof preparaCampoStatoLavorazione === "function") preparaCampoStatoLavorazione();
+    rimuoviStatoOcchiPezzi();
 });
