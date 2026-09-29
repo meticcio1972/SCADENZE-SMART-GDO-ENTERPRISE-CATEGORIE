@@ -1180,6 +1180,55 @@ async function eliminaListaReparto(reparto) {
 
 
 
+function preparaCampoStatoLavorazione() {
+    const modalBox = document.querySelector("#productModal .modal-box");
+    if (!modalBox) return;
+
+    let select = document.getElementById("stato_lavorazione");
+
+    if (!select) {
+        const wrapper = document.createElement("div");
+        wrapper.id = "statoLavorazioneBox";
+        wrapper.style.marginTop = "14px";
+
+        const label = document.createElement("label");
+        label.textContent = "Stato lavorazione";
+        label.style.display = "block";
+        label.style.marginBottom = "6px";
+        label.style.fontWeight = "600";
+
+        select = document.createElement("select");
+        select.id = "stato_lavorazione";
+        select.style.width = "100%";
+        select.style.padding = "10px";
+
+        [
+            ["DA_LAVORARE", "DA LAVORARE"],
+            ["IN_OFFERTA", "IN OFFERTA"],
+            ["LAVORATO", "LAVORATO"],
+            ["NON_LAVORARE", "NON LAVORARE"],
+            ["RESO_FORNITORE", "RESO A FORNITORE"]
+        ].forEach(([value, text]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = text;
+            select.appendChild(option);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(select);
+
+        const buttons = modalBox.querySelector(".modal-buttons");
+        if (buttons) {
+            modalBox.insertBefore(wrapper, buttons);
+        } else {
+            modalBox.appendChild(wrapper);
+        }
+    }
+
+    return select;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     preparaCampoStatoLavorazione();
 });
