@@ -430,12 +430,12 @@ async function aggiornaMedieSettimanaliDashboard() {
 function indicatoreStatoLavorazioneDashboard(p) {
     // L'offerta ha priorita visiva: se il prodotto e in offerta,
     // il pallino deve essere sempre ARANCIONE.
-    const statoRaw = p?.offerta ? "IN_OFFERTA" : (p?.stato_lavorazione || "DA_LAVORARE");
-    const stato = statoRaw === "OCCHI_PEZZI" ? "DA_LAVORARE" : statoRaw;
+    const stato = p?.offerta ? "IN_OFFERTA" : (p?.stato_lavorazione || "DA_LAVORARE");
 
     const colori = {
         DA_LAVORARE: "#ef4444",
         IN_OFFERTA: "#f59e0b",
+        OCCHI_PEZZI: "#facc15",
         LAVORATO: "#22c55e",
         NON_LAVORARE: "#64748b",
         RESO_FORNITORE: "#2563eb"
@@ -445,6 +445,7 @@ function indicatoreStatoLavorazioneDashboard(p) {
     const titolo = {
         DA_LAVORARE: "DA LAVORARE",
         IN_OFFERTA: "IN OFFERTA",
+        OCCHI_PEZZI: "OCCHI PEZZI",
         LAVORATO: "LAVORATO",
         NON_LAVORARE: "NON LAVORARE",
         RESO_FORNITORE: "RESO A FORNITORE"
