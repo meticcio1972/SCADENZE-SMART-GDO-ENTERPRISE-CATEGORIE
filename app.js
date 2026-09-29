@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
+    console.log("ÃÂ¢ÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -355,12 +355,12 @@ async function caricaVenditeMediePerLista(lista) {
 function indicatoreStatoLavorazione(p) {
     // L'offerta ha priorita visiva: se il prodotto e in offerta,
     // il pallino deve essere sempre ARANCIONE.
-    const statoRaw = p?.offerta ? "IN_OFFERTA" : (p?.stato_lavorazione || "DA_LAVORARE");
-    const stato = statoRaw === "OCCHI_PEZZI" ? "DA_LAVORARE" : statoRaw;
+    const stato = p?.offerta ? "IN_OFFERTA" : (p?.stato_lavorazione || "DA_LAVORARE");
 
     const colori = {
         DA_LAVORARE: "#ef4444",
         IN_OFFERTA: "#f59e0b",
+        OCCHI_PEZZI: "#facc15",
         LAVORATO: "#22c55e",
         NON_LAVORARE: "#64748b",
         RESO_FORNITORE: "#2563eb"
@@ -370,6 +370,7 @@ function indicatoreStatoLavorazione(p) {
     const titolo = {
         DA_LAVORARE: "DA LAVORARE",
         IN_OFFERTA: "IN OFFERTA",
+        OCCHI_PEZZI: "OCCHI PEZZI",
         LAVORATO: "LAVORATO",
         NON_LAVORARE: "NON LAVORARE",
         RESO_FORNITORE: "RESO A FORNITORE"
@@ -552,7 +553,7 @@ const prodotto = {
 pezzi_offerta: parseInt(document.getElementById("pezzi_offerta")?.value || "0"),
 data_inizio_offerta: document.getElementById("data_inizio_offerta")?.value || null,
 data_fine_offerta: document.getElementById("data_fine_offerta")?.value || null,
-stato_lavorazione: document.getElementById("offerta")?.checked ? "IN_OFFERTA" : ((document.getElementById("stato_lavorazione")?.value === "OCCHI_PEZZI" || !document.getElementById("stato_lavorazione")?.value) ? "DA_LAVORARE" : document.getElementById("stato_lavorazione")?.value)
+stato_lavorazione: document.getElementById("offerta")?.checked ? "IN_OFFERTA" : (document.getElementById("stato_lavorazione")?.value === "IN_OFFERTA" ? "DA_LAVORARE" : (document.getElementById("stato_lavorazione")?.value || "DA_LAVORARE"))
 };
 
 
@@ -607,7 +608,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto ÃÂÃÂÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂÃÂÃÂ¨ stato registrato nello storico.");
+        alert("Il prodotto ÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂ¨ stato registrato nello storico.");
         return;
     }
 
@@ -709,7 +710,7 @@ console.log(document.getElementById("productModal"));
 
     const statoLavorazione = document.getElementById("stato_lavorazione");
     if (statoLavorazione) {
-        statoLavorazione.value = p.offerta ? "IN_OFFERTA" : (p.stato_lavorazione === "OCCHI_PEZZI" ? "DA_LAVORARE" : (p.stato_lavorazione || "DA_LAVORARE"));
+        statoLavorazione.value = p.offerta ? "IN_OFFERTA" : (p.stato_lavorazione || "DA_LAVORARE");
     }
     const chk = document.getElementById("offerta");
 const pezzi = document.getElementById("pezzi_offerta");
@@ -972,7 +973,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ¡ Importazione in corso...";
+    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -1056,7 +1057,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂÃÂ°ÃÂÃÂÃÂÃÂÃÂÃÂ¢ Completato";
+    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¢ Completato";
 }
 
 if (ultimoImport) {
@@ -1179,20 +1180,6 @@ async function eliminaListaReparto(reparto) {
 
 
 
-function rimuoviStatoOcchiPezzi() {
-    const select = document.getElementById("stato_lavorazione");
-    if (select) {
-        select.querySelectorAll('option[value="OCCHI_PEZZI"]').forEach(o => o.remove());
-        if (select.value === "OCCHI_PEZZI") select.value = "DA_LAVORARE";
-    }
-
-    // Se la legenda esiste gia, rimuove solo la voce OCCHI PEZZI.
-    document.querySelectorAll("#legendaStatoLavorazione span, #legendaStatoLavorazione div").forEach(el => {
-        if ((el.textContent || "").toUpperCase().includes("OCCHI PEZZI")) el.remove();
-    });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-    if (typeof preparaCampoStatoLavorazione === "function") preparaCampoStatoLavorazione();
-    rimuoviStatoOcchiPezzi();
+    preparaCampoStatoLavorazione();
 });
