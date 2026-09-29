@@ -435,7 +435,6 @@ function indicatoreStatoLavorazioneDashboard(p) {
     const colori = {
         DA_LAVORARE: "#ef4444",
         IN_OFFERTA: "#f59e0b",
-        OCCHI_PEZZI: "#facc15",
         LAVORATO: "#22c55e",
         NON_LAVORARE: "#64748b",
         RESO_FORNITORE: "#2563eb"
@@ -445,13 +444,39 @@ function indicatoreStatoLavorazioneDashboard(p) {
     const titolo = {
         DA_LAVORARE: "DA LAVORARE",
         IN_OFFERTA: "IN OFFERTA",
-        OCCHI_PEZZI: "OCCHI PEZZI",
         LAVORATO: "LAVORATO",
         NON_LAVORARE: "NON LAVORARE",
         RESO_FORNITORE: "RESO A FORNITORE"
     }[stato] || "DA LAVORARE";
 
     return `<span title="${titolo}" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colore};margin-right:9px;vertical-align:middle;"></span>`;
+}
+
+function inserisciLegendaStatoLavorazione() {
+    if (document.getElementById("legendaStatoLavorazione")) return;
+
+    const legenda = document.createElement("div");
+    legenda.id = "legendaStatoLavorazione";
+    legenda.style.cssText = "display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:14px 0;padding:10px 14px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;";
+
+    const stati = [
+        ["DA_LAVORARE", "DA LAVORARE", "#ef4444"],
+        ["IN_OFFERTA", "IN OFFERTA", "#f59e0b"],
+        ["LAVORATO", "LAVORATO", "#22c55e"],
+        ["NON_LAVORARE", "NON LAVORARE", "#64748b"],
+        ["RESO_FORNITORE", "RESO A FORNITORE", "#2563eb"]
+    ];
+
+    stati.forEach(([, testo, colore]) => {
+        const item = document.createElement("span");
+        item.style.cssText = "display:inline-flex;align-items:center;gap:6px;white-space:nowrap;";
+        item.innerHTML = `<span style="width:11px;height:11px;border-radius:50%;background:${colore};display:inline-block;"></span>${testo}`;
+        legenda.appendChild(item);
+    });
+
+    const tabella = document.querySelector("#productTable");
+    const area = tabella ? tabella.closest(".table-area") : null;
+    if (area) area.insertBefore(legenda, area.querySelector("table"));
 }
 
 function renderTabellaDashboard(lista) {
@@ -677,4 +702,9 @@ document.addEventListener("DOMContentLoaded", () => {
         selezionaReparto(reparto);
     });
 
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    inserisciLegendaStatoLavorazione();
 });
