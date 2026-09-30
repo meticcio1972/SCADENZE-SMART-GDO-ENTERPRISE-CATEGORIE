@@ -1231,3 +1231,4 @@ function preparaCampoStatoLavorazione() {
 
 document.addEventListener("DOMContentLoaded", () => {
     preparaCampoStatoLavorazione();
+});
