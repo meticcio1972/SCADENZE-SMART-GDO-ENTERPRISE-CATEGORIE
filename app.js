@@ -360,7 +360,6 @@ function indicatoreStatoLavorazione(p) {
     const colori = {
         DA_LAVORARE: "#ef4444",
         IN_OFFERTA: "#f59e0b",
-        OCCHI_PEZZI: "#facc15",
         LAVORATO: "#22c55e",
         NON_LAVORARE: "#64748b",
         RESO_FORNITORE: "#2563eb"
@@ -370,13 +369,77 @@ function indicatoreStatoLavorazione(p) {
     const titolo = {
         DA_LAVORARE: "DA LAVORARE",
         IN_OFFERTA: "IN OFFERTA",
-        OCCHI_PEZZI: "OCCHI PEZZI",
         LAVORATO: "LAVORATO",
         NON_LAVORARE: "NON LAVORARE",
         RESO_FORNITORE: "RESO A FORNITORE"
     }[stato] || "DA LAVORARE";
 
     return `<span title="${titolo}" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colore};margin-right:9px;vertical-align:middle;"></span>`;
+}
+
+// ============================================================
+// MOTORE ROTAZIONE / RISCHIO FUTURO
+// Non modifica il database: usa solo quantita, scadenza e
+// media vendite settimanale gia presente nell'app.
+// ============================================================
+function calcolaRischioRotazione(p, mediaSettimanale) {
+    const giorni = Number(p?.giorni);
+    const quantita = Number(p?.quantita);
+    const media = Number(mediaSettimanale);
+
+    if (!Number.isFinite(giorni) || !Number.isFinite(quantita) || !Number.isFinite(media)) {
+        return null;
+    }
+
+    if (quantita <= 0 || media <= 0) {
+        return null;
+    }
+
+    const giorniResidui = Math.max(0, giorni);
+    const venditaGiornaliera = media / 7;
+    const pezziVendibiliPrimaDellaScadenza = venditaGiornaliera * giorniResidui;
+    const eccedenzaStimata = Math.max(0, quantita - pezziVendibiliPrimaDellaScadenza);
+    const percentualeRischio = Math.min(100, Math.max(0, (eccedenzaStimata / quantita) * 100));
+    const giorniCopertura = quantita / venditaGiornaliera;
+
+    let livello = "OK";
+    let colore = "#22c55e";
+
+    if (giorniResidui <= 0) {
+        livello = "INTERVENIRE ORA";
+        colore = "#ef4444";
+    } else if (percentualeRischio >= 50) {
+        livello = "INTERVENIRE ORA";
+        colore = "#ef4444";
+    } else if (percentualeRischio >= 20) {
+        livello = "ATTENZIONE";
+        colore = "#f59e0b";
+    }
+
+    return {
+        livello,
+        colore,
+        percentualeRischio: Math.round(percentualeRischio),
+        giorniCopertura: Math.round(giorniCopertura * 10) / 10,
+        pezziVendibiliPrimaDellaScadenza: Math.round(pezziVendibiliPrimaDellaScadenza * 10) / 10,
+        eccedenzaStimata: Math.round(eccedenzaStimata * 10) / 10
+    };
+}
+
+function renderIndicatoreRischioRotazione(rischio) {
+    if (!rischio) return `<span style="color:#94a3b8;">—</span>`;
+
+    const testo = rischio.livello === "OK"
+        ? `OK · copertura ${rischio.giorniCopertura} gg`
+        : `${rischio.livello} · ${rischio.percentualeRischio}%`;
+
+    const dettaglio = rischio.livello === "OK"
+        ? `Rotazione compatibile. Copertura stimata: ${rischio.giorniCopertura} giorni.`
+        : `Restano ${rischio.giorniResidui} giorni alla scadenza. Copertura stimata: ${rischio.giorniCopertura} giorni. Eccedenza prevista: ${rischio.eccedenzaStimata} pezzi.`;
+
+    return `<span title="${dettaglio}" style="display:inline-flex;align-items:center;gap:6px;font-weight:600;color:${rischio.colore};white-space:nowrap;">`
+        + `<span style="width:9px;height:9px;border-radius:50%;background:${rischio.colore};display:inline-block;"></span>`
+        + `${testo}</span>`;
 }
 
 function renderTabella(listaArgomento) {
@@ -409,6 +472,8 @@ function renderTabella(listaArgomento) {
                 ? `${media.toFixed(1)} pz/settimana`
                 : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "-");
 
+        const rischioRotazione = calcolaRischioRotazione(p, media);
+
         righe.push(`
             <tr>
                 <td>${escapeHtmlVendite(p.codice)}</td>
@@ -416,7 +481,10 @@ function renderTabella(listaArgomento) {
                 <td>${escapeHtmlVendite(p.reparto)}</td>
                 <td>${escapeHtmlVendite(formattaData(p.scadenza))}</td>
                 <td>${escapeHtmlVendite(p.giorni)}</td>
-                <td class="media-settimanale">${escapeHtmlVendite(mediaTesto)}</td>
+                <td class="media-settimanale">
+                    ${escapeHtmlVendite(mediaTesto)}
+                    ${rischioRotazione ? `<div style="margin-top:4px;font-size:11px;">${renderIndicatoreRischioRotazione(rischioRotazione)}</div>` : ""}
+                </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${p.id})">
                         <i class="fa-solid fa-pen-to-square"></i>
