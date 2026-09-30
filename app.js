@@ -158,7 +158,9 @@ let filtroDashboardAttivo = "";
 // VENDITE MEDIE SETTIMANALI PER LA CATEGORIA SELEZIONATA
 // ============================================================
 const STORICO_VENDITE_TABLE = "storico_vendite";
+const STORICO_MOVIMENTI_TABLE = "storico_movimenti";
 const CACHE_VENDITE_MEDIE = new Map();
+const CACHE_MOVIMENTI = new Map();
 let richiestaVenditeToken = 0;
 
 function escapeHtmlVendite(v) {
@@ -352,6 +354,115 @@ async function caricaVenditeMediePerLista(lista) {
     }
 }
 
+
+// ============================================================
+// STORICO ACQUISTI + VENDITE
+// 01/01/2026 - 31/08/2026 = 243 giorni = 34,714 settimane.
+// La differenza acquisti-vendite NON e' una giacenza reale:
+// e' un indicatore storico di accumulo.
+// ============================================================
+async function caricaMovimentiStoriciPerLista(lista) {
+    const codici = [...new Set(
+        (lista || [])
+            .map(p => normalizzaCodiceVendite(p.codice))
+            .filter(Boolean)
+    )];
+
+    if (!codici.length) return;
+
+    const nonInCache = codici.filter(c => !CACHE_MOVIMENTI.has(c));
+    if (!nonInCache.length) return;
+
+    try {
+        const batch = 100;
+        const movimenti = new Map();
+
+        for (let i = 0; i < nonInCache.length; i += batch) {
+            const gruppo = nonInCache.slice(i, i + batch);
+
+            const { data, error } = await window.supabaseClient
+                .from(STORICO_MOVIMENTI_TABLE)
+                .select("codice,acquisti_pz,vendite_pz,diff_pz,periodo")
+                .in("codice", gruppo);
+
+            if (error) throw new Error(error.message);
+
+            for (const riga of (data || [])) {
+                const codice = normalizzaCodiceVendite(riga.codice);
+                if (!codice) continue;
+
+                const acquisti = Number(riga.acquisti_pz);
+                const vendite = Number(riga.vendite_pz);
+                const differenza = Number(riga.diff_pz);
+
+                movimenti.set(codice, {
+                    acquisti: Number.isFinite(acquisti) ? acquisti : 0,
+                    vendite: Number.isFinite(vendite) ? vendite : 0,
+                    differenza: Number.isFinite(differenza)
+                        ? differenza
+                        : ((Number.isFinite(acquisti) ? acquisti : 0) - (Number.isFinite(vendite) ? vendite : 0)),
+                    periodo: riga.periodo || "01/01/2026 - 31/08/2026"
+                });
+            }
+        }
+
+        const settimane = 243 / 7;
+
+        for (const codice of nonInCache) {
+            const m = movimenti.get(codice);
+
+            if (!m) {
+                CACHE_MOVIMENTI.set(codice, null);
+                continue;
+            }
+
+            const acquistiSettimanali = m.acquisti / settimane;
+            const venditeSettimanali = m.vendite / settimane;
+            const differenzaSettimanale = m.differenza / settimane;
+            const pressioneAccumulo = m.acquisti !== 0
+                ? (m.differenza / m.acquisti) * 100
+                : null;
+
+            CACHE_MOVIMENTI.set(codice, {
+                ...m,
+                acquistiSettimanali,
+                venditeSettimanali,
+                differenzaSettimanale,
+                pressioneAccumulo
+            });
+        }
+
+        // Ridisegna solo se la pagina e' ancora attiva.
+        if (lista.length) renderTabella(lista);
+
+    } catch (errore) {
+        console.error("Errore storico acquisti/vendite:", errore);
+        for (const codice of nonInCache) CACHE_MOVIMENTI.set(codice, null);
+    }
+}
+
+function renderIndicatoreAccumulo(movimento) {
+    if (!movimento) return "";
+
+    const diff = movimento.differenzaSettimanale;
+    const acquisti = movimento.acquistiSettimanali;
+    const pressione = movimento.pressioneAccumulo;
+
+    if (!Number.isFinite(diff)) return "";
+
+    const segno = diff > 0 ? "+" : "";
+    const testoDiff = `${segno}${diff.toFixed(1)} pz/settimana`;
+    const testoPressione = Number.isFinite(pressione)
+        ? `Pressione accumulo storica: ${pressione.toFixed(1)}%`
+        : "Pressione accumulo non calcolabile";
+
+    const colore = diff > 0 ? "#f59e0b" : (diff < 0 ? "#64748b" : "#22c55e");
+
+    return `<div title="${escapeHtmlVendite(testoPressione)}. Media acquisti: ${acquisti.toFixed(1)} pz/settimana. Questo NON rappresenta la giacenza reale attuale." style="margin-top:4px;font-size:11px;color:${colore};font-weight:600;">` +
+        `↕ ${escapeHtmlVendite(testoDiff)}` +
+        `</div>`;
+}
+
 function indicatoreStatoLavorazione(p) {
     // L'offerta ha priorita visiva: se il prodotto e in offerta,
     // il pallino deve essere sempre ARANCIONE.
@@ -503,6 +614,7 @@ function renderTabella(listaArgomento) {
                 : (CACHE_VENDITE_MEDIE.has(codice) ? "N/D" : "-");
 
         const rischioRotazione = calcolaRischioRotazione(p, media);
+        const movimento = CACHE_MOVIMENTI.get(codice);
 
         righe.push(`
             <tr>
@@ -514,6 +626,7 @@ function renderTabella(listaArgomento) {
                 <td class="media-settimanale">
                     ${escapeHtmlVendite(mediaTesto)}
                     ${rischioRotazione ? `<div style="margin-top:4px;font-size:11px;">${renderIndicatoreRischioRotazione(rischioRotazione)}</div>` : ""}
+                    ${renderIndicatoreAccumulo(movimento)}
                 </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${p.id})">
@@ -538,6 +651,7 @@ function renderTabella(listaArgomento) {
 
     if (repartoAttivo && lista.length) {
         caricaVenditeMediePerLista(lista);
+        caricaMovimentiStoriciPerLista(lista);
     }
 
     console.timeEnd("RENDER TABELLA");
