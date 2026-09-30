@@ -534,24 +534,21 @@ function renderTabellaDashboard(lista) {
 
 
 // =====================================
-// INTELLIGENCE GDO V3
-// IMPORTANTE: non conosce lo stock a scaffale.
-// I pezzi vengono considerati solo dopo verifica.
+// INTELLIGENCE GDO V5
+// Mostra SOLO priorità reali.
+// Non inventa mai i pezzi a scaffale.
 // =====================================
 
 function intelligenceStato(p) {
     const giorni = Number(p?.giorni);
 
     if (!Number.isFinite(giorni)) {
-        return {
-            stato: "DATI INSUFFICIENTI",
-            colore: "#64748b",
-            motivo: "Scadenza non disponibile"
-        };
+        return null;
     }
 
     if (giorni < 0) {
         return {
+            livello: 0,
             stato: "INTERVENIRE ORA",
             colore: "#dc2626",
             motivo: "Prodotto già scaduto"
@@ -560,17 +557,24 @@ function intelligenceStato(p) {
 
     if (giorni <= 3) {
         return {
+            livello: 1,
             stato: "CONTROLLO IMMEDIATO",
             colore: "#dc2626",
             motivo: "Scadenza entro 3 giorni"
         };
     }
 
-    return {
-        stato: "VERIFICARE",
-        colore: "#f59e0b",
-        motivo: "Controllare quantità a scaffale"
-    };
+    if (giorni <= 7) {
+        return {
+            livello: 2,
+            stato: "VERIFICARE QUANTITÀ",
+            colore: "#f59e0b",
+            motivo: "Scadenza entro 7 giorni: verificare fisicamente i pezzi"
+        };
+    }
+
+    // Oltre 7 giorni non entra nella lista delle priorità.
+    return null;
 }
 
 function inserisciPannelloIntelligence() {
@@ -591,7 +595,7 @@ function inserisciPannelloIntelligence() {
             <div>
                 <div style="font-size:19px;font-weight:700;">INTELLIGENCE</div>
                 <div style="font-size:13px;color:#64748b;margin-top:3px;">
-                    La scadenza indica cosa verificare. Lo stock a scaffale non viene mai stimato.
+                    Mostra solo le referenze che richiedono attenzione.
                 </div>
             </div>
 
@@ -609,8 +613,7 @@ function inserisciPannelloIntelligence() {
         </div>
     `;
 
-    // IMPORTANTE:
-    // il pannello viene inserito DOPO la tabella, mai prima.
+    // L'Intelligence viene sempre DOPO la tabella originale.
     area.parentNode.insertBefore(panel, area.nextSibling);
 
     aggiornaPannelloIntelligence();
@@ -630,22 +633,24 @@ function aggiornaPannelloIntelligence() {
         );
     }
 
-    const righe = prodotti.map(p => ({
-        p,
-        info: intelligenceStato(p)
-    }));
+    const righe = prodotti
+        .map(p => {
+            const info = intelligenceStato(p);
+            return info ? { p, info } : null;
+        })
+        .filter(Boolean);
+
+    righe.sort((a, b) =>
+        a.info.livello - b.info.livello ||
+        Number(a.p.giorni) - Number(b.p.giorni)
+    );
 
     const immediati = righe.filter(x =>
-        x.info.stato === "INTERVENIRE ORA" ||
-        x.info.stato === "CONTROLLO IMMEDIATO"
+        x.info.livello === 0 || x.info.livello === 1
     );
 
     const verificare = righe.filter(
-        x => x.info.stato === "VERIFICARE"
-    );
-
-    const insufficienti = righe.filter(
-        x => x.info.stato === "DATI INSUFFICIENTI"
+        x => x.info.livello === 2
     );
 
     riepilogo.innerHTML = `
@@ -656,51 +661,52 @@ function aggiornaPannelloIntelligence() {
 
         <div style="padding:9px 13px;border-radius:9px;background:#fffbeb;">
             <strong>${verificare.length}</strong>
-            <div style="font-size:12px;">Da verificare</div>
+            <div style="font-size:12px;">Verificare quantità</div>
         </div>
 
         <div style="padding:9px 13px;border-radius:9px;background:#f8fafc;">
-            <strong>${insufficienti.length}</strong>
-            <div style="font-size:12px;">Dati insufficienti</div>
+            <strong>${Prodotti.tutti().length - righe.length}</strong>
+            <div style="font-size:12px;">Nessuna priorità</div>
         </div>
     `;
 
-    const priorita = [...immediati, ...verificare]
-        .sort((a, b) => Number(a.p.giorni) - Number(b.p.giorni))
-        .slice(0, 8);
-
-    if (!priorita.length) {
-        prioritaEl.innerHTML = "";
+    if (!righe.length) {
+        prioritaEl.innerHTML = `
+            <div style="padding:12px 4px;color:#64748b;font-size:13px;">
+                Nessuna priorità di controllo in questo momento.
+            </div>
+        `;
         return;
     }
+
+    // Mostriamo al massimo 12 priorità, non centinaia di referenze.
+    const visibili = righe.slice(0, 12);
 
     prioritaEl.innerHTML = `
         <div style="font-size:13px;font-weight:700;margin-bottom:7px;">
             Priorità di controllo
         </div>
 
-        ${priorita.map(({p, info}) => `
+        ${visibili.map(({p, info}) => `
             <div style="
                 display:flex;
                 justify-content:space-between;
                 align-items:center;
                 gap:15px;
-                padding:8px 4px;
+                padding:9px 4px;
                 border-top:1px solid #f1f5f9;
                 font-size:13px;
             ">
-                <div>
+                <div style="min-width:0;">
                     <strong>${p.descrizione || p.codice || ""}</strong>
                     <span style="color:#64748b;margin-left:7px;">
                         ${p.reparto || ""}
                     </span>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:15px;">
+                <div style="display:flex;align-items:center;gap:15px;flex-shrink:0;">
                     <span style="color:#64748b;">
-                        ${Number.isFinite(Number(p.giorni))
-                            ? p.giorni + " gg"
-                            : "N/D"}
+                        ${p.giorni} gg
                     </span>
 
                     <strong style="color:${info.colore};white-space:nowrap;">
@@ -709,9 +715,14 @@ function aggiornaPannelloIntelligence() {
                 </div>
             </div>
         `).join("")}
+
+        ${righe.length > 12 ? `
+            <div style="padding-top:9px;color:#64748b;font-size:12px;">
+                Mostrate le prime 12 priorità su ${righe.length}.
+            </div>
+        ` : ""}
     `;
 }
-
 
 // =====================================
 // DESELEZIONA REPARTO
