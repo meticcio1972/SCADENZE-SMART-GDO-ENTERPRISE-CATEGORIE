@@ -412,7 +412,7 @@ function calcolaRischioRotazione(p, mediaSettimanale) {
         livello = "INTERVENIRE ORA";
         colore = "#ef4444";
     } else if (percentualeRischio >= 20) {
-        livello = "ATTENZIONE";
+        livello = "ANTICIPARE CONTROLLO";
         colore = "#f59e0b";
     }
 
@@ -420,6 +420,7 @@ function calcolaRischioRotazione(p, mediaSettimanale) {
         livello,
         colore,
         percentualeRischio: Math.round(percentualeRischio),
+        giorniResidui,
         giorniCopertura: Math.round(giorniCopertura * 10) / 10,
         pezziVendibiliPrimaDellaScadenza: Math.round(pezziVendibiliPrimaDellaScadenza * 10) / 10,
         eccedenzaStimata: Math.round(eccedenzaStimata * 10) / 10
@@ -430,7 +431,7 @@ function renderIndicatoreRischioRotazione(rischio) {
     if (!rischio) return `<span style="color:#94a3b8;">—</span>`;
 
     const testo = rischio.livello === "OK"
-        ? `OK · copertura ${rischio.giorniCopertura} gg`
+        ? `ROTazione OK · ${rischio.giorniCopertura} gg`
         : `${rischio.livello} · ${rischio.percentualeRischio}%`;
 
     const dettaglio = rischio.livello === "OK"
@@ -462,9 +463,38 @@ function renderTabella(listaArgomento) {
         );
     }
 
+    // Ordina le referenze mettendo davanti quelle che richiedono
+    // un intervento anticipato. I prodotti senza dati sufficienti
+    // restano dopo quelli analizzabili.
+    const prioritaRischio = {
+        "INTERVENIRE ORA": 3,
+        "ANTICIPARE CONTROLLO": 2,
+        "OK": 1
+    };
+
+    const listaOrdinata = [...lista].sort((a, b) => {
+        const mediaA = CACHE_VENDITE_MEDIE.get(normalizzaCodiceVendite(a.codice));
+        const mediaB = CACHE_VENDITE_MEDIE.get(normalizzaCodiceVendite(b.codice));
+        const rischioA = calcolaRischioRotazione(a, mediaA);
+        const rischioB = calcolaRischioRotazione(b, mediaB);
+
+        if (!rischioA && !rischioB) return 0;
+        if (!rischioA) return 1;
+        if (!rischioB) return -1;
+
+        const pA = prioritaRischio[rischioA.livello] || 0;
+        const pB = prioritaRischio[rischioB.livello] || 0;
+
+        if (pA !== pB) return pB - pA;
+        if (rischioA.percentualeRischio !== rischioB.percentualeRischio) {
+            return rischioB.percentualeRischio - rischioA.percentualeRischio;
+        }
+        return Number(a.giorni) - Number(b.giorni);
+    });
+
     const righe = [];
 
-    lista.forEach((p, index) => {
+    listaOrdinata.forEach((p) => {
         const codice = normalizzaCodiceVendite(p.codice);
         const media = CACHE_VENDITE_MEDIE.get(codice);
         const mediaTesto =
@@ -490,7 +520,7 @@ function renderTabella(listaArgomento) {
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
 
-                    <button class="btn-delete" onclick="eliminaProdotto(${index})">
+                    <button class="btn-delete" onclick="eliminaProdotto(${Prodotti.tutti().findIndex(x => String(x.id) === String(p.id))})">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
