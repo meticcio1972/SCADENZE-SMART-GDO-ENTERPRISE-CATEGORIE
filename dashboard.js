@@ -534,60 +534,12 @@ function renderTabellaDashboard(lista) {
 
 
 // =====================================
-// INTELLIGENCE GDO
-// NON INVENTA LO STOCK:
-// i pezzi esistono solo dopo verifica.
-// Usa esclusivamente scadenza + storico vendite.
+// INTELLIGENCE GDO V3
+// IMPORTANTE: non conosce lo stock a scaffale.
+// I pezzi vengono considerati solo dopo verifica.
 // =====================================
 
-async function caricaMedieIntelligence(prodotti) {
-    const client = window.supabaseClient;
-    const medie = new Map();
-
-    if (!client || !prodotti?.length) return medie;
-
-    const normalizza = codice =>
-        String(codice ?? "")
-            .trim()
-            .replace(/\s+/g, "")
-            .replace(/\.0$/, "");
-
-    const codici = [...new Set(
-        prodotti.map(p => normalizza(p.codice)).filter(Boolean)
-    )];
-
-    const GIORNI_STORICO = 243;
-
-    for (let i = 0; i < codici.length; i += 100) {
-        const gruppo = codici.slice(i, i + 100);
-
-        const { data, error } = await client
-            .from("storico_vendite")
-            .select("codice, quantita")
-            .in("codice", gruppo);
-
-        if (error) {
-            console.error("Errore Intelligence storico_vendite:", error);
-            continue;
-        }
-
-        const totali = new Map();
-
-        (data || []).forEach(riga => {
-            const codice = normalizza(riga.codice);
-            const quantita = Number(riga.quantita) || 0;
-            totali.set(codice, (totali.get(codice) || 0) + quantita);
-        });
-
-        totali.forEach((totale, codice) => {
-            medie.set(codice, (totale / GIORNI_STORICO) * 7);
-        });
-    }
-
-    return medie;
-}
-
-function intelligenceStato(p, media) {
+function intelligenceStato(p) {
     const giorni = Number(p?.giorni);
 
     if (!Number.isFinite(giorni)) {
@@ -614,137 +566,11 @@ function intelligenceStato(p, media) {
         };
     }
 
-    if (!Number.isFinite(media) || media <= 0) {
-        return {
-            stato: "VERIFICARE",
-            colore: "#f59e0b",
-            motivo: "Media vendite non disponibile"
-        };
-    }
-
-    const venditeTeoriche = (media / 7) * giorni;
-
-    if (giorni <= 7 && venditeTeoriche < 2) {
-        return {
-            stato: "ANTICIPARE CONTROLLO",
-            colore: "#f59e0b",
-            motivo: "Rotazione bassa rispetto alla scadenza"
-        };
-    }
-
     return {
-        stato: "MONITORARE",
-        colore: "#22c55e",
-        motivo: "Scadenza e velocità di vendita compatibili"
+        stato: "VERIFICARE",
+        colore: "#f59e0b",
+        motivo: "Controllare quantità a scaffale"
     };
-}
-
-async function aggiornaPannelloIntelligence() {
-    const panel = document.getElementById("pannelloIntelligence");
-    if (!panel) return;
-
-    const prodotti = Dashboard.repartoSelezionato
-        ? Prodotti.tutti().filter(p => p.reparto === Dashboard.repartoSelezionato)
-        : Prodotti.tutti();
-
-    const medie = await caricaMedieIntelligence(prodotti);
-
-    const normalizza = codice =>
-        String(codice ?? "")
-            .trim()
-            .replace(/\s+/g, "")
-            .replace(/\.0$/, "");
-
-    const righe = prodotti.map(p => {
-        const media = medie.get(normalizza(p.codice));
-        return { p, media, info: intelligenceStato(p, media) };
-    });
-
-    righe.sort((a, b) => {
-        const ordine = {
-            "INTERVENIRE ORA": 0,
-            "CONTROLLO IMMEDIATO": 1,
-            "ANTICIPARE CONTROLLO": 2,
-            "VERIFICARE": 3,
-            "MONITORARE": 4,
-            "DATI INSUFFICIENTI": 5
-        };
-
-        return (ordine[a.info.stato] ?? 9) -
-               (ordine[b.info.stato] ?? 9) ||
-               Number(a.p.giorni) - Number(b.p.giorni);
-    });
-
-    const immediato = righe.filter(x =>
-        x.info.stato === "INTERVENIRE ORA" ||
-        x.info.stato === "CONTROLLO IMMEDIATO"
-    ).length;
-
-    const anticipare = righe.filter(x =>
-        x.info.stato === "ANTICIPARE CONTROLLO"
-    ).length;
-
-    const verificare = righe.filter(x =>
-        x.info.stato === "VERIFICARE"
-    ).length;
-
-    panel.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
-            <div>
-                <div style="font-size:20px;font-weight:700;">INTELLIGENCE</div>
-                <div style="font-size:13px;color:#64748b;margin-top:3px;">
-                    La Dashboard indica cosa verificare. I pezzi a scaffale NON vengono mai stimati.
-                </div>
-            </div>
-            <div style="font-size:12px;font-weight:600;color:#64748b;background:#f8fafc;border:1px solid #e5e7eb;padding:8px 12px;border-radius:9px;">
-                STOCK: NON VERIFICATO
-            </div>
-        </div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
-            <div style="padding:10px 14px;border-radius:10px;background:#fef2f2;">
-                <strong>${immediato}</strong>
-                <div style="font-size:12px;">Controllo immediato</div>
-            </div>
-
-            <div style="padding:10px 14px;border-radius:10px;background:#fffbeb;">
-                <strong>${anticipare}</strong>
-                <div style="font-size:12px;">Anticipare controllo</div>
-            </div>
-
-            <div style="padding:10px 14px;border-radius:10px;background:#fff7ed;">
-                <strong>${verificare}</strong>
-                <div style="font-size:12px;">Verificare dati</div>
-            </div>
-        </div>
-
-        <div style="margin-top:15px;border-top:1px solid #e5e7eb;padding-top:8px;">
-            ${righe.slice(0, 12).map(({p, media, info}) => `
-                <div style="display:grid;grid-template-columns:minmax(200px,1fr) 145px 90px 90px;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #f1f5f9;">
-                    <div>
-                        <strong>${p.descrizione || p.codice || ""}</strong>
-                        <div style="font-size:12px;color:#64748b;">${p.reparto || ""}</div>
-                    </div>
-
-                    <div style="font-size:12px;font-weight:700;color:${info.colore};">
-                        ${info.stato}
-                    </div>
-
-                    <div style="font-size:12px;">
-                        ${Number.isFinite(Number(p.giorni)) ? `${p.giorni} gg` : "N/D"}
-                    </div>
-
-                    <div style="font-size:12px;">
-                        ${Number.isFinite(media) ? `${media.toFixed(1)}/sett.` : "N/D"}
-                    </div>
-
-                    <div style="grid-column:1/-1;font-size:11px;color:#64748b;">
-                        ${info.motivo}
-                    </div>
-                </div>
-            `).join("")}
-        </div>
-    `;
 }
 
 function inserisciPannelloIntelligence() {
@@ -758,16 +584,132 @@ function inserisciPannelloIntelligence() {
     const panel = document.createElement("section");
     panel.id = "pannelloIntelligence";
     panel.style.cssText =
-        "margin:18px 0;padding:16px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;";
+        "margin:20px 0 10px;padding:16px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;";
 
     panel.innerHTML = `
-        <div style="font-size:14px;color:#64748b;">
-            Caricamento Intelligence…
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:19px;font-weight:700;">INTELLIGENCE</div>
+                <div style="font-size:13px;color:#64748b;margin-top:3px;">
+                    La scadenza indica cosa verificare. Lo stock a scaffale non viene mai stimato.
+                </div>
+            </div>
+
+            <div style="font-size:12px;font-weight:600;color:#64748b;background:#f8fafc;border:1px solid #e5e7eb;padding:7px 11px;border-radius:8px;">
+                STOCK: NON VERIFICATO
+            </div>
+        </div>
+
+        <div id="intelligenceRiepilogo"
+             style="display:flex;gap:10px;flex-wrap:wrap;margin-top:13px;">
+        </div>
+
+        <div id="intelligencePriorita"
+             style="margin-top:13px;">
         </div>
     `;
 
-    area.parentNode.insertBefore(panel, area);
+    // IMPORTANTE:
+    // il pannello viene inserito DOPO la tabella, mai prima.
+    area.parentNode.insertBefore(panel, area.nextSibling);
+
     aggiornaPannelloIntelligence();
+}
+
+function aggiornaPannelloIntelligence() {
+    const riepilogo = document.getElementById("intelligenceRiepilogo");
+    const priorita = document.getElementById("intelligencePriorita");
+
+    if (!riepilogo || !priorita) return;
+
+    let prodotti = Prodotti.tutti();
+
+    if (Dashboard.repartoSelezionato) {
+        prodotti = prodotti.filter(
+            p => p.reparto === Dashboard.repartoSelezionato
+        );
+    }
+
+    const righe = prodotti.map(p => ({
+        p,
+        info: intelligenceStato(p)
+    }));
+
+    const immediati = righe.filter(x =>
+        x.info.stato === "INTERVENIRE ORA" ||
+        x.info.stato === "CONTROLLO IMMEDIATO"
+    );
+
+    const verificare = righe.filter(
+        x => x.info.stato === "VERIFICARE"
+    );
+
+    const insufficienti = righe.filter(
+        x => x.info.stato === "DATI INSUFFICIENTI"
+    );
+
+    riepilogo.innerHTML = `
+        <div style="padding:9px 13px;border-radius:9px;background:#fef2f2;">
+            <strong>${immediati.length}</strong>
+            <div style="font-size:12px;">Controllo immediato</div>
+        </div>
+
+        <div style="padding:9px 13px;border-radius:9px;background:#fffbeb;">
+            <strong>${verificare.length}</strong>
+            <div style="font-size:12px;">Da verificare</div>
+        </div>
+
+        <div style="padding:9px 13px;border-radius:9px;background:#f8fafc;">
+            <strong>${insufficienti.length}</strong>
+            <div style="font-size:12px;">Dati insufficienti</div>
+        </div>
+    `;
+
+    const priorita = [...immediati, ...verificare]
+        .sort((a, b) => Number(a.p.giorni) - Number(b.p.giorni))
+        .slice(0, 8);
+
+    if (!priorita.length) {
+        priorita.innerHTML = "";
+        return;
+    }
+
+    priorita.innerHTML = `
+        <div style="font-size:13px;font-weight:700;margin-bottom:7px;">
+            Priorità di controllo
+        </div>
+
+        ${priorita.map(({p, info}) => `
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+                padding:8px 4px;
+                border-top:1px solid #f1f5f9;
+                font-size:13px;
+            ">
+                <div>
+                    <strong>${p.descrizione || p.codice || ""}</strong>
+                    <span style="color:#64748b;margin-left:7px;">
+                        ${p.reparto || ""}
+                    </span>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:15px;">
+                    <span style="color:#64748b;">
+                        ${Number.isFinite(Number(p.giorni))
+                            ? p.giorni + " gg"
+                            : "N/D"}
+                    </span>
+
+                    <strong style="color:${info.colore};white-space:nowrap;">
+                        ${info.stato}
+                    </strong>
+                </div>
+            </div>
+        `).join("")}
+    `;
 }
 
 
