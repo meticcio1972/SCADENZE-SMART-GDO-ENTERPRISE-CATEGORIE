@@ -360,7 +360,7 @@ function selezionaReparto(reparto) {
 
     Dashboard.aggiorna();
     renderTabellaDashboard(lista);
-    aggiornaIntelligenceDashboard();
+    aggiornaPannelloIntelligence();
 }
 
 
@@ -534,154 +534,242 @@ function renderTabellaDashboard(lista) {
 
 
 // =====================================
-// INTELLIGENCE GDO - CONTROLLO QUANTITÀ
-// IMPORTANTE: i pezzi a scaffale NON sono conosciuti.
-// Questa sezione usa solo scadenza + media vendite.
-// Non stima mai lo stock residuo.
+// INTELLIGENCE GDO
+// NON INVENTA LO STOCK:
+// i pezzi esistono solo dopo verifica.
+// Usa esclusivamente scadenza + storico vendite.
 // =====================================
 
-function intelligenceDaControllare(p, mediaSettimanale) {
-    const giorni = Number(p?.giorni);
-    const media = Number(mediaSettimanale);
+async function caricaMedieIntelligence(prodotti) {
+    const client = window.supabaseClient;
+    const medie = new Map();
 
-    if (!Number.isFinite(giorni)) return null;
+    if (!client || !prodotti?.length) return medie;
 
-    let priorita = 9;
-    let stato = "CONTROLLO QUANTITÀ";
-    let colore = "#64748b";
+    const normalizza = codice =>
+        String(codice ?? "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/\.0$/, "");
 
-    if (giorni < 0) {
-        priorita = 0;
-        stato = "INTERVENIRE ORA";
-        colore = "#dc2626";
-    } else if (giorni <= 3) {
-        priorita = 1;
-        stato = "CONTROLLO IMMEDIATO";
-        colore = "#dc2626";
-    } else if (giorni <= 7) {
-        priorita = 2;
-        stato = "VERIFICARE PEZZI";
-        colore = "#f59e0b";
-    } else if (giorni <= 10) {
-        priorita = 3;
-        stato = "ANTICIPARE CONTROLLO";
-        colore = "#f59e0b";
-    } else if (giorni <= 15) {
-        priorita = 4;
-        stato = "TENERE SOTTO OSSERVAZIONE";
-        colore = "#64748b";
+    const codici = [...new Set(
+        prodotti.map(p => normalizza(p.codice)).filter(Boolean)
+    )];
+
+    const GIORNI_STORICO = 243;
+
+    for (let i = 0; i < codici.length; i += 100) {
+        const gruppo = codici.slice(i, i + 100);
+
+        const { data, error } = await client
+            .from("storico_vendite")
+            .select("codice, quantita")
+            .in("codice", gruppo);
+
+        if (error) {
+            console.error("Errore Intelligence storico_vendite:", error);
+            continue;
+        }
+
+        const totali = new Map();
+
+        (data || []).forEach(riga => {
+            const codice = normalizza(riga.codice);
+            const quantita = Number(riga.quantita) || 0;
+            totali.set(codice, (totali.get(codice) || 0) + quantita);
+        });
+
+        totali.forEach((totale, codice) => {
+            medie.set(codice, (totale / GIORNI_STORICO) * 7);
+        });
     }
 
-    const venditeTeoriche = Number.isFinite(media) && media > 0 && giorni > 0
-        ? Math.round(((media / 7) * giorni) * 10) / 10
-        : null;
+    return medie;
+}
+
+function intelligenceStato(p, media) {
+    const giorni = Number(p?.giorni);
+
+    if (!Number.isFinite(giorni)) {
+        return {
+            stato: "DATI INSUFFICIENTI",
+            colore: "#64748b",
+            motivo: "Scadenza non disponibile"
+        };
+    }
+
+    if (giorni < 0) {
+        return {
+            stato: "INTERVENIRE ORA",
+            colore: "#dc2626",
+            motivo: "Prodotto già scaduto"
+        };
+    }
+
+    if (giorni <= 3) {
+        return {
+            stato: "CONTROLLO IMMEDIATO",
+            colore: "#dc2626",
+            motivo: "Scadenza entro 3 giorni"
+        };
+    }
+
+    if (!Number.isFinite(media) || media <= 0) {
+        return {
+            stato: "VERIFICARE",
+            colore: "#f59e0b",
+            motivo: "Media vendite non disponibile"
+        };
+    }
+
+    const venditeTeoriche = (media / 7) * giorni;
+
+    if (giorni <= 7 && venditeTeoriche < 2) {
+        return {
+            stato: "ANTICIPARE CONTROLLO",
+            colore: "#f59e0b",
+            motivo: "Rotazione bassa rispetto alla scadenza"
+        };
+    }
 
     return {
-        priorita,
-        stato,
-        colore,
-        giorni,
-        media: Number.isFinite(media) && media > 0 ? media : null,
-        venditeTeoriche
+        stato: "MONITORARE",
+        colore: "#22c55e",
+        motivo: "Scadenza e velocità di vendita compatibili"
     };
 }
 
-function aggiornaIntelligenceDashboard() {
-    const panel = document.getElementById("intelligenceDashboard");
+async function aggiornaPannelloIntelligence() {
+    const panel = document.getElementById("pannelloIntelligence");
     if (!panel) return;
 
-    const tutti = typeof Prodotti !== "undefined" ? Prodotti.tutti() : [];
     const prodotti = Dashboard.repartoSelezionato
-        ? tutti.filter(p => p.reparto === Dashboard.repartoSelezionato)
-        : tutti;
+        ? Prodotti.tutti().filter(p => p.reparto === Dashboard.repartoSelezionato)
+        : Prodotti.tutti();
 
-    const cacheDisponibile = typeof CACHE_VENDITE_MEDIE !== "undefined";
-    const normalizza = typeof normalizzaCodiceVendite === "function"
-        ? normalizzaCodiceVendite
-        : (codice => String(codice ?? "").trim().replace(/\s+/g, "").replace(/\.0$/, ""));
+    const medie = await caricaMedieIntelligence(prodotti);
+
+    const normalizza = codice =>
+        String(codice ?? "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/\.0$/, "");
 
     const righe = prodotti.map(p => {
-        const media = cacheDisponibile
-            ? CACHE_VENDITE_MEDIE.get(normalizza(p.codice))
-            : null;
-        return { p, info: intelligenceDaControllare(p, media) };
-    }).filter(x => x.info);
+        const media = medie.get(normalizza(p.codice));
+        return { p, media, info: intelligenceStato(p, media) };
+    });
 
-    righe.sort((a, b) =>
-        a.info.priorita - b.info.priorita ||
-        a.info.giorni - b.info.giorni
-    );
+    righe.sort((a, b) => {
+        const ordine = {
+            "INTERVENIRE ORA": 0,
+            "CONTROLLO IMMEDIATO": 1,
+            "ANTICIPARE CONTROLLO": 2,
+            "VERIFICARE": 3,
+            "MONITORARE": 4,
+            "DATI INSUFFICIENTI": 5
+        };
 
-    const immediate = righe.filter(x => x.info.priorita <= 1).length;
-    const verifica = righe.filter(x => x.info.priorita === 2).length;
-    const osservazione = righe.filter(x => x.info.priorita >= 3 && x.info.priorita <= 4).length;
+        return (ordine[a.info.stato] ?? 9) -
+               (ordine[b.info.stato] ?? 9) ||
+               Number(a.p.giorni) - Number(b.p.giorni);
+    });
 
-    const mediaHtml = x => x.info.media !== null
-        ? `${x.info.media.toFixed(1)} pz/settimana`
-        : "media N/D";
+    const immediato = righe.filter(x =>
+        x.info.stato === "INTERVENIRE ORA" ||
+        x.info.stato === "CONTROLLO IMMEDIATO"
+    ).length;
 
-    const teoriaHtml = x => x.info.venditeTeoriche !== null
-        ? `<span style="color:#64748b;">Vendita teorica fino alla scadenza: ~${x.info.venditeTeoriche} pz</span>`
-        : `<span style="color:#94a3b8;">Nessuna media disponibile</span>`;
+    const anticipare = righe.filter(x =>
+        x.info.stato === "ANTICIPARE CONTROLLO"
+    ).length;
+
+    const verificare = righe.filter(x =>
+        x.info.stato === "VERIFICARE"
+    ).length;
 
     panel.innerHTML = `
-        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
             <div>
-                <div style="font-size:18px;font-weight:700;">INTELLIGENCE</div>
+                <div style="font-size:20px;font-weight:700;">INTELLIGENCE</div>
                 <div style="font-size:13px;color:#64748b;margin-top:3px;">
-                    La scadenza e la velocità di vendita indicano cosa verificare.
-                    I pezzi a scaffale non vengono mai inventati: vanno verificati sul posto.
+                    La Dashboard indica cosa verificare. I pezzi a scaffale NON vengono mai stimati.
                 </div>
             </div>
-            <div style="font-size:12px;color:#64748b;padding:7px 10px;background:#f8fafc;border-radius:8px;">
+            <div style="font-size:12px;font-weight:600;color:#64748b;background:#f8fafc;border:1px solid #e5e7eb;padding:8px 12px;border-radius:9px;">
                 STOCK: NON VERIFICATO
             </div>
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
-            <div style="padding:10px 14px;border-radius:10px;background:#fef2f2;min-width:125px;">
-                <strong>${immediate}</strong><div style="font-size:12px;">Controllo immediato</div>
+            <div style="padding:10px 14px;border-radius:10px;background:#fef2f2;">
+                <strong>${immediato}</strong>
+                <div style="font-size:12px;">Controllo immediato</div>
             </div>
-            <div style="padding:10px 14px;border-radius:10px;background:#fffbeb;min-width:125px;">
-                <strong>${verifica}</strong><div style="font-size:12px;">Verificare pezzi</div>
+
+            <div style="padding:10px 14px;border-radius:10px;background:#fffbeb;">
+                <strong>${anticipare}</strong>
+                <div style="font-size:12px;">Anticipare controllo</div>
             </div>
-            <div style="padding:10px 14px;border-radius:10px;background:#f8fafc;min-width:125px;">
-                <strong>${osservazione}</strong><div style="font-size:12px;">Sotto osservazione</div>
+
+            <div style="padding:10px 14px;border-radius:10px;background:#fff7ed;">
+                <strong>${verificare}</strong>
+                <div style="font-size:12px;">Verificare dati</div>
             </div>
         </div>
 
-        <div style="margin-top:14px;font-size:13px;font-weight:700;">Priorità di controllo</div>
-        <div style="margin-top:7px;display:grid;gap:6px;">
-            ${righe.slice(0, 12).map(x => `
-                <div style="display:grid;grid-template-columns:minmax(180px,1fr) 155px 90px;gap:10px;align-items:center;padding:9px 10px;border-top:1px solid #f1f5f9;">
+        <div style="margin-top:15px;border-top:1px solid #e5e7eb;padding-top:8px;">
+            ${righe.slice(0, 12).map(({p, media, info}) => `
+                <div style="display:grid;grid-template-columns:minmax(200px,1fr) 145px 90px 90px;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #f1f5f9;">
                     <div>
-                        <strong>${x.p.descrizione || x.p.codice || ""}</strong>
-                        <div style="font-size:12px;color:#64748b;">${x.p.reparto || ""} · ${mediaHtml(x)}</div>
-                        <div style="font-size:11px;margin-top:2px;">${teoriaHtml(x)}</div>
+                        <strong>${p.descrizione || p.codice || ""}</strong>
+                        <div style="font-size:12px;color:#64748b;">${p.reparto || ""}</div>
                     </div>
-                    <div style="font-size:12px;font-weight:700;color:${x.info.colore};">${x.info.stato}</div>
-                    <div style="font-size:12px;">${x.info.giorni < 0 ? "SCADUTO" : x.info.giorni + " gg"}</div>
+
+                    <div style="font-size:12px;font-weight:700;color:${info.colore};">
+                        ${info.stato}
+                    </div>
+
+                    <div style="font-size:12px;">
+                        ${Number.isFinite(Number(p.giorni)) ? `${p.giorni} gg` : "N/D"}
+                    </div>
+
+                    <div style="font-size:12px;">
+                        ${Number.isFinite(media) ? `${media.toFixed(1)}/sett.` : "N/D"}
+                    </div>
+
+                    <div style="grid-column:1/-1;font-size:11px;color:#64748b;">
+                        ${info.motivo}
+                    </div>
                 </div>
-            `).join("") || `<div style="font-size:13px;color:#64748b;padding:10px 0;">Nessun prodotto da segnalare.</div>`}
+            `).join("")}
         </div>
     `;
 }
 
-function inserisciIntelligenceDashboard() {
-    if (document.getElementById("intelligenceDashboard")) return;
-
-    const panel = document.createElement("section");
-    panel.id = "intelligenceDashboard";
-    panel.style.cssText = "margin:18px 0;padding:16px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;";
+function inserisciPannelloIntelligence() {
+    if (document.getElementById("pannelloIntelligence")) return;
 
     const tabella = document.querySelector("#productTable");
     const area = tabella ? tabella.closest(".table-area") : null;
 
-    if (area && area.parentNode) {
-        area.parentNode.insertBefore(panel, area);
-        aggiornaIntelligenceDashboard();
-    }
+    if (!area) return;
+
+    const panel = document.createElement("section");
+    panel.id = "pannelloIntelligence";
+    panel.style.cssText =
+        "margin:18px 0;padding:16px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;";
+
+    panel.innerHTML = `
+        <div style="font-size:14px;color:#64748b;">
+            Caricamento Intelligence…
+        </div>
+    `;
+
+    area.parentNode.insertBefore(panel, area);
+    aggiornaPannelloIntelligence();
 }
+
 
 // =====================================
 // DESELEZIONA REPARTO
@@ -694,6 +782,7 @@ function deselezionaReparto() {
 
     Dashboard.aggiorna();
     renderTabellaDashboard(Prodotti.tutti());
+    aggiornaPannelloIntelligence();
 }
 
 // =====================================
@@ -774,7 +863,7 @@ function filtraDashboard(tipo) {
     }
 
     renderTabellaDashboard(lista);
-    aggiornaIntelligenceDashboard();
+    aggiornaPannelloIntelligence();
 
 }
 
@@ -860,5 +949,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     inserisciLegendaStatoLavorazione();
-    inserisciIntelligenceDashboard();
+    inserisciPannelloIntelligence();
 });
