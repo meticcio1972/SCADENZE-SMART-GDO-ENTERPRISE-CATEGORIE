@@ -618,9 +618,9 @@ function inserisciPannelloIntelligence() {
 
 function aggiornaPannelloIntelligence() {
     const riepilogo = document.getElementById("intelligenceRiepilogo");
-    const priorita = document.getElementById("intelligencePriorita");
+    const prioritaEl = document.getElementById("intelligencePriorita");
 
-    if (!riepilogo || !priorita) return;
+    if (!riepilogo || !prioritaEl) return;
 
     let prodotti = Prodotti.tutti();
 
@@ -670,11 +670,11 @@ function aggiornaPannelloIntelligence() {
         .slice(0, 8);
 
     if (!priorita.length) {
-        priorita.innerHTML = "";
+        prioritaEl.innerHTML = "";
         return;
     }
 
-    priorita.innerHTML = `
+    prioritaEl.innerHTML = `
         <div style="font-size:13px;font-weight:700;margin-bottom:7px;">
             Priorità di controllo
         </div>
