@@ -162,6 +162,7 @@ const STORICO_MOVIMENTI_TABLE = "storico_movimenti";
 const CACHE_VENDITE_MEDIE = new Map();
 const CACHE_MOVIMENTI = new Map();
 let richiestaVenditeToken = 0;
+let richiestaIntelligenceToken = 0;
 
 function escapeHtmlVendite(v) {
     return String(v ?? "")
@@ -338,7 +339,7 @@ async function caricaVenditeMediePerLista(lista) {
             return true;
         });
 
-        renderTabella(visibili);
+        console.log("VENDITE MEDIE CARICATE:", nonInCache.filter(c => CACHE_VENDITE_MEDIE.has(c)).length);
 
         if (stato) {
             const trovate = nonInCache.filter(c => CACHE_VENDITE_MEDIE.get(c) !== null).length;
@@ -368,10 +369,14 @@ async function caricaMovimentiStoriciPerLista(lista) {
             .filter(Boolean)
     )];
 
-    if (!codici.length) return;
+    if (!codici.length) return 0;
 
     const nonInCache = codici.filter(c => !CACHE_MOVIMENTI.has(c));
-    if (!nonInCache.length) return;
+    if (!nonInCache.length) {
+        const presenti = codici.filter(c => CACHE_MOVIMENTI.get(c)).length;
+        console.log("MOVIMENTI STORICI IN CACHE:", presenti, "/", codici.length);
+        return presenti;
+    }
 
     try {
         const batch = 100;
@@ -432,13 +437,46 @@ async function caricaMovimentiStoriciPerLista(lista) {
             });
         }
 
-        // Ridisegna solo se la pagina e' ancora attiva.
-        if (lista.length) renderTabella(lista);
+        const presenti = codici.filter(c => CACHE_MOVIMENTI.get(c)).length;
+        console.log("MOVIMENTI STORICI CARICATI:", presenti, "/", codici.length);
+        return presenti;
 
     } catch (errore) {
         console.error("Errore storico acquisti/vendite:", errore);
         for (const codice of nonInCache) CACHE_MOVIMENTI.set(codice, null);
+        return 0;
     }
+}
+
+async function caricaIntelligencePerLista(lista) {
+    const codici = [...new Set(
+        (lista || [])
+            .map(p => normalizzaCodiceVendite(p.codice))
+            .filter(Boolean)
+    )];
+
+    if (!codici.length) return;
+
+    const token = ++richiestaIntelligenceToken;
+
+    // Le due fonti vengono caricate prima del render finale.
+    // Questo evita che una risposta asincrona sovrascriva l'altra.
+    await Promise.all([
+        caricaVenditeMediePerLista(lista),
+        caricaMovimentiStoriciPerLista(lista)
+    ]);
+
+    if (token !== richiestaIntelligenceToken) return;
+
+    console.log(
+        "INTELLIGENCE PRONTA:",
+        codici.filter(c => CACHE_VENDITE_MEDIE.has(c)).length,
+        "vendite medie /",
+        codici.filter(c => CACHE_MOVIMENTI.get(c)).length,
+        "movimenti storici"
+    );
+
+    renderTabella(lista, { skipIntelligence: true });
 }
 
 function renderIndicatoreAccumulo(movimento) {
@@ -554,7 +592,7 @@ function renderIndicatoreRischioRotazione(rischio) {
         + `${testo}</span>`;
 }
 
-function renderTabella(listaArgomento) {
+function renderTabella(listaArgomento, opzioni = {}) {
     console.time("RENDER TABELLA");
 
     const tbody = document.getElementById("productTable");
@@ -643,15 +681,15 @@ function renderTabella(listaArgomento) {
 
     tbody.innerHTML = righe.join("");
 
-    // Le vendite medie vengono richieste solo quando l'utente ha selezionato
-    // una categoria: non interroghiamo lo storico per tutte le referenze.
+    // L'intelligence viene richiesta solo quando l'utente ha selezionato
+    // una categoria: vendite medie e movimenti storici vengono caricati
+    // insieme e il render finale avviene solo dopo entrambe le risposte.
     const repartoAttivo = typeof Dashboard !== "undefined"
         ? Dashboard.repartoSelezionato
         : null;
 
-    if (repartoAttivo && lista.length) {
-        caricaVenditeMediePerLista(lista);
-        caricaMovimentiStoriciPerLista(lista);
+    if (repartoAttivo && lista.length && !opzioni.skipIntelligence) {
+        caricaIntelligencePerLista(lista);
     }
 
     console.timeEnd("RENDER TABELLA");
