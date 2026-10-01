@@ -99,6 +99,12 @@ if (error) {
 Prodotti.carica(ricalcolaGiorni(data));
 
 console.log("Prodotti caricati:", data.length);
+
+    // Precarica subito lo storico acquisti/vendite per tutte le referenze.
+    // Non aspettiamo l'apertura della sezione Prodotti: in questo modo
+    // il movimento storico e gia disponibile quando la tabella verra mostrata.
+    await caricaMovimentiStoriciPerLista(data);
+
     // Disegna la tabella
     renderTabella();
 
