@@ -534,47 +534,158 @@ function renderTabellaDashboard(lista) {
 
 
 // =====================================
-// INTELLIGENCE GDO V5
-// Mostra SOLO priorità reali.
-// Non inventa mai i pezzi a scaffale.
+// INTELLIGENCE GDO V8
+// COSA DEVO FARE OGGI
+//
+// Usa:
+// - scadenza
+// - storico acquisti/vendite
+// - differenza acquisti-vendite
+//
+// NON usa la giacenza reale a scaffale.
+// La quantità reale viene sempre verificata dall'operatore.
 // =====================================
 
-function intelligenceStato(p) {
+async function intelligenceCaricaMovimenti(prodotti) {
+    const client = window.supabaseClient;
+    const movimenti = new Map();
+
+    if (!client || !prodotti || !prodotti.length) return movimenti;
+
+    const normalizzaCodice = codice =>
+        String(codice ?? "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/\.0$/, "");
+
+    const codici = [
+        ...new Set(
+            prodotti.map(p => normalizzaCodice(p.codice)).filter(Boolean)
+        )
+    ];
+
+    const GIORNI_STORICO = 243;
+    const SETTIMANE_STORICO = GIORNI_STORICO / 7;
+
+    for (let i = 0; i < codici.length; i += 100) {
+        const gruppo = codici.slice(i, i + 100);
+
+        const { data, error } = await client
+            .from("storico_movimenti")
+            .select("codice,acquisti_pz,vendite_pz,diff_pz,periodo")
+            .in("codice", gruppo);
+
+        if (error) {
+            console.error("Errore Intelligence lettura storico_movimenti:", error);
+            continue;
+        }
+
+        (data || []).forEach(riga => {
+            const codice = normalizzaCodice(riga.codice);
+            const acquisti = Number(riga.acquisti_pz) || 0;
+            const vendite = Number(riga.vendite_pz) || 0;
+            const diff = Number(riga.diff_pz) || 0;
+
+            movimenti.set(codice, {
+                acquistiSettimanali: acquisti / SETTIMANE_STORICO,
+                venditeSettimanali: vendite / SETTIMANE_STORICO,
+                differenzaSettimanale: diff / SETTIMANE_STORICO,
+                pressioneAccumulo: acquisti > 0 ? (diff / acquisti) * 100 : 0,
+                periodo: riga.periodo || ""
+            });
+        });
+    }
+
+    return movimenti;
+}
+
+function intelligenceValutaMovimento(p, movimento) {
     const giorni = Number(p?.giorni);
 
-    if (!Number.isFinite(giorni)) {
-        return null;
-    }
+    if (!Number.isFinite(giorni)) return null;
 
     if (giorni < 0) {
         return {
             livello: 0,
-            stato: "INTERVENIRE ORA",
+            stato: "CONTROLLO IMMEDIATO",
             colore: "#dc2626",
-            motivo: "Prodotto già scaduto"
+            azione: "Controlla subito",
+            motivo: "Prodotto già scaduto."
         };
     }
 
     if (giorni <= 3) {
         return {
-            livello: 1,
+            livello: 0,
             stato: "CONTROLLO IMMEDIATO",
             colore: "#dc2626",
-            motivo: "Scadenza entro 3 giorni"
+            azione: "Controlla subito",
+            motivo: "Scadenza entro 3 giorni."
         };
     }
 
-    if (giorni <= 7) {
+    if (!movimento) {
         return {
-            livello: 2,
+            livello: 3,
+            stato: "DATI DA VERIFICARE",
+            colore: "#64748b",
+            azione: "Verifica storico",
+            motivo: "Storico movimenti non disponibile per questa referenza."
+        };
+    }
+
+    const diff = movimento.differenzaSettimanale;
+    const pressione = movimento.pressioneAccumulo;
+
+    // Accumulo storico + scadenza ravvicinata:
+    // chiediamo un controllo della quantità reale.
+    if (giorni <= 7 && diff > 0) {
+        return {
+            livello: 1,
             stato: "VERIFICARE QUANTITÀ",
             colore: "#f59e0b",
-            motivo: "Scadenza entro 7 giorni: verificare fisicamente i pezzi"
+            azione: "Verifica quantità",
+            motivo:
+                `Lo storico mostra +${diff.toFixed(1)} unità/settimana ` +
+                `di differenza tra acquisti e vendite.`
         };
     }
 
-    // Oltre 7 giorni non entra nella lista delle priorità.
-    return null;
+    // Entro 14 giorni: se gli acquisti superano le vendite,
+    // anticipiamo il controllo senza dichiarare una giacenza reale.
+    if (giorni <= 14 && diff > 0) {
+        return {
+            livello: 1,
+            stato: "ANTICIPARE CONTROLLO",
+            colore: "#f59e0b",
+            azione: "Anticipa controllo",
+            motivo:
+                `Acquisti ${movimento.acquistiSettimanali.toFixed(1)}/sett. · ` +
+                `vendite ${movimento.venditeSettimanali.toFixed(1)}/sett. · ` +
+                `accumulo storico +${diff.toFixed(1)}/sett.`
+        };
+    }
+
+    // Oltre 14 giorni: segnaliamo solo un accumulo storico significativo.
+    if (giorni > 14 && diff > 0 && pressione >= 20) {
+        return {
+            livello: 2,
+            stato: "MONITORARE",
+            colore: "#64748b",
+            azione: "Monitora",
+            motivo:
+                `La differenza storica è +${diff.toFixed(1)}/sett. ` +
+                `(${pressione.toFixed(1)}% rispetto agli acquisti).`
+        };
+    }
+
+    return {
+        livello: 4,
+        stato: "NESSUNA AZIONE URGENTE",
+        colore: "#16a34a",
+        azione: "Nessuna azione urgente",
+        motivo: "Nessun segnale di accumulo rilevante nello storico."
+    };
 }
 
 function inserisciPannelloIntelligence() {
@@ -588,38 +699,33 @@ function inserisciPannelloIntelligence() {
     const panel = document.createElement("section");
     panel.id = "pannelloIntelligence";
     panel.style.cssText =
-        "margin:20px 0 10px;padding:16px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;";
+        "margin:20px 0 10px;padding:18px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;";
 
     panel.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap;">
             <div>
-                <div style="font-size:19px;font-weight:700;">INTELLIGENCE</div>
-                <div style="font-size:13px;color:#64748b;margin-top:3px;">
-                    Mostra solo le referenze che richiedono attenzione.
+                <div style="font-size:20px;font-weight:700;color:#0f172a;">
+                    🧠 COSA DEVO FARE OGGI
                 </div>
-            </div>
-
-            <div style="font-size:12px;font-weight:600;color:#64748b;background:#f8fafc;border:1px solid #e5e7eb;padding:7px 11px;border-radius:8px;">
-                STOCK: NON VERIFICATO
+                <div style="font-size:13px;color:#64748b;margin-top:4px;max-width:760px;">
+                    Incrocia scadenza e storico acquisti/vendite per indicare cosa controllare.
+                    La giacenza reale non viene stimata: quando serve, va verificata sul posto.
+                </div>
             </div>
         </div>
 
         <div id="intelligenceRiepilogo"
-             style="display:flex;gap:10px;flex-wrap:wrap;margin-top:13px;">
+             style="display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;">
         </div>
 
-        <div id="intelligencePriorita"
-             style="margin-top:13px;">
-        </div>
+        <div id="intelligencePriorita" style="margin-top:16px;"></div>
     `;
 
-    // L'Intelligence viene sempre DOPO la tabella originale.
     area.parentNode.insertBefore(panel, area.nextSibling);
-
     aggiornaPannelloIntelligence();
 }
 
-function aggiornaPannelloIntelligence() {
+async function aggiornaPannelloIntelligence() {
     const riepilogo = document.getElementById("intelligenceRiepilogo");
     const prioritaEl = document.getElementById("intelligencePriorita");
 
@@ -633,92 +739,118 @@ function aggiornaPannelloIntelligence() {
         );
     }
 
-    const righe = prodotti
-        .map(p => {
-            const info = intelligenceStato(p);
-            return info ? { p, info } : null;
-        })
-        .filter(Boolean);
+    const movimenti = await intelligenceCaricaMovimenti(prodotti);
+
+    const normalizzaCodice = codice =>
+        String(codice ?? "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/\.0$/, "");
+
+    const righe = prodotti.map(p => {
+        const codice = normalizzaCodice(p.codice);
+        const movimento = movimenti.get(codice);
+        const info = intelligenceValutaMovimento(p, movimento);
+        return { p, movimento, info };
+    });
 
     righe.sort((a, b) =>
         a.info.livello - b.info.livello ||
         Number(a.p.giorni) - Number(b.p.giorni)
     );
 
-    const immediati = righe.filter(x =>
-        x.info.livello === 0 || x.info.livello === 1
-    );
+    const immediati = righe.filter(x => x.info.livello === 0).length;
+    const anticipare = righe.filter(x => x.info.livello === 1).length;
+    const monitorare = righe.filter(x => x.info.livello === 2).length;
+    const datiDaVerificare = righe.filter(x => x.info.livello === 3).length;
+    const nessunaAzione = righe.filter(x => x.info.livello === 4).length;
 
-    const verificare = righe.filter(
-        x => x.info.livello === 2
-    );
-
-    riepilogo.innerHTML = `
-        <div style="padding:9px 13px;border-radius:9px;background:#fef2f2;">
-            <strong>${immediati.length}</strong>
-            <div style="font-size:12px;">Controllo immediato</div>
-        </div>
-
-        <div style="padding:9px 13px;border-radius:9px;background:#fffbeb;">
-            <strong>${verificare.length}</strong>
-            <div style="font-size:12px;">Verificare quantità</div>
-        </div>
-
-        <div style="padding:9px 13px;border-radius:9px;background:#f8fafc;">
-            <strong>${Prodotti.tutti().length - righe.length}</strong>
-            <div style="font-size:12px;">Nessuna priorità</div>
+    const card = (numero, testo, bg, colore) => `
+        <div style="padding:10px 14px;border-radius:10px;background:${bg};border:1px solid #e5e7eb;min-width:145px;">
+            <strong style="font-size:19px;color:${colore};">${numero}</strong>
+            <div style="font-size:12px;color:#475569;margin-top:2px;">${testo}</div>
         </div>
     `;
 
-    if (!righe.length) {
+    riepilogo.innerHTML =
+        card(immediati, "Controllo immediato", "#fef2f2", "#dc2626") +
+        card(anticipare, "Anticipare controllo", "#fffbeb", "#d97706") +
+        card(monitorare, "Monitorare", "#f8fafc", "#64748b") +
+        card(datiDaVerificare, "Storico da verificare", "#f8fafc", "#475569") +
+        card(nessunaAzione, "Nessuna azione urgente", "#f0fdf4", "#16a34a");
+
+    const priorita = righe.filter(x => x.info.livello <= 2).slice(0, 12);
+
+    if (!priorita.length) {
         prioritaEl.innerHTML = `
-            <div style="padding:12px 4px;color:#64748b;font-size:13px;">
-                Nessuna priorità di controllo in questo momento.
+            <div style="padding:14px;color:#64748b;background:#f8fafc;border-radius:10px;">
+                Nessuna referenza richiede un controllo prioritario con i dati disponibili.
             </div>
         `;
         return;
     }
 
-    // Mostriamo al massimo 12 priorità, non centinaia di referenze.
-    const visibili = righe.slice(0, 12);
-
     prioritaEl.innerHTML = `
-        <div style="font-size:13px;font-weight:700;margin-bottom:7px;">
-            Priorità di controllo
+        <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:8px;">
+            Priorità operative
         </div>
 
-        ${visibili.map(({p, info}) => `
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                gap:15px;
-                padding:9px 4px;
-                border-top:1px solid #f1f5f9;
-                font-size:13px;
-            ">
-                <div style="min-width:0;">
-                    <strong>${p.descrizione || p.codice || ""}</strong>
-                    <span style="color:#64748b;margin-left:7px;">
-                        ${p.reparto || ""}
-                    </span>
+        <div style="
+            display:grid;
+            grid-template-columns:90px minmax(220px,1fr) 85px 150px 150px minmax(280px,1.4fr);
+            gap:10px;
+            align-items:center;
+            padding:10px 12px;
+            background:#f8fafc;
+            border:1px solid #e5e7eb;
+            border-radius:9px 9px 0 0;
+            font-size:11px;
+            font-weight:700;
+            color:#475569;
+        ">
+            <div>CODICE</div>
+            <div>REFERENZA</div>
+            <div>GIORNI</div>
+            <div>ACQUISTI / SETT.</div>
+            <div>VENDITE / SETT.</div>
+            <div>COSA FARE</div>
+        </div>
+
+        ${priorita.map(({p, movimento, info}) => {
+            const codice = String(p.codice ?? "").trim() || "—";
+            const descrizione = String(p.descrizione ?? "").trim() || "—";
+            const giorni = Number(p.giorni);
+            const acquisti = movimento ? movimento.acquistiSettimanali.toFixed(1) : "N/D";
+            const vendite = movimento ? movimento.venditeSettimanali.toFixed(1) : "N/D";
+
+            return `
+                <div style="
+                    display:grid;
+                    grid-template-columns:90px minmax(220px,1fr) 85px 150px 150px minmax(280px,1.4fr);
+                    gap:10px;
+                    align-items:center;
+                    padding:12px;
+                    border-left:1px solid #e5e7eb;
+                    border-right:1px solid #e5e7eb;
+                    border-bottom:1px solid #e5e7eb;
+                    font-size:12px;
+                ">
+                    <div style="font-weight:700;">${codice}</div>
+                    <div style="font-weight:600;">${descrizione}</div>
+                    <div style="font-weight:700;color:${info.colore};">${giorni} gg</div>
+                    <div>${acquisti}</div>
+                    <div>${vendite}</div>
+                    <div>
+                        <div style="font-weight:700;color:${info.colore};">${info.azione}</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:3px;">${info.motivo}</div>
+                    </div>
                 </div>
+            `;
+        }).join("")}
 
-                <div style="display:flex;align-items:center;gap:15px;flex-shrink:0;">
-                    <span style="color:#64748b;">
-                        ${p.giorni} gg
-                    </span>
-
-                    <strong style="color:${info.colore};white-space:nowrap;">
-                        ${info.stato}
-                    </strong>
-                </div>
-            </div>
-        `).join("")}
-
-        ${righe.length > 12 ? `
-            <div style="padding-top:9px;color:#64748b;font-size:12px;">
-                Mostrate le prime 12 priorità su ${righe.length}.
+        ${righe.filter(x => x.info.livello <= 2).length > 12 ? `
+            <div style="padding:9px 12px;color:#64748b;font-size:11px;">
+                Mostrate le prime 12 priorità.
             </div>
         ` : ""}
     `;
