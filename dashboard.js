@@ -835,11 +835,11 @@ async function aggiornaPannelloIntelligence() {
                     border-bottom:1px solid #e5e7eb;
                     font-size:12px;
                 ">
-                    <div style="font-weight:700;">${codice}</div>
-                    <div style="font-weight:600;">${descrizione}</div>
+                    <div style="font-weight:700;color:#0f172a;">${codice}</div>
+                    <div style="font-weight:600;color:#0f172a;">${descrizione}</div>
                     <div style="font-weight:700;color:${info.colore};">${giorni} gg</div>
-                    <div>${acquisti}</div>
-                    <div>${vendite}</div>
+                    <div style="color:#0f172a;">${acquisti}</div>
+                    <div style="color:#0f172a;">${vendite}</div>
                     <div>
                         <div style="font-weight:700;color:${info.colore};">${info.azione}</div>
                         <div style="font-size:11px;color:#64748b;margin-top:3px;">${info.motivo}</div>
