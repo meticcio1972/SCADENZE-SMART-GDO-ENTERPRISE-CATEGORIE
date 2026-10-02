@@ -636,38 +636,47 @@ function intelligenceValutaMovimento(p, movimento) {
 
     const diff = movimento.differenzaSettimanale;
     const pressione = movimento.pressioneAccumulo;
+    const acquisti = movimento.acquistiSettimanali;
 
-    // Accumulo storico + scadenza ravvicinata:
-    // chiediamo un controllo della quantità reale.
-    if (giorni <= 7 && diff > 0) {
+    // Non consideriamo un problema qualsiasi differenza positiva.
+    // Usiamo una soglia minima di 0,5 unita/settimana oppure il 5%
+    // degli acquisti settimanali, prendendo il valore piu alto.
+    // Esempio: 12,4 acquistate e 12,3 vendute = +0,1/settimana -> nessun accumulo significativo.
+    const sogliaAccumulo = Math.max(0.5, acquisti * 0.05);
+    const accumuloSignificativo = diff >= sogliaAccumulo;
+
+    // Scadenza ravvicinata: chiediamo un controllo della quantita reale
+    // solo se lo storico mostra un accumulo realmente significativo.
+    if (giorni <= 7 && accumuloSignificativo) {
         return {
             livello: 1,
             stato: "VERIFICARE QUANTITÀ",
             colore: "#f59e0b",
             azione: "Verifica quantità",
             motivo:
-                `Lo storico mostra +${diff.toFixed(1)} unità/settimana ` +
-                `di differenza tra acquisti e vendite.`
+                `Acquisti ${acquisti.toFixed(1)}/sett. · ` +
+                `vendite ${movimento.venditeSettimanali.toFixed(1)}/sett. · ` +
+                `accumulo storico +${diff.toFixed(1)}/sett.`
         };
     }
 
-    // Entro 14 giorni: se gli acquisti superano le vendite,
-    // anticipiamo il controllo senza dichiarare una giacenza reale.
-    if (giorni <= 14 && diff > 0) {
+    // Entro 14 giorni: anticipiamo il controllo solo quando
+    // l'accumulo supera la soglia minima significativa.
+    if (giorni <= 14 && accumuloSignificativo) {
         return {
             livello: 1,
             stato: "ANTICIPARE CONTROLLO",
             colore: "#f59e0b",
             azione: "Anticipa controllo",
             motivo:
-                `Acquisti ${movimento.acquistiSettimanali.toFixed(1)}/sett. · ` +
+                `Acquisti ${acquisti.toFixed(1)}/sett. · ` +
                 `vendite ${movimento.venditeSettimanali.toFixed(1)}/sett. · ` +
                 `accumulo storico +${diff.toFixed(1)}/sett.`
         };
     }
 
     // Oltre 14 giorni: segnaliamo solo un accumulo storico significativo.
-    if (giorni > 14 && diff > 0 && pressione >= 20) {
+    if (giorni > 14 && accumuloSignificativo && pressione >= 20) {
         return {
             livello: 2,
             stato: "MONITORARE",
