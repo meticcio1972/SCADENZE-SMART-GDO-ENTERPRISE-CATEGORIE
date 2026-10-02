@@ -441,6 +441,18 @@ async function caricaMovimentiStoriciPerLista(lista) {
                 differenzaSettimanale,
                 pressioneAccumulo
             });
+
+            // Lo storico_movimenti contiene gia' le vendite totali
+            // dello stesso periodo 01/01/2026 - 31/08/2026.
+            // Usiamo questo dato come fonte di riserva per la colonna
+            // "Vendite medie settimanali", evitando che una mancata
+            // corrispondenza nella tabella storico_vendite lasci "-".
+            if (!CACHE_VENDITE_MEDIE.has(codice) && Number.isFinite(venditeSettimanali)) {
+                CACHE_VENDITE_MEDIE.set(
+                    codice,
+                    Math.round(venditeSettimanali * 10) / 10
+                );
+            }
         }
 
         const presenti = codici.filter(c => CACHE_MOVIMENTI.get(c)).length;
