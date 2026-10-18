@@ -315,3 +315,34 @@ main>section[style*="Liste indipendenti"]{background:linear-gradient(145deg,#1d2
   #listaReparti > .categoria-card-visuale,
   .cards .card { transition: none !important; }
 }
+
+
+/* PATCH V2: il pannello Punto vendita ha uno stile inline bianco in index.html.
+   Selettore mirato: non cambia il funzionamento del select né i dati. */
+main > section:has(#selettorePuntoVendita),
+main > section[style*="background:#fff"],
+main > section[style*="background: #fff"] {
+  background: linear-gradient(145deg, #1c2920 0%, #121a15 72%, #0e140f 100%) !important;
+  border: 1px solid #3a4f3d !important;
+  border-radius: 14px !important;
+  color: #f1f5f1 !important;
+  box-shadow: 0 3px 0 #080c09, 0 10px 22px #0005, inset 1px 1px 0 #ffffff0d !important;
+}
+main > section:has(#selettorePuntoVendita) > label,
+main > section[style*="background:#fff"] > label,
+main > section[style*="background: #fff"] > label {
+  color: #c7d6ca !important;
+}
+main > section:has(#selettorePuntoVendita) #selettorePuntoVendita,
+main > section[style*="background:#fff"] #selettorePuntoVendita,
+main > section[style*="background: #fff"] #selettorePuntoVendita {
+  background: #0b110d !important;
+  color: #f1f5f1 !important;
+  border: 1px solid #49634d !important;
+  border-radius: 9px !important;
+}
+main > section:has(#selettorePuntoVendita) #puntoVenditaAttivo,
+main > section[style*="background:#fff"] #puntoVenditaAttivo,
+main > section[style*="background: #fff"] #puntoVenditaAttivo {
+  color: #b5c7b8 !important;
+}
