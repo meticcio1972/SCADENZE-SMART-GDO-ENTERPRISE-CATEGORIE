@@ -64,3 +64,98 @@ main>section[style*="Liste indipendenti"]{background:linear-gradient(145deg,#1d2
 @media(max-width:950px){.dashboard-main-layout{grid-template-columns:minmax(0,1fr)}.dashboard-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#listaReparti{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:680px){.layout{display:block}.sidebar{position:relative;width:100%;height:auto}.sidebar nav{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.sidebar nav a{flex:0 0 auto;white-space:nowrap}.sidebar .logo{padding-bottom:8px}main{padding:12px}.topbar{margin:8px 0 14px;gap:10px;flex-wrap:wrap}.search-box{min-width:0;flex:1 1 100%}.search-box input{width:100%}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cards .card{padding:14px 12px}.dashboard-tools{grid-template-columns:minmax(0,1fr)}#listaReparti{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.categoria-card-visuale{min-height:140px;padding:10px}.table-area,.widget{padding:13px!important}#selettorePuntoVendita{min-width:0!important;max-width:100%}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+/* CORREZIONE 3D REALE — Stile A, profondità media
+   Crea una faccia superiore e una laterale visibili sui pannelli categoria. */
+.dashboard-category-area > .table-area,
+.dashboard-category-area .table-area {
+  overflow: visible !important;
+}
+#listaReparti {
+  perspective: 1200px !important;
+  transform-style: preserve-3d !important;
+  gap: 30px 25px !important;
+  padding: 16px 18px 26px 10px !important;
+  overflow: visible !important;
+}
+#listaReparti > .categoria-card-visuale {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: visible !important;
+  z-index: 0;
+  margin: 9px 11px 12px 2px !important;
+  min-height: 190px !important;
+  border: 1px solid #587455 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(145deg, #253327 0%, #17221a 58%, #101711 100%) !important;
+  box-shadow: 0 1px 0 #71916b, 0 8px 0 #0b100c, 0 16px 22px #0008, inset 1px 1px 0 #ffffff18 !important;
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) !important;
+  transform-style: preserve-3d !important;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+}
+/* Faccia superiore del cubo */
+#listaReparti > .categoria-card-visuale::before {
+  content: "" !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  top: -12px !important;
+  left: 8px !important;
+  right: -1px !important;
+  height: 12px !important;
+  border: 1px solid #587455 !important;
+  border-bottom: 0 !important;
+  border-radius: 4px 4px 0 0 !important;
+  background: linear-gradient(90deg, #405a41 0%, #263b29 62%, #1b2a1d 100%) !important;
+  transform: skewX(-38deg) !important;
+  transform-origin: bottom left !important;
+  z-index: -1 !important;
+}
+/* Faccia laterale destra: rende visibile la profondità */
+#listaReparti > .categoria-card-visuale::after {
+  content: "" !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  top: 6px !important;
+  right: -13px !important;
+  bottom: 10px !important;
+  width: 12px !important;
+  border-top: 1px solid #587455 !important;
+  border-right: 1px solid #587455 !important;
+  border-bottom: 1px solid #0a100b !important;
+  background: linear-gradient(180deg, #293d2b 0%, #17251a 55%, #0e160f 100%) !important;
+  transform: skewY(-40deg) !important;
+  transform-origin: left top !important;
+  z-index: -1 !important;
+}
+#listaReparti > .categoria-card-visuale:hover {
+  z-index: 2 !important;
+  border-color: #a1cf78 !important;
+  transform: perspective(1000px) translateY(-4px) rotateX(3deg) rotateY(-3deg) !important;
+  box-shadow: 0 1px 0 #9ac779, 0 10px 0 #0b100c, 0 22px 28px #0009, inset 1px 1px 0 #ffffff20 !important;
+}
+#listaReparti > .categoria-card-visuale .categoria-immagine {
+  border: 2px solid #405841 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 5px 0 #0c120d, 0 9px 14px #0006, inset 0 0 0 1px #ffffff12 !important;
+}
+#listaReparti > .categoria-card-visuale .categoria-nome {
+  color: #f2f7ef !important;
+  text-shadow: 0 1px 0 #0008;
+}
+#listaReparti > .categoria-card-visuale strong {
+  color: #a5d978 !important;
+}
+#listaReparti > .categoria-card-visuale button {
+  color: #d2dfcf !important;
+}
+/* Anche le sei schede KPI hanno un bordo rialzato, ma restano più basse dei cubi categoria. */
+.cards .card {
+  border-color: #405641 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 0 #0a100b, 0 10px 16px #0005, inset 1px 1px 0 #ffffff12 !important;
+}
+@media (max-width: 680px) {
+  #listaReparti { gap: 24px 19px !important; padding: 13px 14px 22px 7px !important; }
+  #listaReparti > .categoria-card-visuale { margin: 8px 9px 10px 1px !important; min-height: 160px !important; }
+  #listaReparti > .categoria-card-visuale::before { top: -9px !important; height: 9px !important; }
+  #listaReparti > .categoria-card-visuale::after { right: -10px !important; width: 9px !important; }
+}
