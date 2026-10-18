@@ -1,1 +1,55 @@
 
+/* SCADENZE SMART GDO — dashboard principale */
+:root {
+  --dash-bg: #071018;
+  --dash-panel: #0d1822;
+  --dash-panel-2: #111f2b;
+  --dash-border: #243442;
+  --dash-text: #eef6fb;
+  --dash-muted: #8ea2b2;
+  --dash-cyan: #55d6ff;
+}
+
+body { background: radial-gradient(circle at 20% 0, #123044 0, var(--dash-bg) 38%, #050b10 100%); }
+.layout { min-width: 0; }
+main { min-width: 0; color: var(--dash-text); }
+.sidebar { background: rgba(7, 17, 27, .98); border-right: 1px solid var(--dash-border); }
+.sidebar .logo h1, .sidebar .logo span, .sidebar .logo small { color: var(--dash-text); }
+.sidebar nav a { color: var(--dash-muted); border-radius: 10px; transition: background .18s ease, color .18s ease; }
+.sidebar nav a:hover, .sidebar nav a.active { background: var(--dash-panel-2); color: var(--dash-text); }
+.topbar { background: rgba(7, 16, 24, .78); border: 1px solid var(--dash-border); border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(16px); }
+.search-box input, .topbar input { background: var(--dash-panel); color: var(--dash-text); border: 1px solid var(--dash-border); border-radius: 10px; }
+.profile-name strong { color: var(--dash-text); }
+.profile-name span { color: var(--dash-muted); }
+.cards { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
+.cards .card { min-width: 0; background: linear-gradient(180deg, #10202b, #0b151d); border: 1px solid var(--dash-border); border-radius: 15px; padding: 18px; box-shadow: none; cursor: pointer; transition: transform .16s ease, border-color .16s ease; }
+.cards .card:hover { transform: translateY(-2px); border-color: #426477; }
+.cards .card h2 { font-size: clamp(22px, 2vw, 30px); color: var(--dash-text); margin: 0 0 6px; }
+.cards .card p { color: var(--dash-muted); font-size: 12px; line-height: 1.4; }
+.cards .card.black, .cards .card.red, .cards .card.orange, .cards .card.yellow, .cards .card.green, .cards .card.blue { background: linear-gradient(180deg, #10202b, #0b151d); }
+.cards .card.red h2 { color: #ff6978; }
+.cards .card.orange h2 { color: #ffbd65; }
+.cards .card.yellow h2 { color: #ffe082; }
+.cards .card.green h2 { color: #55d99a; }
+.cards .card.blue h2 { color: var(--dash-cyan); }
+.table-area, .widget { background: linear-gradient(180deg, rgba(16,32,43,.97), rgba(11,21,29,.98)); color: var(--dash-text); border: 1px solid var(--dash-border); border-radius: 16px; padding: 18px; box-shadow: none; min-width: 0; }
+.table-area h2, .widget h3 { color: var(--dash-text); }
+.table-area p, .widget p, .widget label { color: var(--dash-muted); }
+.table-area table { border-collapse: collapse; }
+.table-area th { background: #101f2a; color: var(--dash-muted); font-weight: 600; }
+.table-area td, .table-area th { border-bottom: 1px solid var(--dash-border); padding: 11px 10px; }
+.table-area td { color: var(--dash-text); overflow-wrap: anywhere; }
+.table-area tr:hover td { background: rgba(85,214,255,.035); }
+.widget select, .widget input, .widget textarea, #selettorePuntoVendita { color: var(--dash-text); background: var(--dash-panel); border: 1px solid var(--dash-border) !important; border-radius: 10px; }
+.widget button, button.new-product, #importCSV, #exportCSV, #exportPDF { background: #173044; color: var(--dash-text); border: 1px solid #2b485b; border-radius: 10px; padding: 11px 14px; cursor: pointer; transition: background .16s ease, transform .16s ease; }
+.widget button:hover, button.new-product:hover, #importCSV:hover, #exportCSV:hover, #exportPDF:hover { background: #21445b; transform: translateY(-1px); }
+#listaReparti { align-items: stretch; }
+.categoria-card-visuale, #listaReparti > * { background: linear-gradient(180deg, #10202b, #0b151d); color: var(--dash-text); border: 1px solid var(--dash-border); border-radius: 15px; }
+.categoria-nome { color: var(--dash-text); }
+.categoria-card-visuale strong { color: var(--dash-muted); }
+#productTable button, #tabellaOfferte button { color: var(--dash-cyan); }
+#productModal .modal-box { background: #0d1822; color: var(--dash-text); border: 1px solid var(--dash-border); }
+#productModal .modal-box input, #productModal .modal-box select, #productModal .modal-box textarea { background: #071018; color: var(--dash-text); border: 1px solid var(--dash-border); }
+#saveProduct { background: #55d6ff; color: #071018; }
+#closeModal { background: #263746; color: var(--dash-text); }
+
