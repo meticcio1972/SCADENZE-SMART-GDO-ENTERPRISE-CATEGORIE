@@ -1,1 +1,185 @@
 
+/* SCADENZE SMART GDO — responsive layout */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.layout {
+  width: 100%;
+}
+
+main {
+  min-width: 0;
+}
+
+.table-area {
+  overflow-x: auto;
+}
+
+.table-area table {
+  min-width: 760px;
+}
+
+.dashboard-main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 18px;
+  align-items: start;
+}
+
+.dashboard-category-area,
+.dashboard-tools {
+  min-width: 0;
+}
+
+@media (max-width: 1250px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-main-layout {
+    grid-template-columns: minmax(0, 1fr) 290px;
+  }
+
+  main {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 950px) {
+  .layout {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  main {
+    padding: 16px;
+  }
+
+  .dashboard-main-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  #listaReparti {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .layout {
+    display: block;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .sidebar nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0;
+  }
+
+  .sidebar nav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .sidebar .logo {
+    padding-bottom: 8px;
+  }
+
+  main {
+    padding: 12px;
+  }
+
+  .topbar {
+    margin: 8px 0 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .user-area {
+    max-width: 100%;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .cards .card {
+    padding: 13px;
+  }
+
+  .dashboard-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #listaReparti {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .categoria-card-visuale {
+    min-height: 150px;
+    padding: 10px;
+  }
+
+  .categoria-immagine {
+    width: 84px;
+    height: 84px;
+  }
+
+  .table-area,
+  .widget {
+    padding: 13px;
+  }
+
+  #selettorePuntoVendita {
+    min-width: 0 !important;
+    max-width: 100%;
+  }
+
+  body > .layout > main > section[style*="Punto vendita"] {
+    align-items: flex-start !important;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 380px) {
+  #listaReparti {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .categoria-immagine {
+    width: 72px;
+    height: 72px;
+  }
+
+  .cards .card h2 {
+    font-size: 22px;
+  }
+}
+
