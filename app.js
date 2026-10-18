@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("ÃÂ¢ÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
+    console.log("ÃƒÂƒÃ‚Â¢ÃƒÂ‚Ã‚ÂœÃƒÂ‚Ã‚Â… Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -515,7 +515,7 @@ function renderIndicatoreAccumulo(movimento) {
     const colore = diff > 0 ? "#f59e0b" : (diff < 0 ? "#64748b" : "#22c55e");
 
     return `<div title="${escapeHtmlVendite(testoPressione)}. Media acquisti: ${acquisti.toFixed(1)} pz/settimana. Questo NON rappresenta la giacenza reale attuale." style="margin-top:4px;font-size:11px;color:${colore};font-weight:600;">` +
-        `↕ ${escapeHtmlVendite(testoDiff)}` +
+        `â†• ${escapeHtmlVendite(testoDiff)}` +
         `</div>`;
 }
 
@@ -595,11 +595,11 @@ function calcolaRischioRotazione(p, mediaSettimanale) {
 }
 
 function renderIndicatoreRischioRotazione(rischio) {
-    if (!rischio) return `<span style="color:#94a3b8;">—</span>`;
+    if (!rischio) return `<span style="color:#94a3b8;">â€”</span>`;
 
     const testo = rischio.livello === "OK"
-        ? `ROTazione OK · ${rischio.giorniCopertura} gg`
-        : `${rischio.livello} · ${rischio.percentualeRischio}%`;
+        ? `ROTazione OK Â· ${rischio.giorniCopertura} gg`
+        : `${rischio.livello} Â· ${rischio.percentualeRischio}%`;
 
     const dettaglio = rischio.livello === "OK"
         ? `Rotazione compatibile. Copertura stimata: ${rischio.giorniCopertura} giorni.`
@@ -876,7 +876,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto ÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂ¨ stato registrato nello storico.");
+        alert("Il prodotto ÃƒÂƒÃ‚ÂƒÃƒÂ‚Ã‚Â¨ stato salvato, ma non ÃƒÂƒÃ‚ÂƒÃƒÂ‚Ã‚Â¨ stato registrato nello storico.");
         return;
     }
 
@@ -1081,15 +1081,60 @@ function mettiInOfferta(id, filtro) {
         dataFine.value = formattaInputData(fine);
     }
 }
-function eliminaProdotto(index){
+async function eliminaProdotto(index) {
+    if (!confirm("Eliminare definitivamente questo prodotto?")) return;
 
-    if(confirm("Eliminare questo prodotto?")){
+    const prodotto = Prodotti.tutti()[index];
+    if (!prodotto || prodotto.id === undefined || prodotto.id === null) {
+        alert("Non riesco a identificare il prodotto da eliminare. Aggiorna la pagina e riprova.");
+        return;
+    }
 
-        Prodotti.tutti().splice(index,1);
+    const idEliminato = String(prodotto.id);
 
-        Storage.salva(Prodotti.lista);
-        renderTabella();
-        Dashboard.aggiorna();
+    try {
+        // La cancellazione deve avvenire nel database, non solo nella schermata.
+        const { error: erroreEliminazione } = await window.supabaseClient
+            .from("prodotti")
+            .delete()
+            .eq("id", prodotto.id);
+
+        if (erroreEliminazione) {
+            console.error("Errore eliminazione prodotto su Supabase:", erroreEliminazione);
+            alert("Non sono riuscito a eliminare il prodotto dal database: " + erroreEliminazione.message);
+            return;
+        }
+
+        // Rileggiamo tutti i prodotti dal database per verificare che la modifica sia stata salvata.
+        const { data: aggiornati, error: erroreRicarica } = await caricaTuttiProdotti();
+        if (erroreRicarica) {
+            console.error("Errore verifica dopo eliminazione:", erroreRicarica);
+            alert("La richiesta Ã¨ stata inviata, ma non riesco a verificare il risultato. Ricarica la pagina prima di riprovare.");
+            return;
+        }
+
+        const eliminatoDavvero = !aggiornati.some(p => String(p.id) === idEliminato);
+        Prodotti.carica(ricalcolaGiorni(aggiornati));
+
+        if (typeof Dashboard !== "undefined" && typeof Dashboard.aggiorna === "function") {
+            Dashboard.aggiorna();
+        }
+
+        if (filtroDashboardAttivo) {
+            renderTabellaFiltrata(filtroDashboardAttivo);
+        } else if (typeof renderTabella === "function") {
+            renderTabella();
+        }
+
+        if (!eliminatoDavvero) {
+            alert("Il database non ha rimosso il prodotto: Ã¨ ancora presente dopo la verifica. Potrebbero mancare i permessi di eliminazione in Supabase (policy RLS).");
+            return;
+        }
+
+        alert("Prodotto eliminato e modifica verificata nel database.");
+    } catch (errore) {
+        console.error("Errore imprevisto durante l'eliminazione:", errore);
+        alert("Errore imprevisto durante l'eliminazione. Il prodotto non Ã¨ stato rimosso dalla schermata.");
     }
 }
 const importCSVBtn = document.getElementById("importCSV");
@@ -1241,7 +1286,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¡ Importazione in corso...";
+    statoImportazione.textContent = "ÃƒÂƒÃ‚Â°ÃƒÂ‚Ã‚ÂŸÃƒÂ‚Ã‚ÂŸÃƒÂ‚Ã‚Â¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -1325,7 +1370,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¢ Completato";
+    statoImportazione.textContent = "ÃƒÂƒÃ‚Â°ÃƒÂ‚Ã‚ÂŸÃƒÂ‚Ã‚ÂŸÃƒÂ‚Ã‚Â¢ Completato";
 }
 
 if (ultimoImport) {
@@ -1420,30 +1465,53 @@ if (tornaDashboard) {
 // ======================================================
 
 async function eliminaListaReparto(reparto) {
-
     const conferma = confirm(
-        "Sei sicuro di voler eliminare tutta la lista del reparto " +
-        reparto +
-        "?"
+        "Sei sicuro di voler eliminare dal database tutta la lista del reparto " + reparto + "?"
     );
-
     if (!conferma) return;
 
-    const { error } = await window.supabaseClient
-        .from("prodotti")
-        .delete()
-        .eq("reparto", reparto);
+    try {
+        // Chiediamo a Supabase gli ID effettivamente eliminati: un esito senza errore
+        // ma con zero righe non deve essere mostrato come cancellazione riuscita.
+        const { data: eliminati, error } = await window.supabaseClient
+            .from("prodotti")
+            .delete()
+            .eq("reparto", reparto)
+            .select("id");
 
-    if (error) {
-        console.error("Errore eliminazione lista:", error);
-        alert("Errore durante l'eliminazione della lista.");
-        return;
+        if (error) {
+            console.error("Errore eliminazione lista:", error);
+            alert("Errore durante l'eliminazione della lista: " + error.message);
+            return;
+        }
+
+        if (!eliminati || eliminati.length === 0) {
+            const { data: presenti, error: erroreVerifica } = await window.supabaseClient
+                .from("prodotti")
+                .select("id")
+                .eq("reparto", reparto)
+                .limit(1);
+
+            if (erroreVerifica) {
+                console.error("Errore verifica lista:", erroreVerifica);
+                alert("Non posso verificare se la lista Ã¨ stata eliminata. Ricarica la pagina e controlla.");
+                return;
+            }
+
+            if (presenti && presenti.length > 0) {
+                alert("La lista non Ã¨ stata eliminata dal database. I prodotti sono ancora presenti: controlliamo i permessi di eliminazione in Supabase (policy RLS).");
+            } else {
+                alert("Non risultano prodotti salvati con il reparto esatto '" + reparto + "'. Non Ã¨ stata modificata alcuna riga.");
+            }
+            return;
+        }
+
+        alert("Lista " + reparto + " eliminata e verificata nel database (" + eliminati.length + " prodotti).");
+        location.reload();
+    } catch (errore) {
+        console.error("Errore imprevisto eliminazione lista:", errore);
+        alert("Errore imprevisto durante l'eliminazione della lista. Riprova e controlla i permessi Supabase.");
     }
-
-    alert("Lista " + reparto + " eliminata correttamente.");
-
-    // Ricarica la dashboard e aggiorna i conteggi
-    location.reload();
 }
 
 
