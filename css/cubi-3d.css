@@ -1,4 +1,4 @@
-/* SCADENZE SMART GDO â€” Stile A: cubi 3D eleganti, profonditÃ  media */
+/* SCADENZE SMART GDO — Stile A: cubi 3D eleganti, profondità media */
 :root{
   --cube-bg:#0b0f0e;--cube-panel:#151b18;--cube-panel-hi:#1c2520;
   --cube-line:#34443a;--cube-green:#8bd450;--cube-green-soft:#29442e;
@@ -64,98 +64,254 @@ main>section[style*="Liste indipendenti"]{background:linear-gradient(145deg,#1d2
 @media(max-width:950px){.dashboard-main-layout{grid-template-columns:minmax(0,1fr)}.dashboard-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#listaReparti{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:680px){.layout{display:block}.sidebar{position:relative;width:100%;height:auto}.sidebar nav{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.sidebar nav a{flex:0 0 auto;white-space:nowrap}.sidebar .logo{padding-bottom:8px}main{padding:12px}.topbar{margin:8px 0 14px;gap:10px;flex-wrap:wrap}.search-box{min-width:0;flex:1 1 100%}.search-box input{width:100%}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cards .card{padding:14px 12px}.dashboard-tools{grid-template-columns:minmax(0,1fr)}#listaReparti{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.categoria-card-visuale{min-height:140px;padding:10px}.table-area,.widget{padding:13px!important}#selettorePuntoVendita{min-width:0!important;max-width:100%}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
-/* CORREZIONE 3D REALE — Stile A, profondità media
-   Crea una faccia superiore e una laterale visibili sui pannelli categoria. */
-.dashboard-category-area > .table-area,
+
+/* ============================================================
+   CORREZIONE DEFINITIVA — CUBI 3D ALLINEATI, STILE A
+   - Le facce dei cubi sono dritte e uguali tra loro.
+   - Anche i sei KPI iniziali ricevono faccia superiore e laterale.
+   - La griglia si adatta alla larghezza dello schermo.
+   - Non modifica dati, click, login, importazioni o Supabase.
+
+   NOTA IMMAGINI: il CSS non può cancellare marchi già presenti
+   nelle fotografie. Le foto con loghi vanno sostituite nei file
+   assets/categorie/*.jpg con foto generiche senza marchi.
+   ============================================================ */
+
+/* KPI iniziali: sei cubi compatti e allineati */
+.cards {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  column-gap: 22px !important;
+  row-gap: 18px !important;
+  padding: 12px 15px 18px 0 !important;
+  margin: 20px 0 22px !important;
+  overflow: visible !important;
+  align-items: stretch !important;
+}
+.cards .card {
+  --kpi-accent: #8bd450;
+  --kpi-top: #314337;
+  --kpi-side: #17271c;
+  position: relative !important;
+  isolation: isolate !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  min-height: 94px !important;
+  margin: 9px 10px 11px 0 !important;
+  padding: 15px 9px !important;
+  overflow: visible !important;
+  border: 1px solid color-mix(in srgb, var(--kpi-accent) 45%, #334238) !important;
+  border-radius: 7px !important;
+  background: linear-gradient(145deg, #1f2922 0%, #121914 75%, #0d120f 100%) !important;
+  box-shadow: 0 2px 0 #080b09, 0 8px 13px #0006, inset 1px 1px 0 #ffffff12 !important;
+  transform: none !important;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
+}
+.cards .card::before {
+  content: "" !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  top: -11px !important;
+  left: 8px !important;
+  right: 1px !important;
+  height: 11px !important;
+  z-index: -1 !important;
+  border: 1px solid color-mix(in srgb, var(--kpi-accent) 52%, #405044) !important;
+  border-bottom: 0 !important;
+  border-radius: 4px 4px 0 0 !important;
+  background: linear-gradient(90deg, var(--kpi-top), #202d23 72%, #17221a) !important;
+  transform: skewX(-34deg) !important;
+  transform-origin: bottom left !important;
+  clip-path: none !important;
+}
+.cards .card::after {
+  content: "" !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  top: 5px !important;
+  right: -11px !important;
+  bottom: 8px !important;
+  width: 11px !important;
+  z-index: -1 !important;
+  border-top: 1px solid color-mix(in srgb, var(--kpi-accent) 55%, #405044) !important;
+  border-right: 1px solid color-mix(in srgb, var(--kpi-accent) 55%, #405044) !important;
+  border-bottom: 1px solid #080d09 !important;
+  background: linear-gradient(180deg, var(--kpi-side), #101812) !important;
+  transform: skewY(-37deg) !important;
+  transform-origin: left top !important;
+}
+.cards .card:hover {
+  transform: translateY(-2px) !important;
+  border-color: var(--kpi-accent) !important;
+  box-shadow: 0 3px 0 #080b09, 0 12px 17px #0007, inset 1px 1px 0 #ffffff16 !important;
+}
+.cards .card h2 { position: relative !important; z-index: 1 !important; }
+.cards .card p { position: relative !important; z-index: 1 !important; }
+#cardScaduti { --kpi-accent:#ff696e; --kpi-top:#4a3333; --kpi-side:#382020; }
+#cardEntro3 { --kpi-accent:#ff9854; --kpi-top:#49382a; --kpi-side:#382516; }
+#cardEntro7 { --kpi-accent:#f0c95a; --kpi-top:#48452a; --kpi-side:#342f15; }
+#cardEntro10 { --kpi-accent:#b3dc59; --kpi-top:#35472a; --kpi-side:#253417; }
+#cardEntro15 { --kpi-accent:#55d99a; --kpi-top:#294736; --kpi-side:#173323; }
+#cardTotale { --kpi-accent:#55d6ff; --kpi-top:#29444a; --kpi-side:#172d34; }
+
+/* Categorie: cubi frontali dritti, senza inclinare le schede */
+.dashboard-category-area,
 .dashboard-category-area .table-area {
+  min-width: 0 !important;
   overflow: visible !important;
 }
 #listaReparti {
-  perspective: 1200px !important;
-  transform-style: preserve-3d !important;
-  gap: 30px 25px !important;
-  padding: 16px 18px 26px 10px !important;
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 22px 18px !important;
+  padding: 15px 16px 24px 8px !important;
+  margin-top: 18px !important;
+  align-items: stretch !important;
   overflow: visible !important;
+  perspective: none !important;
+  transform: none !important;
 }
 #listaReparti > .categoria-card-visuale {
+  --cat-accent: #66b879;
   position: relative !important;
   isolation: isolate !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: 184px !important;
+  min-height: 184px !important;
+  margin: 10px 10px 11px 0 !important;
+  padding: 12px 9px 10px !important;
   overflow: visible !important;
-  z-index: 0;
-  margin: 9px 11px 12px 2px !important;
-  min-height: 190px !important;
-  border: 1px solid #587455 !important;
-  border-radius: 8px !important;
-  background: linear-gradient(145deg, #253327 0%, #17221a 58%, #101711 100%) !important;
-  box-shadow: 0 1px 0 #71916b, 0 8px 0 #0b100c, 0 16px 22px #0008, inset 1px 1px 0 #ffffff18 !important;
-  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) !important;
-  transform-style: preserve-3d !important;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+  border: 1px solid #47724f !important;
+  border-radius: 7px !important;
+  background: linear-gradient(145deg, #1e3023 0%, #112018 62%, #0b1510 100%) !important;
+  box-shadow: 0 2px 0 #71926c, 0 7px 0 #080d09, 0 12px 17px #0007, inset 1px 1px 0 #ffffff14 !important;
+  transform: none !important;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
 }
-/* Faccia superiore del cubo */
+/* Faccia superiore: identica per tutti i cubi */
 #listaReparti > .categoria-card-visuale::before {
   content: "" !important;
   position: absolute !important;
   pointer-events: none !important;
-  top: -12px !important;
+  top: -11px !important;
   left: 8px !important;
-  right: -1px !important;
-  height: 12px !important;
-  border: 1px solid #587455 !important;
+  right: 0 !important;
+  height: 11px !important;
+  z-index: -1 !important;
+  border: 1px solid #527d59 !important;
   border-bottom: 0 !important;
   border-radius: 4px 4px 0 0 !important;
-  background: linear-gradient(90deg, #405a41 0%, #263b29 62%, #1b2a1d 100%) !important;
-  transform: skewX(-38deg) !important;
+  background: linear-gradient(90deg, #426d49 0%, #294b31 65%, #1b3824 100%) !important;
+  transform: skewX(-34deg) !important;
   transform-origin: bottom left !important;
-  z-index: -1 !important;
 }
-/* Faccia laterale destra: rende visibile la profondità */
+/* Faccia destra: profondità media, senza ruotare la faccia frontale */
 #listaReparti > .categoria-card-visuale::after {
   content: "" !important;
   position: absolute !important;
   pointer-events: none !important;
-  top: 6px !important;
-  right: -13px !important;
-  bottom: 10px !important;
-  width: 12px !important;
-  border-top: 1px solid #587455 !important;
-  border-right: 1px solid #587455 !important;
-  border-bottom: 1px solid #0a100b !important;
-  background: linear-gradient(180deg, #293d2b 0%, #17251a 55%, #0e160f 100%) !important;
-  transform: skewY(-40deg) !important;
-  transform-origin: left top !important;
+  top: 5px !important;
+  right: -11px !important;
+  bottom: 8px !important;
+  width: 11px !important;
   z-index: -1 !important;
+  border-top: 1px solid #527d59 !important;
+  border-right: 1px solid #527d59 !important;
+  border-bottom: 1px solid #0a100c !important;
+  background: linear-gradient(180deg, #25452d 0%, #153320 65%, #0b1c12 100%) !important;
+  transform: skewY(-37deg) !important;
+  transform-origin: left top !important;
 }
 #listaReparti > .categoria-card-visuale:hover {
   z-index: 2 !important;
-  border-color: #a1cf78 !important;
-  transform: perspective(1000px) translateY(-4px) rotateX(3deg) rotateY(-3deg) !important;
-  box-shadow: 0 1px 0 #9ac779, 0 10px 0 #0b100c, 0 22px 28px #0009, inset 1px 1px 0 #ffffff20 !important;
+  transform: translateY(-3px) !important;
+  border-color: #a4d98c !important;
+  box-shadow: 0 2px 0 #8fbe7c, 0 8px 0 #080d09, 0 16px 22px #0008, inset 1px 1px 0 #ffffff1c !important;
 }
 #listaReparti > .categoria-card-visuale .categoria-immagine {
-  border: 2px solid #405841 !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: min(100%, 118px) !important;
+  height: 96px !important;
+  margin: 0 auto 7px !important;
+  overflow: hidden !important;
+  border: 2px solid #42684a !important;
   border-radius: 8px !important;
-  box-shadow: 0 5px 0 #0c120d, 0 9px 14px #0006, inset 0 0 0 1px #ffffff12 !important;
+  background: #e8ede8 !important;
+  box-shadow: 0 4px 0 #080d09, 0 7px 11px #0006 !important;
+}
+#listaReparti > .categoria-card-visuale .categoria-immagine img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
 }
 #listaReparti > .categoria-card-visuale .categoria-nome {
-  color: #f2f7ef !important;
-  text-shadow: 0 1px 0 #0008;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 30px !important;
+  margin: 0 !important;
+  color: #f1f6f1 !important;
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+  text-shadow: 0 1px 0 #0008 !important;
 }
 #listaReparti > .categoria-card-visuale strong {
-  color: #a5d978 !important;
+  margin-top: 2px !important;
+  color: #87d66c !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
 }
 #listaReparti > .categoria-card-visuale button {
-  color: #d2dfcf !important;
+  position: absolute !important;
+  right: 6px !important;
+  bottom: 5px !important;
+  align-self: auto !important;
+  margin: 0 !important;
+  padding: 2px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #a6bca9 !important;
 }
-/* Anche le sei schede KPI hanno un bordo rialzato, ma restano più basse dei cubi categoria. */
-.cards .card {
-  border-color: #405641 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 0 #0a100b, 0 10px 16px #0005, inset 1px 1px 0 #ffffff12 !important;
+
+/* Schermi più piccoli: mantiene l'allineamento e riduce le colonne */
+@media (max-width: 1500px) {
+  #listaReparti { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
 }
-@media (max-width: 680px) {
-  #listaReparti { gap: 24px 19px !important; padding: 13px 14px 22px 7px !important; }
-  #listaReparti > .categoria-card-visuale { margin: 8px 9px 10px 1px !important; min-height: 160px !important; }
-  #listaReparti > .categoria-card-visuale::before { top: -9px !important; height: 9px !important; }
-  #listaReparti > .categoria-card-visuale::after { right: -10px !important; width: 9px !important; }
+@media (max-width: 1220px) {
+  .cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  #listaReparti { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 21px 16px !important; }
+}
+@media (max-width: 900px) {
+  #listaReparti { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .dashboard-main-layout { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 620px) {
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 17px 14px !important; padding-right: 12px !important; }
+  .cards .card { min-height: 84px !important; padding: 13px 7px !important; }
+  .cards .card::before { top: -8px !important; height: 8px !important; }
+  .cards .card::after { right: -8px !important; width: 8px !important; }
+  #listaReparti { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 19px 13px !important; padding: 12px 12px 20px 5px !important; }
+  #listaReparti > .categoria-card-visuale { height: 164px !important; min-height: 164px !important; margin: 8px 8px 9px 0 !important; padding: 10px 7px 8px !important; }
+  #listaReparti > .categoria-card-visuale::before { top: -8px !important; height: 8px !important; }
+  #listaReparti > .categoria-card-visuale::after { right: -8px !important; width: 8px !important; }
+  #listaReparti > .categoria-card-visuale .categoria-immagine { height: 82px !important; width: min(100%, 105px) !important; }
+  #listaReparti > .categoria-card-visuale .categoria-nome { font-size: 12px !important; min-height: 28px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #listaReparti > .categoria-card-visuale,
+  .cards .card { transition: none !important; }
 }
