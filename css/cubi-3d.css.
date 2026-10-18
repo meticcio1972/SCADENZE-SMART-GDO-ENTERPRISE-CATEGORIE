@@ -1,0 +1,66 @@
+/* SCADENZE SMART GDO â€” Stile A: cubi 3D eleganti, profonditÃ  media */
+:root{
+  --cube-bg:#0b0f0e;--cube-panel:#151b18;--cube-panel-hi:#1c2520;
+  --cube-line:#34443a;--cube-green:#8bd450;--cube-green-soft:#29442e;
+  --cube-yellow:#f0c95a;--cube-text:#f1f5f1;--cube-muted:#a2afa5;
+}
+html{background:var(--cube-bg);-webkit-text-size-adjust:100%}
+body{background:radial-gradient(ellipse at 55% -10%,#233529 0%,#101713 38%,#090c0b 78%)!important;color:var(--cube-text)}
+.layout{min-width:0;gap:0}
+.sidebar{background:linear-gradient(145deg,#151b17,#0c100e)!important;border-right:1px solid #29362d;box-shadow:8px 0 28px #0003}
+.sidebar .logo{padding-bottom:24px}
+.sidebar .logo h1{color:#f4f7f3}
+.sidebar .logo span{color:var(--cube-green)}
+.sidebar .logo small{color:#819087}
+.sidebar nav{gap:5px}
+.sidebar nav a{color:#aab5ac;border:1px solid transparent;border-radius:10px;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.sidebar nav a:hover,.sidebar nav a.active{color:#f5f8f4;background:linear-gradient(135deg,#26352a,#17221b);border-color:#3b5941;box-shadow:inset 3px 0 var(--cube-green)}
+.sidebar nav a:hover{transform:translateX(2px)}
+main{min-width:0;color:var(--cube-text)}
+.topbar{background:#111713d9!important;border:1px solid #2c3930;border-radius:15px;box-shadow:0 8px 22px #0003;backdrop-filter:blur(14px)}
+.search-box input,.topbar input{background:#0c110e!important;color:var(--cube-text)!important;border:1px solid #35453a!important;border-radius:10px}
+.profile-name strong{color:var(--cube-text)}.profile-name span{color:var(--cube-muted)}
+/* Pannello punto vendita: sovrascrive lo stile chiaro inline senza toccare la logica */
+main>section[style*="Punto vendita"]{background:linear-gradient(145deg,#1c2620,#111713)!important;border:1px solid #3a4b3d!important;border-radius:14px!important;color:var(--cube-text)!important;box-shadow:0 7px 0 #080b09,0 12px 24px #0004!important;flex-wrap:wrap}
+main>section[style*="Punto vendita"] label{color:#dce6dd!important}
+#selettorePuntoVendita{background:#0c120e!important;color:#f4f7f3!important;border:1px solid #465a49!important;border-radius:9px!important;max-width:100%}
+#puntoVenditaAttivo{color:#b5c2b7!important}
+/* KPI come piccoli solidi rialzati */
+.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin:20px 0}
+.cards .card{position:relative;isolation:isolate;min-width:0;overflow:hidden;background:linear-gradient(145deg,#202a23 0%,#151c17 58%,#101511 100%)!important;border:1px solid #3b4c3e;border-radius:13px;padding:18px 16px;box-shadow:0 5px 0 #080b09,0 10px 18px #0004,inset 1px 1px #ffffff0c;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.cards .card:before{content:"";position:absolute;z-index:-1;top:0;right:0;width:42%;height:100%;background:linear-gradient(135deg,#ffffff0a,transparent 70%);clip-path:polygon(32% 0,100% 0,100% 100%,0 100%)}
+.cards .card:hover{transform:translateY(-3px);border-color:#66816a;box-shadow:0 8px 0 #080b09,0 16px 25px #0005,inset 1px 1px #ffffff12}
+.cards .card h2{font-size:clamp(22px,2vw,30px);font-weight:800;color:#f4f7f3;margin:0 0 7px;letter-spacing:-.03em}
+.cards .card p{color:#aab7ad;font-size:12px;line-height:1.4;margin:0}
+.cards .card.red h2{color:#ff8580}.cards .card.orange h2{color:#ffb86a}.cards .card.yellow h2{color:var(--cube-yellow)}.cards .card.green h2{color:var(--cube-green)}.cards .card.blue h2{color:#91c9e8}
+/* Contenitori principali */
+.table-area,.widget{min-width:0;color:var(--cube-text)!important;background:linear-gradient(145deg,#1b241e 0%,#121814 72%,#101511 100%)!important;border:1px solid #344438!important;border-radius:15px!important;padding:18px!important;box-shadow:0 5px 0 #080b09,0 12px 24px #0003,inset 1px 1px #ffffff08!important}
+.table-area h2,.widget h3{color:#f0f5f0!important}.table-area p,.widget p,.widget label{color:var(--cube-muted)!important}
+.table-header{gap:12px;flex-wrap:wrap}
+.table-area table{border-collapse:separate;border-spacing:0;width:100%}
+.table-area th{background:#202a23!important;color:#bdc9bf!important;font-weight:700}
+.table-area td,.table-area th{border-bottom:1px solid #2d3930!important;padding:11px 10px}
+.table-area td{color:#e5ece6!important;overflow-wrap:anywhere}
+.table-area tbody tr:hover td{background:#a4d77b0a!important}
+/* Griglia categoria: effetto cubo sobrio, non altera click o dati */
+#listaReparti{align-items:stretch;gap:13px!important}
+#listaReparti>* ,.categoria-card-visuale{min-width:0;background:linear-gradient(145deg,#222d25 0%,#172019 58%,#111712 100%)!important;color:var(--cube-text)!important;border:1px solid #405344!important;border-radius:13px!important;box-shadow:0 4px 0 #080b09,0 9px 16px #0004,inset 1px 1px #ffffff0c!important;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease!important}
+#listaReparti>*:hover,.categoria-card-visuale:hover{transform:translateY(-3px)!important;border-color:#7b9a75!important;box-shadow:0 7px 0 #080b09,0 14px 22px #0005,inset 1px 1px #ffffff12!important}
+.categoria-nome{color:#f1f6f1!important}.categoria-card-visuale strong{color:#aebbb0!important}
+/* Form e pulsanti */
+.widget select,.widget input,.widget textarea,#productModal input,#productModal select,#productModal textarea{background:#0c120e!important;color:#f1f5f1!important;border:1px solid #3b4b3e!important;border-radius:9px!important}
+.widget button,button.new-product,#importCSV,#exportCSV,#exportPDF{background:linear-gradient(145deg,#2b4430,#1b2d20)!important;color:#eff7ef!important;border:1px solid #4b6b4e!important;border-radius:9px!important;box-shadow:0 3px 0 #0a100b!important;transition:transform .16s ease,filter .16s ease!important}
+.widget button:hover,button.new-product:hover,#importCSV:hover,#exportCSV:hover,#exportPDF:hover{filter:brightness(1.12);transform:translateY(-2px)}
+#saveProduct{background:linear-gradient(145deg,#a5df68,#78b947)!important;color:#142014!important;border-color:#b4e784!important}
+#closeModal{background:#2a342d!important;color:#edf3ee!important}
+#productModal .modal-box{background:linear-gradient(145deg,#1c251f,#101511)!important;color:var(--cube-text)!important;border:1px solid #3a4c3d!important;border-radius:16px!important;box-shadow:0 18px 55px #0008!important}
+/* Avvisi e pannelli informativi */
+main>section[style*="Liste indipendenti"]{background:linear-gradient(145deg,#1d2b20,#131b15)!important;color:#dfe9df!important;border:1px solid #405a42!important;border-radius:13px!important;box-shadow:0 4px 0 #080b09,0 9px 18px #0003!important}
+/* Responsive */
+.dashboard-main-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:18px;align-items:start}
+.dashboard-category-area,.dashboard-tools{min-width:0}
+.table-area{overflow-x:auto}.table-area table{min-width:700px}
+@media(max-width:1250px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.dashboard-main-layout{grid-template-columns:minmax(0,1fr) 280px}}
+@media(max-width:950px){.dashboard-main-layout{grid-template-columns:minmax(0,1fr)}.dashboard-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#listaReparti{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:680px){.layout{display:block}.sidebar{position:relative;width:100%;height:auto}.sidebar nav{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.sidebar nav a{flex:0 0 auto;white-space:nowrap}.sidebar .logo{padding-bottom:8px}main{padding:12px}.topbar{margin:8px 0 14px;gap:10px;flex-wrap:wrap}.search-box{min-width:0;flex:1 1 100%}.search-box input{width:100%}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.cards .card{padding:14px 12px}.dashboard-tools{grid-template-columns:minmax(0,1fr)}#listaReparti{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.categoria-card-visuale{min-height:140px;padding:10px}.table-area,.widget{padding:13px!important}#selettorePuntoVendita{min-width:0!important;max-width:100%}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
