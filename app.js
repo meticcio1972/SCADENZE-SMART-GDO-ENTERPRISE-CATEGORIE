@@ -100,21 +100,30 @@ Prodotti.carica(ricalcolaGiorni(data));
 
 console.log("Prodotti caricati:", data.length);
 
-    // Precarica subito lo storico acquisti/vendite per tutte le referenze.
-    // Non aspettiamo l'apertura della sezione Prodotti: in questo modo
-    // il movimento storico e gia disponibile quando la tabella verra mostrata.
-    await caricaMovimentiStoriciPerLista(data);
-
-    // Disegna la tabella
+    // Mostra subito i dati principali: il caricamento dello storico non deve
+    // bloccare l'apertura della dashboard.
     renderTabella();
 
-    // Aggiorna i contatori dashboard
     if (typeof Dashboard !== "undefined" &&
-    document.getElementById("scaduti")) {
+        document.getElementById("scaduti")) {
+        Dashboard.aggiorna();
+    }
 
-    Dashboard.aggiorna();
-
-}
+    // Carica i movimenti storici in background. Sono utili per gli indicatori,
+    // ma non devono ritardare la prima visualizzazione delle liste.
+    caricaMovimentiStoriciPerLista(data)
+        .then(() => {
+            // Aggiorna la tabella solo quando i dati storici sono pronti.
+            // Se l'utente ha giÃ  aperto una sezione, il render usa lo stato corrente.
+            if (typeof renderTabella === "function") {
+                renderTabella(undefined, { skipIntelligence: true });
+            }
+            if (typeof Dashboard !== "undefined" &&
+                document.getElementById("scaduti")) {
+                Dashboard.aggiorna();
+            }
+        })
+        .catch(errore => console.error("Errore caricamento storico in background:", errore));
 
 }
 async function ricaricaProdotti() {
