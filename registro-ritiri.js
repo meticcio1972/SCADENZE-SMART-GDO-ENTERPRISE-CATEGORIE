@@ -17,6 +17,9 @@
     };
 
     let products = [];
+    let historyProducts = [];
+    let historyLoaded = false;
+    let loadingHistory = false;
     let records = [];
     let candidatesPage = 1;
     let registryTableAvailable = true;
@@ -105,7 +108,53 @@
         products = all.filter(p => p.codice != null && p.descrizione != null && p.scadenza);
         populateCategoryFilter();
         renderCandidates();
+        populateCategoryFilter();
+        renderCandidates();
         setMessage("rr-candidate-message", `${products.length.toLocaleString("it-IT")} referenze disponibili per l'analisi. Seleziona quelle da inserire nel registro.`);
+    }
+
+    async function loadHistoryCandidates() {
+        if (historyLoaded) {
+            renderCandidates();
+            setMessage("rr-candidate-message", `${historyProducts.length.toLocaleString("it-IT")} referenze nello Storico scadenze. Inserisci fornitore e quantità, quindi premi Registra per aggiungerle al registro.`);
+            return;
+        }
+        if (loadingHistory) return;
+        loadingHistory = true;
+        setMessage("rr-candidate-message", "Caricamento dello Storico scadenze…");
+        try {
+            const { data, error } = await client()
+                .from("storico_scadenze")
+                .select("*")
+                .order("created_at", { ascending: false });
+            if (error) throw error;
+            historyProducts = (data || []).filter(r => r.codice != null && r.descrizione != null).map((r, index) => ({
+                id: `storico-${r.id ?? `${r.codice}-${r.created_at ?? index}`}`,
+                codice: r.codice,
+                descrizione: r.descrizione,
+                reparto: r.reparto || "",
+                scadenza: r.scadenza || null,
+                giorni: r.giorni ?? null,
+                pezzi_offerta: Number(r.pezzi_offerta || 1),
+                _history: true,
+                _historyDate: r.created_at || null,
+                _historyState: r.stato || "",
+                _historyIntervento: r.intervento || ""
+            }));
+            historyLoaded = true;
+            populateCategoryFilter();
+            renderCandidates();
+            setMessage("rr-candidate-message", `${historyProducts.length.toLocaleString("it-IT")} referenze nello Storico scadenze. Inserisci fornitore e quantità, quindi premi Registra per aggiungerle al registro.`);
+        } catch (error) {
+            setMessage("rr-candidate-message", `Non riesco a caricare lo Storico scadenze: ${error.message || error}.`, true);
+            console.error("Errore caricamento storico scadenze per registro ritiri:", error);
+        } finally {
+            loadingHistory = false;
+        }
+    }
+
+    function activeCandidateSource() {
+        return $("rr-candidate-days")?.value === "history" ? historyProducts : products;
     }
 
     async function loadRegistry() {
@@ -146,7 +195,7 @@
         const select = $("rr-candidate-category");
         if (!select) return;
         const previous = select.value;
-        const categories = [...new Set(products.map(p => String(p.reparto || "").trim()).filter(Boolean))]
+        const categories = [...new Set([...products, ...historyProducts].map(p => String(p.reparto || "").trim()).filter(Boolean))]
             .sort((a, b) => a.localeCompare(b, "it"));
         select.innerHTML = '<option value="">Tutte le categorie</option>' +
             categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("");
@@ -168,14 +217,15 @@
         const q = normalized($("rr-candidate-search")?.value);
         const category = $("rr-candidate-category")?.value || "";
         const horizon = $("rr-candidate-days")?.value || "15";
-        // Opzione speciale del menu: la selezione apre l'archivio e non rappresenta una finestra temporale.
-        if (horizon === "registry" || horizon === "history") return [];
-        return products
+        const source = activeCandidateSource();
+        return source
             .map(p => ({ ...p, _days: calcDays(p.scadenza) }))
             .filter(p => {
                 if (category && String(p.reparto || "") !== category) return false;
                 const haystack = normalized(`${p.codice} ${p.descrizione} ${p.reparto}`);
                 if (q && !haystack.includes(q)) return false;
+                // In modalità Storico scadenze si mostrano gli eventi storici, non si applicano i filtri temporali.
+                if (horizon === "history") return true;
                 if (p._days === null) return horizon === "all";
                 if (horizon === "expired") return p._days < 0;
                 if (horizon === "all") return true;
@@ -183,7 +233,10 @@
                 if (horizon === "15") return p._days < 0 || p._days <= max;
                 return p._days >= 0 && p._days <= max;
             })
-            .sort((a, b) => (a._days ?? 99999) - (b._days ?? 99999));
+            .sort((a, b) => {
+                if (horizon === "history") return String(b._historyDate || "").localeCompare(String(a._historyDate || ""));
+                return (a._days ?? 99999) - (b._days ?? 99999);
+            });
     }
 
     function daysLabel(days) {
@@ -196,6 +249,7 @@
     function renderCandidates() {
         const tbody = $("rr-candidates");
         if (!tbody) return;
+        const horizon = $("rr-candidate-days")?.value || "15";
         const list = filteredCandidates();
         const pages = Math.max(1, Math.ceil(list.length / CANDIDATES_PER_PAGE));
         candidatesPage = Math.min(Math.max(1, candidatesPage), pages);
@@ -204,11 +258,7 @@
         const supplierDefaults = supplierDefaultsByCode();
 
         if (!pageRows.length) {
-            const registryView = $("rr-candidate-days")?.value === "registry";
-            const emptyMessage = registryView
-                ? 'Hai selezionato “Registro ritiri”. L’archivio delle registrazioni si trova qui sotto.'
-                : 'Nessuna referenza corrisponde ai filtri selezionati.';
-            tbody.innerHTML = `<tr><td class="rr-empty" colspan="8">${emptyMessage}</td></tr>`;
+            tbody.innerHTML = '<tr><td class="rr-empty" colspan="8">Nessuna referenza corrisponde ai filtri selezionati.</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(p => {
                 const id = String(p.id ?? `${p.codice}-${p.scadenza}`);
@@ -218,9 +268,9 @@
                     <td>${escapeHtml(p.descrizione)}</td>
                     <td>${escapeHtml(p.reparto || "—")}</td>
                     <td>${fmtDate(p.scadenza)}</td>
-                    <td>${escapeHtml(daysLabel(p._days))}</td>
+                    <td>${horizon === "history" ? escapeHtml(p._historyState || daysLabel(p._days)) : escapeHtml(daysLabel(p._days))}</td>
                     <td><input class="rr-edit" data-field="candidate-supplier" type="text" value="${escapeHtml(supplierDefault)}" placeholder="Nome fornitore" aria-label="Fornitore per ${escapeHtml(p.codice)}" required></td>
-                    <td><input class="rr-edit" data-field="candidate-quantity" type="number" min="1" step="1" value="1" aria-label="Quantità per ${escapeHtml(p.codice)}" required></td>
+                    <td><input class="rr-edit" data-field="candidate-quantity" type="number" min="1" step="1" value="${escapeHtml(Number(p.pezzi_offerta) > 0 ? Number(p.pezzi_offerta) : 1)}" aria-label="Quantità per ${escapeHtml(p.codice)}" required></td>
                     <td><button class="rr-btn small" type="button" data-register-product="${escapeHtml(id)}" ${registryTableAvailable ? "" : "disabled"}><i class="fa-solid fa-plus"></i> Registra</button></td>
                 </tr>`;
             }).join("");
@@ -297,7 +347,7 @@
             return;
         }
         const id = button.dataset.registerProduct;
-        const product = products.find(p => String(p.id ?? `${p.codice}-${p.scadenza}`) === id);
+        const product = activeCandidateSource().find(p => String(p.id ?? `${p.codice}-${p.scadenza}`) === id);
         const row = button.closest("tr");
         if (!product || !row) return;
         const supplier = row.querySelector('[data-field="candidate-supplier"]')?.value.trim() || "";
@@ -339,7 +389,9 @@
                 quantita: quantity,
                 stato: "DA_CONTROLLARE",
                 data_ritiro: null,
-                note: ""
+                note: product._history
+                    ? `Inserito dallo Storico scadenze${product._historyDate ? ` (evento ${new Date(product._historyDate).toLocaleDateString("it-IT")})` : ""}${product._historyIntervento ? ` — ${product._historyIntervento}` : ""}`
+                    : ""
             };
             const { data, error } = await client().from(TABLE_RITIRI).insert(payload).select("*").single();
             if (error) throw error;
@@ -476,29 +528,18 @@
     }
 
     function wireEvents() {
-        ["rr-candidate-search", "rr-candidate-category"].forEach(id => {
+        ["rr-candidate-search", "rr-candidate-category", "rr-candidate-days"].forEach(id => {
             $(id).addEventListener("input", () => { candidatesPage = 1; renderCandidates(); });
-            $(id).addEventListener("change", () => { candidatesPage = 1; renderCandidates(); });
-        });
-        $("rr-candidate-days").addEventListener("input", () => { candidatesPage = 1; renderCandidates(); });
-        $("rr-candidate-days").addEventListener("change", () => {
-            const selection = $("rr-candidate-days").value;
-            candidatesPage = 1;
-
-            // Le due opzioni di navigazione aprono le sezioni/pagine esistenti;
-            // non alterano il filtro delle scadenze né i dati Supabase.
-            if (selection === "history") {
-                window.location.href = "storico-scadenze.html";
-                return;
-            }
-            if (selection === "registry") {
-                renderCandidates();
-                $("rr-archive-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                return;
-            }
-
-            renderCandidates();
-            $("rr-candidates-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            $(id).addEventListener("change", () => {
+                candidatesPage = 1;
+                if (id === "rr-candidate-days" && $(id).value === "history") {
+                    $("rr-candidates-panel")?.querySelector("h2") && ($("rr-candidates-panel").querySelector("h2").innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Referenze dallo Storico scadenze');
+                    loadHistoryCandidates();
+                } else {
+                    if (id === "rr-candidate-days") $("rr-candidates-panel").querySelector("h2").innerHTML = '<i class="fa-solid fa-calendar-days"></i> Referenze prossime alla scadenza';
+                    renderCandidates();
+                }
+            });
         });
         ["rr-record-search", "rr-supplier-filter", "rr-status-filter"].forEach(id => {
             $(id).addEventListener("input", renderRegistry);
