@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08140f">
+<title>Registro ritiri — Scadenze Smart GDO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/topbar.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/table.css">
+<link rel="stylesheet" href="css/widgets.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/cubi-3d.css">
+<style>
+:root{--rr-bg:#08120e;--rr-panel:#101f18;--rr-panel2:#14271d;--rr-border:#2a4636;--rr-text:#edf7f0;--rr-muted:#a5b9ab;--rr-green:#6fd27b;--rr-yellow:#f5c85b;--rr-red:#ff7474}
+body{background:radial-gradient(circle at 20% 0,#183626 0,var(--rr-bg) 55%,#050a07 100%);color:var(--rr-text)}
+.rr-main{min-width:0;flex:1;padding:24px clamp(14px,2.8vw,34px) 50px}
+.rr-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.rr-head h1{font-size:clamp(25px,3vw,34px);margin:0 0 6px;color:var(--rr-text)}
+.rr-head p{margin:0;color:var(--rr-muted);max-width:800px;line-height:1.5}
+.rr-tools{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.rr-btn{border:1px solid #396348;background:linear-gradient(180deg,#24462f,#14271b);color:#f2fff3;border-radius:10px;padding:10px 13px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 3px 0 #061009;transition:transform .15s ease,filter .15s ease}
+.rr-btn:hover{transform:translateY(-1px);filter:brightness(1.08)}.rr-btn:disabled{opacity:.55;cursor:wait;transform:none}
+.rr-btn.secondary{background:#17261d;border-color:#35493a}.rr-btn.small{padding:7px 9px;font-size:12px}
+.rr-panel{background:linear-gradient(160deg,rgba(21,39,29,.98),rgba(8,19,13,.98));border:1px solid var(--rr-border);border-radius:16px;box-shadow:0 8px 22px #0003;padding:17px;margin:0 0 18px;min-width:0}
+.rr-panel h2{font-size:18px;margin:0 0 5px;color:var(--rr-text)}.rr-help{color:var(--rr-muted);font-size:12px;line-height:1.5;margin:0 0 14px}
+.rr-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.rr-kpi{padding:15px 17px;background:linear-gradient(145deg,#193223,#0c1710);border:1px solid #355640;border-radius:13px;box-shadow:0 5px 0 #050b07,0 10px 18px #0002;min-width:0}
+.rr-kpi span{display:block;font-size:12px;color:var(--rr-muted);margin-bottom:7px}.rr-kpi strong{font-size:27px;color:var(--rr-green)}.rr-kpi.warning strong{color:var(--rr-yellow)}.rr-kpi.done strong{color:#8fc8ff}
+.rr-filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.rr-filters input,.rr-filters select,.rr-edit{background:#07120c!important;color:var(--rr-text)!important;border:1px solid #34513d!important;border-radius:9px!important;padding:10px 11px!important;font:inherit;min-height:39px;min-width:145px;box-sizing:border-box}
+.rr-filters input{flex:1;min-width:210px}.rr-edit{width:100%;min-width:95px;padding:7px!important;font-size:12px}
+.rr-table-wrap{width:100%;overflow:auto;border:1px solid #2a4636;border-radius:11px}
+.rr-table{width:100%;border-collapse:collapse;min-width:1060px;background:transparent}
+.rr-table th,.rr-table td{padding:10px 11px;border-bottom:1px solid #263d2f;text-align:left;vertical-align:middle;font-size:12px;color:var(--rr-text)}
+.rr-table th{background:#102018;color:#a9c0b0;white-space:nowrap}.rr-table tr:hover td{background:#ffffff05}
+.rr-muted{color:var(--rr-muted)!important}.rr-status{font-size:11px;font-weight:800;padding:5px 8px;border-radius:999px;display:inline-block;white-space:nowrap}.rr-status.DA_CONTROLLARE{background:#413719;color:#ffe18d}.rr-status.DA_RITIRARE{background:#512b1c;color:#ffc19b}.rr-status.RITIRATO{background:#163e29;color:#9df4b1}
+.rr-msg{padding:11px 13px;border:1px solid #375842;border-radius:10px;background:#102219;color:#c7e9ce;font-size:13px;margin:10px 0;white-space:pre-wrap}.rr-msg.error{border-color:#743b3b;background:#2a1515;color:#ffb7b7}.rr-msg:empty{display:none}
+.rr-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;color:var(--rr-muted);font-size:12px}
+.rr-empty{text-align:center;padding:25px;color:var(--rr-muted)}
+.rr-badge{display:inline-block;border:1px solid #33513d;color:#bfecc8;border-radius:999px;padding:4px 8px;font-size:11px}
+@media(max-width:800px){.rr-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.rr-main{padding:14px 10px 32px}}
+@media(max-width:560px){.rr-kpis{grid-template-columns:1fr}.rr-filters input,.rr-filters select{width:100%;min-width:0}.rr-panel{padding:12px}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo"><h1>SCADENZE</h1><span>SMART GDO</span><small>ENTERPRISE</small></div>
+    <nav>
+      <a href="index.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+      <a href="storico-scadenze.html"><i class="fa-solid fa-clock-rotate-left"></i> Storico scadenze</a>
+      <a href="storico-vendite.html"><i class="fa-solid fa-chart-line"></i> Storico vendite</a>
+      <a href="offerte.html"><i class="fa-solid fa-tags"></i> Offerte</a>
+      <a href="registro-ritiri.html" class="active"><i class="fa-solid fa-clipboard-check"></i> Registro ritiri</a>
+      <a href="ai-gdo.html"><i class="fa-solid fa-brain"></i> AI GDO</a>
+      <a href="#" onclick="eseguiLogout();return false;"><i class="fa-solid fa-right-from-bracket"></i> Esci</a>
+    </nav>
+  </aside>
+
+  <main class="rr-main">
+    <header class="rr-head">
+      <div><h1><i class="fa-solid fa-clipboard-check"></i> Registro ritiri</h1><p>Un unico archivio per punto vendita e fornitore. Registra le referenze da controllare, quelle da ritirare e i ritiri già completati; esporta il risultato filtrato in Excel.</p></div>
+      <div class="rr-tools"><button id="rr-refresh" class="rr-btn secondary" type="button"><i class="fa-solid fa-rotate"></i> Aggiorna</button><button id="rr-export" class="rr-btn" type="button"><i class="fa-solid fa-file-excel"></i> Esporta Excel</button></div>
+    </header>
+
+    <div id="rr-global-message" class="rr-msg" role="status"></div>
+
+    <div class="rr-filters" style="margin-bottom:16px">
+      <label for="rr-store" class="rr-muted">Punto vendita</label>
+      <select id="rr-store" aria-label="Punto vendita"><option value="Casilina">Casilina</option><option value="Ciliegie">Ciliegie</option></select>
+      <span class="rr-badge">I ritiri sono separati per punto vendita</span>
+    </div>
+
+    <section class="rr-kpis" aria-label="Riepilogo registro ritiri">
+      <div class="rr-kpi warning"><span>Da controllare</span><strong id="rr-count-check">0</strong></div>
+      <div class="rr-kpi"><span>Da ritirare</span><strong id="rr-count-pickup">0</strong></div>
+      <div class="rr-kpi done"><span>Ritirati e archiviati</span><strong id="rr-count-done">0</strong></div>
+    </section>
+
+    <section class="rr-panel">
+      <h2><i class="fa-solid fa-calendar-days"></i> Referenze prossime alla scadenza</h2>
+      <p class="rr-help">Scegli una referenza, indica il fornitore e la quantità. L'aggiunta al registro non elimina il prodotto né lo segna automaticamente come ritirato.</p>
+      <div class="rr-filters">
+        <input id="rr-candidate-search" type="search" placeholder="Cerca codice, descrizione o reparto…" autocomplete="off">
+        <select id="rr-candidate-category" aria-label="Categoria"><option value="">Tutte le categorie</option></select>
+        <select id="rr-candidate-days" aria-label="Finestra scadenza">
+          <option value="15" selected>Entro 15 giorni + scaduti</option>
+          <option value="3">Entro 3 giorni</option>
+          <option value="7">Entro 7 giorni</option>
+          <option value="all">Tutte le scadenze</option>
+          <option value="expired">Solo scaduti</option>
+        </select>
+      </div>
+      <div id="rr-candidate-message" class="rr-msg" role="status"></div>
+      <div class="rr-table-wrap">
+        <table class="rr-table">
+          <thead><tr><th>Codice</th><th>Referenza</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Fornitore</th><th>Quantità</th><th>Azione</th></tr></thead>
+          <tbody id="rr-candidates"><tr><td class="rr-empty" colspan="8">Caricamento referenze…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="rr-pager"><span id="rr-candidate-page-label">Pagina 1</span><div class="rr-tools"><button id="rr-candidate-prev" class="rr-btn secondary small" type="button">Precedente</button><button id="rr-candidate-next" class="rr-btn secondary small" type="button">Successiva</button></div></div>
+    </section>
+
+    <section class="rr-panel">
+      <h2><i class="fa-solid fa-list-check"></i> Archivio ritiri</h2>
+      <p class="rr-help">Il filtro per fornitore si applica alla tabella e all'esportazione. Quando imposti lo stato su “Ritirato”, la data del ritiro viene registrata automaticamente.</p>
+      <div class="rr-filters">
+        <input id="rr-record-search" type="search" placeholder="Cerca nel registro…" autocomplete="off">
+        <select id="rr-supplier-filter" aria-label="Filtra fornitore"><option value="">Tutti i fornitori</option></select>
+        <select id="rr-status-filter" aria-label="Filtra stato"><option value="">Tutti gli stati</option><option value="DA_CONTROLLARE">Da controllare</option><option value="DA_RITIRARE">Da ritirare</option><option value="RITIRATO">Ritirato</option></select>
+      </div>
+      <div id="rr-record-message" class="rr-msg" role="status"></div>
+      <div class="rr-table-wrap">
+        <table class="rr-table">
+          <thead><tr><th>Inserito il</th><th>Codice</th><th>Referenza</th><th>Reparto</th><th>Scadenza</th><th>Fornitore</th><th>Quantità (pz)</th><th>Stato</th><th>Data ritiro</th><th>Note</th><th>Salva</th></tr></thead>
+          <tbody id="rr-records"><tr><td class="rr-empty" colspan="11">Caricamento registro…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="rr-pager"><span id="rr-record-count">0 registrazioni</span><span>Lo storico viene conservato in Supabase; cambiare filtro non cancella dati.</span></div>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="registro-ritiri.js"></script>
+</body>
+</html>
