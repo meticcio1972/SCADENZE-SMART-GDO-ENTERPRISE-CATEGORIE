@@ -55,7 +55,7 @@
     </div>
 
     <div style="background:#fff; padding:15px 25px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
-        <div style="font-size:14px; color:#666;">Pezzi totali</div>
+        <div style="font-size:14px; color:#666;">Pezzi in scadenza</div>
         <div id="totalePezzi" style="font-size:28px; font-weight:bold; color:#222;">0</div>
     </div>
 </div>
@@ -77,7 +77,8 @@
                     <th style="text-align:left; padding:12px;">Codice</th>
                     <th style="text-align:left; padding:12px;">Descrizione</th>
                     <th style="text-align:center; padding:12px;">Episodi</th>
-                    <th style="text-align:center; padding:12px;">Pezzi totali</th>
+                    <th style="text-align:center; padding:12px;">Pezzi in scadenza</th>
+                    <th style="text-align:center; padding:12px;">Pezzi scaduti</th>
                 </tr>
             </thead>
 
@@ -171,6 +172,7 @@
 "use strict";
 
 let storicoCompleto = [];
+let pezziScadutiPerCodice = {};
 
 
 async function caricaStorico() {
@@ -207,6 +209,21 @@ async function caricaStorico() {
 
    storicoCompleto = data || [];
 
+// Carica le quantità di pezzi scaduti salvate per codice.
+const { data: quantitaSalvate, error: erroreQuantita } = await window.supabaseClient
+    .from("storico_scadenze_quantita")
+    .select("codice, pezzi_scaduti");
+
+if (erroreQuantita) {
+    console.error("Errore caricamento pezzi scaduti:", erroreQuantita);
+    alert("Lo storico è stato caricato, ma non è stato possibile leggere i pezzi scaduti. Verifica di aver eseguito la query SQL fornita.");
+    pezziScadutiPerCodice = {};
+} else {
+    pezziScadutiPerCodice = Object.fromEntries(
+        (quantitaSalvate || []).map(r => [String(r.codice), Number(r.pezzi_scaduti || 0)])
+    );
+}
+
 // Aggiorna i riepiloghi
 document.getElementById("totaleEventi").textContent = storicoCompleto.length;
 
@@ -240,17 +257,71 @@ const tabellaRiepilogo = document.getElementById("riepilogoCodici");
 tabellaRiepilogo.innerHTML = Object.entries(riepilogo)
     .map(([codice, dati]) => `
         <tr>
-            <td>${codice}</td>
-            <td>${dati.descrizione}</td>
-            <td>${dati.episodi}</td>
-            <td><strong>${dati.pezzi}</strong></td>
+            <td>${escapeHtmlStorico(codice)}</td>
+            <td>${escapeHtmlStorico(dati.descrizione)}</td>
+            <td style="text-align:center;">${dati.episodi}</td>
+            <td style="text-align:center;"><strong>${dati.pezzi}</strong></td>
+            <td style="text-align:center; min-width:140px;">
+                <input type="number" min="0" step="1"
+                    class="pezzi-scaduti-input"
+                    data-codice="${escapeHtmlStorico(codice)}"
+                    value="${Number(pezziScadutiPerCodice[codice] || 0)}"
+                    aria-label="Pezzi scaduti per codice ${escapeHtmlStorico(codice)}"
+                    style="width:100px; padding:8px; border-radius:8px; border:1px solid #45634f; background:#07130d; color:#f2fff4;">
+                <button type="button" class="salva-pezzi-scaduti"
+                    data-codice="${escapeHtmlStorico(codice)}"
+                    style="padding:7px 9px; margin-left:4px;">Salva</button>
+                <div class="stato-pezzi-scaduti" data-stato-codice="${escapeHtmlStorico(codice)}" style="font-size:12px; margin-top:4px;"></div>
+            </td>
         </tr>
     `)
     .join("");
+
+// Collega i pulsanti di salvataggio delle quantità modificate.
+tabellaRiepilogo.querySelectorAll(".salva-pezzi-scaduti").forEach(pulsante => {
+    pulsante.addEventListener("click", () => salvaPezziScaduti(pulsante.dataset.codice));
+});
     
 mostraStorico(storicoCompleto);
 }
 
+
+function escapeHtmlStorico(valore) {
+    return String(valore ?? "").replace(/[&<>"']/g, carattere => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[carattere]);
+}
+
+async function salvaPezziScaduti(codice) {
+    const input = document.querySelector(`.pezzi-scaduti-input[data-codice="${CSS.escape(String(codice))}"]`);
+    const stato = document.querySelector(`[data-stato-codice="${CSS.escape(String(codice))}"]`);
+    if (!input || !stato) return;
+
+    const valore = Number(input.value);
+    if (!Number.isInteger(valore) || valore < 0) {
+        stato.textContent = "Inserisci un numero intero pari o superiore a zero.";
+        stato.style.color = "#ff8b8b";
+        return;
+    }
+
+    stato.textContent = "Salvataggio…";
+    stato.style.color = "#f4d36a";
+
+    const { error } = await window.supabaseClient
+        .from("storico_scadenze_quantita")
+        .upsert({ codice: String(codice), pezzi_scaduti: valore, updated_at: new Date().toISOString() }, { onConflict: "codice" });
+
+    if (error) {
+        console.error("Errore salvataggio pezzi scaduti:", error);
+        stato.textContent = "Errore: verifica la query SQL e i permessi Supabase.";
+        stato.style.color = "#ff8b8b";
+        return;
+    }
+
+    pezziScadutiPerCodice[String(codice)] = valore;
+    stato.textContent = "Salvato";
+    stato.style.color = "#83e69a";
+}
 
 function mostraStorico(lista) {
 
@@ -393,7 +464,8 @@ function esportaExcel() {
             "Codice": codice,
             "Descrizione": dati.descrizione,
             "Episodi": dati.episodi,
-            "Pezzi totali": dati.pezzi
+            "Pezzi in scadenza": dati.pezzi,
+            "Pezzi scaduti": Number(pezziScadutiPerCodice[codice] || 0)
         })
     );
 
@@ -433,6 +505,7 @@ function esportaExcel() {
         { wch: 12 },
         { wch: 35 },
         { wch: 12 },
+        { wch: 18 },
         { wch: 15 }
     ];
 
