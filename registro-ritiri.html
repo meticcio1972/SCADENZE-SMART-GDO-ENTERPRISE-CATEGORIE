@@ -86,7 +86,7 @@ body{background:radial-gradient(circle at 20% 0,#183626 0,var(--rr-bg) 55%,#050a
 
     <section class="rr-panel" id="rr-candidates-panel">
       <h2><i class="fa-solid fa-calendar-days"></i> Referenze prossime alla scadenza</h2>
-      <p class="rr-help">Scegli una referenza, indica il fornitore e la quantità. Se selezioni “Registro ritiri” nel menu, vai direttamente all’archivio. L’aggiunta non elimina il prodotto né lo segna automaticamente come ritirato.</p>
+      <p class="rr-help">Scegli una referenza, indica il fornitore e la quantità. Nel menu puoi aprire anche lo Storico scadenze oppure raggiungere l’Archivio ritiri. L’aggiunta non elimina il prodotto né lo segna automaticamente come ritirato.</p>
       <div class="rr-filters">
         <input id="rr-candidate-search" type="search" placeholder="Cerca codice, descrizione o reparto…" autocomplete="off">
         <select id="rr-candidate-category" aria-label="Categoria"><option value="">Tutte le categorie</option></select>
@@ -96,6 +96,7 @@ body{background:radial-gradient(circle at 20% 0,#183626 0,var(--rr-bg) 55%,#050a
           <option value="7">Entro 7 giorni</option>
           <option value="all">Tutte le scadenze</option>
           <option value="expired">Solo scaduti</option>
+          <option value="history">Storico scadenze</option>
           <option value="registry">Registro ritiri</option>
         </select>
       </div>
