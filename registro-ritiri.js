@@ -1,8 +1,8 @@
 "use strict";
 
 /*
- * Registro ritiri — Scadenze Smart GDO Enterprise
- * Nuovo modulo separato: non modifica la tabella prodotti né lo storico esistente.
+ * Registro ritiri â€” Scadenze Smart GDO Enterprise
+ * Nuovo modulo separato: non modifica la tabella prodotti nÃ© lo storico esistente.
  */
 
 (() => {
@@ -63,7 +63,7 @@
     }
 
     function fmtDate(value) {
-        if (!value) return "—";
+        if (!value) return "â€”";
         const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (!match) return escapeHtml(value);
         return `${match[3]}/${match[2]}/${match[1]}`;
@@ -109,7 +109,7 @@
     }
 
     async function loadRegistry() {
-        setMessage("rr-record-message", "Caricamento registro…");
+        setMessage("rr-record-message", "Caricamento registroâ€¦");
         try {
             const { data, error } = await client()
                 .from(TABLE_RITIRI)
@@ -133,7 +133,7 @@
             setMessage(
                 "rr-record-message",
                 missing
-                    ? "La tabella registro_ritiri non è ancora disponibile. In Supabase → SQL Editor esegui il file registro-ritiri.sql incluso nel pacchetto, poi premi Aggiorna."
+                    ? "La tabella registro_ritiri non Ã¨ ancora disponibile. In Supabase â†’ SQL Editor esegui il file registro-ritiri.sql incluso nel pacchetto, poi premi Aggiorna."
                     : `Errore caricamento registro: ${detail}`,
                 true
             );
@@ -155,7 +155,7 @@
 
     function supplierDefaultsByCode() {
         const mapping = new Map();
-        // records arriva ordinato dal più recente; conserviamo l'ultimo fornitore registrato per codice.
+        // records arriva ordinato dal piÃ¹ recente; conserviamo l'ultimo fornitore registrato per codice.
         for (const record of records) {
             const code = normalizedCode(record.codice);
             const supplier = String(record.fornitore || "").trim();
@@ -168,6 +168,8 @@
         const q = normalized($("rr-candidate-search")?.value);
         const category = $("rr-candidate-category")?.value || "";
         const horizon = $("rr-candidate-days")?.value || "15";
+        // Opzione speciale del menu: la selezione apre l'archivio e non rappresenta una finestra temporale.
+        if (horizon === "registry") return [];
         return products
             .map(p => ({ ...p, _days: calcDays(p.scadenza) }))
             .filter(p => {
@@ -185,7 +187,7 @@
     }
 
     function daysLabel(days) {
-        if (days === null) return "—";
+        if (days === null) return "â€”";
         if (days < 0) return `Scaduto da ${Math.abs(days)} gg`;
         if (days === 0) return "Scade oggi";
         return `${days} gg`;
@@ -202,7 +204,11 @@
         const supplierDefaults = supplierDefaultsByCode();
 
         if (!pageRows.length) {
-            tbody.innerHTML = '<tr><td class="rr-empty" colspan="8">Nessuna referenza corrisponde ai filtri selezionati.</td></tr>';
+            const registryView = $("rr-candidate-days")?.value === "registry";
+            const emptyMessage = registryView
+                ? 'Hai selezionato â€œRegistro ritiriâ€. Lâ€™archivio delle registrazioni si trova qui sotto.'
+                : 'Nessuna referenza corrisponde ai filtri selezionati.';
+            tbody.innerHTML = `<tr><td class="rr-empty" colspan="8">${emptyMessage}</td></tr>`;
         } else {
             tbody.innerHTML = pageRows.map(p => {
                 const id = String(p.id ?? `${p.codice}-${p.scadenza}`);
@@ -210,16 +216,16 @@
                 return `<tr data-candidate-row="${escapeHtml(id)}">
                     <td>${escapeHtml(p.codice)}</td>
                     <td>${escapeHtml(p.descrizione)}</td>
-                    <td>${escapeHtml(p.reparto || "—")}</td>
+                    <td>${escapeHtml(p.reparto || "â€”")}</td>
                     <td>${fmtDate(p.scadenza)}</td>
                     <td>${escapeHtml(daysLabel(p._days))}</td>
                     <td><input class="rr-edit" data-field="candidate-supplier" type="text" value="${escapeHtml(supplierDefault)}" placeholder="Nome fornitore" aria-label="Fornitore per ${escapeHtml(p.codice)}" required></td>
-                    <td><input class="rr-edit" data-field="candidate-quantity" type="number" min="1" step="1" value="1" aria-label="Quantità per ${escapeHtml(p.codice)}" required></td>
+                    <td><input class="rr-edit" data-field="candidate-quantity" type="number" min="1" step="1" value="1" aria-label="QuantitÃ  per ${escapeHtml(p.codice)}" required></td>
                     <td><button class="rr-btn small" type="button" data-register-product="${escapeHtml(id)}" ${registryTableAvailable ? "" : "disabled"}><i class="fa-solid fa-plus"></i> Registra</button></td>
                 </tr>`;
             }).join("");
         }
-        $("rr-candidate-page-label").textContent = `Pagina ${candidatesPage} di ${pages} · ${list.length.toLocaleString("it-IT")} referenze`;
+        $("rr-candidate-page-label").textContent = `Pagina ${candidatesPage} di ${pages} Â· ${list.length.toLocaleString("it-IT")} referenze`;
         $("rr-candidate-prev").disabled = candidatesPage <= 1;
         $("rr-candidate-next").disabled = candidatesPage >= pages;
     }
@@ -265,10 +271,10 @@
                     <td>${fmtDate(String(r.created_at || "").slice(0, 10))}</td>
                     <td>${escapeHtml(r.codice)}</td>
                     <td>${escapeHtml(r.descrizione)}</td>
-                    <td>${escapeHtml(r.reparto || "—")}</td>
+                    <td>${escapeHtml(r.reparto || "â€”")}</td>
                     <td>${fmtDate(r.data_scadenza)}</td>
                     <td><input class="rr-edit" data-field="fornitore" type="text" value="${escapeHtml(r.fornitore || "")}" aria-label="Fornitore" required></td>
-                    <td><input class="rr-edit" data-field="quantita" type="number" min="0" step="1" value="${escapeHtml(r.quantita ?? 1)}" aria-label="Quantità"></td>
+                    <td><input class="rr-edit" data-field="quantita" type="number" min="0" step="1" value="${escapeHtml(r.quantita ?? 1)}" aria-label="QuantitÃ "></td>
                     <td><select class="rr-edit" data-field="stato" aria-label="Stato">${statusOptions(r.stato)}</select><div style="margin-top:5px"><span class="rr-status ${escapeHtml(r.stato)}">${escapeHtml(STATUS_LABELS[r.stato] || r.stato)}</span></div></td>
                     <td>${fmtDate(r.data_ritiro)}</td>
                     <td><input class="rr-edit" data-field="note" type="text" value="${escapeHtml(r.note || "")}" placeholder="Note" aria-label="Note"></td>
@@ -287,7 +293,7 @@
 
     async function addProductToRegistry(button) {
         if (!registryTableAvailable) {
-            setMessage("rr-global-message", "Il registro non è ancora installato in Supabase. Esegui prima registro-ritiri.sql nell'SQL Editor di Supabase.", true);
+            setMessage("rr-global-message", "Il registro non Ã¨ ancora installato in Supabase. Esegui prima registro-ritiri.sql nell'SQL Editor di Supabase.", true);
             return;
         }
         const id = button.dataset.registerProduct;
@@ -302,7 +308,7 @@
             return;
         }
         if (!Number.isFinite(quantity) || quantity < 1) {
-            setMessage("rr-candidate-message", "La quantità deve essere almeno 1 pezzo.", true);
+            setMessage("rr-candidate-message", "La quantitÃ  deve essere almeno 1 pezzo.", true);
             row.querySelector('[data-field="candidate-quantity"]')?.focus();
             return;
         }
@@ -314,12 +320,12 @@
             r.stato !== "RITIRATO"
         );
         if (duplicate) {
-            setMessage("rr-candidate-message", `${product.codice} è già nel registro con stato “${STATUS_LABELS[duplicate.stato] || duplicate.stato}”. Apri l'archivio per aggiornare la registrazione invece di crearne un duplicato.`, true);
+            setMessage("rr-candidate-message", `${product.codice} Ã¨ giÃ  nel registro con stato â€œ${STATUS_LABELS[duplicate.stato] || duplicate.stato}â€. Apri l'archivio per aggiornare la registrazione invece di crearne un duplicato.`, true);
             return;
         }
 
         button.disabled = true;
-        button.textContent = "Salvataggio…";
+        button.textContent = "Salvataggioâ€¦";
         try {
             const payload = {
                 punto_vendita: currentStore(),
@@ -345,7 +351,7 @@
             setMessage("rr-candidate-message", "");
         } catch (error) {
             console.error("Errore registrazione ritiro:", error);
-            setMessage("rr-global-message", `Non è stato possibile salvare la registrazione: ${error.message || error}. Verifica che la tabella registro_ritiri sia stata creata e che le policy RLS siano attive.`, true);
+            setMessage("rr-global-message", `Non Ã¨ stato possibile salvare la registrazione: ${error.message || error}. Verifica che la tabella registro_ritiri sia stata creata e che le policy RLS siano attive.`, true);
         } finally {
             button.disabled = false;
             button.innerHTML = '<i class="fa-solid fa-plus"></i> Registra';
@@ -363,12 +369,12 @@
         const note = row.querySelector('[data-field="note"]')?.value.trim() || "";
 
         if (!supplier) {
-            setMessage("rr-record-message", `Il fornitore non può essere vuoto per la referenza ${old.codice}.`, true);
+            setMessage("rr-record-message", `Il fornitore non puÃ² essere vuoto per la referenza ${old.codice}.`, true);
             row.querySelector('[data-field="fornitore"]')?.focus();
             return;
         }
         if (!Number.isFinite(quantity) || quantity < 0) {
-            setMessage("rr-record-message", "La quantità deve essere zero o un numero positivo.", true);
+            setMessage("rr-record-message", "La quantitÃ  deve essere zero o un numero positivo.", true);
             row.querySelector('[data-field="quantita"]')?.focus();
             return;
         }
@@ -389,7 +395,7 @@
             updated_at: new Date().toISOString()
         };
         button.disabled = true;
-        button.textContent = "Salvataggio…";
+        button.textContent = "Salvataggioâ€¦";
         try {
             const { data, error } = await client()
                 .from(TABLE_RITIRI)
@@ -413,7 +419,7 @@
     }
 
     function downloadCsv(rows, filename) {
-        const columns = ["Punto vendita", "Data inserimento", "Codice", "Referenza", "Reparto", "Fornitore", "Scadenza", "Giorni alla scadenza", "Quantità (pz)", "Stato", "Data ritiro", "Note"];
+        const columns = ["Punto vendita", "Data inserimento", "Codice", "Referenza", "Reparto", "Fornitore", "Scadenza", "Giorni alla scadenza", "QuantitÃ  (pz)", "Stato", "Data ritiro", "Note"];
         const values = rows.map(r => [
             r.punto_vendita, String(r.created_at || "").slice(0, 10), r.codice, r.descrizione,
             r.reparto, r.fornitore, r.data_scadenza, r.giorni_scadenza,
@@ -448,7 +454,7 @@
             "Fornitore": r.fornitore,
             "Scadenza": r.data_scadenza,
             "Giorni alla scadenza al momento del salvataggio": r.giorni_scadenza,
-            "Quantità (pz)": Number(r.quantita || 0),
+            "QuantitÃ  (pz)": Number(r.quantita || 0),
             "Stato": STATUS_LABELS[r.stato] || r.stato,
             "Data ritiro": r.data_ritiro,
             "Note": r.note || ""
@@ -464,15 +470,25 @@
             window.XLSX.writeFile(workbook, filename);
         } else {
             downloadCsv(rows, filename);
-            setMessage("rr-global-message", "Libreria XLSX non disponibile: è stato esportato un CSV compatibile con Excel.");
+            setMessage("rr-global-message", "Libreria XLSX non disponibile: Ã¨ stato esportato un CSV compatibile con Excel.");
         }
         setMessage("rr-record-message", `Esportate ${rows.length} registrazioni con i filtri attuali.`);
     }
 
     function wireEvents() {
-        ["rr-candidate-search", "rr-candidate-category", "rr-candidate-days"].forEach(id => {
+        ["rr-candidate-search", "rr-candidate-category"].forEach(id => {
             $(id).addEventListener("input", () => { candidatesPage = 1; renderCandidates(); });
             $(id).addEventListener("change", () => { candidatesPage = 1; renderCandidates(); });
+        });
+        $("rr-candidate-days").addEventListener("input", () => { candidatesPage = 1; renderCandidates(); });
+        $("rr-candidate-days").addEventListener("change", () => {
+            candidatesPage = 1;
+            renderCandidates();
+            if ($("rr-candidate-days").value === "registry") {
+                $("rr-archive-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+                $("rr-candidates-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
         });
         ["rr-record-search", "rr-supplier-filter", "rr-status-filter"].forEach(id => {
             $(id).addEventListener("input", renderRegistry);
@@ -491,7 +507,7 @@
         $("rr-export").addEventListener("click", exportFilteredRecords);
         $("rr-refresh").addEventListener("click", async () => {
             $("rr-refresh").disabled = true;
-            setMessage("rr-global-message", "Aggiornamento in corso…");
+            setMessage("rr-global-message", "Aggiornamento in corsoâ€¦");
             await Promise.allSettled([loadAllProducts(), loadRegistry()]);
             setMessage("rr-global-message", "Dati aggiornati.");
             $("rr-refresh").disabled = false;
@@ -507,7 +523,7 @@
 
     async function init() {
         if (!client()) {
-            setMessage("rr-global-message", "Supabase non è disponibile. Controlla il caricamento di supabase.js.", true);
+            setMessage("rr-global-message", "Supabase non Ã¨ disponibile. Controlla il caricamento di supabase.js.", true);
             return;
         }
         $("rr-store").value = getStoreDefault();
