@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisi perdite | Scadenze Smart GDO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#0b1120;--sidebar:#121a2b;--panel:#182235;--panel2:#202d43;--line:#2b3b53;--text:#f8fafc;--muted:#94a3b8;--green:#22c55e;--yellow:#facc15;--red:#ef4444;--blue:#60a5fa;--shadow:0 15px 40px rgba(0,0,0,.2)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}.layout{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--sidebar);border-right:1px solid #243044;padding:25px 16px;display:flex;flex-direction:column;gap:28px}.logo{text-align:center;padding:8px 0 20px;border-bottom:1px solid #26344a}.logo h1{font-size:22px;letter-spacing:2px;margin:0;font-weight:800}.logo span{display:block;color:var(--green);font-size:13px;letter-spacing:3px;margin-top:5px;font-weight:800}.logo small{display:block;color:var(--muted);font-size:9px;letter-spacing:4px;margin-top:5px}.sidebar nav{display:grid;gap:7px}.sidebar nav a{color:#bac6d6;text-decoration:none;padding:12px 13px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:10px;transition:.18s}.sidebar nav a:hover,.sidebar nav a.active{background:#1c2a40;color:#fff}.sidebar nav a.active{box-shadow:inset 3px 0 var(--green);color:#86efac}.sidebar nav i{width:18px;text-align:center}main{padding:28px;min-width:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px}.eyebrow{color:var(--green);text-transform:uppercase;letter-spacing:1.6px;font-size:11px;font-weight:800}.page-title{font-size:clamp(24px,3vw,34px);margin:7px 0 5px;letter-spacing:-.8px}.subtitle{color:var(--muted);font-size:13px;line-height:1.6;margin:0}.user-pill{display:flex;align-items:center;gap:9px;background:#152137;border:1px solid var(--line);border-radius:999px;padding:9px 13px;color:#d7e2ef;font-size:12px;white-space:nowrap}.user-pill i{color:var(--green)}.panel{background:linear-gradient(145deg,rgba(27,41,63,.96),rgba(19,29,46,.96));border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:16px}.panel h2,.panel h3{margin:0;font-size:16px}.muted{color:var(--muted)}.small{font-size:12px;line-height:1.55}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab{border:1px solid var(--line);background:#121c2d;color:#c5d1e0;border-radius:10px;padding:10px 14px;font-weight:700;font-size:12px;cursor:pointer}.tab.active{background:#123523;border-color:#217c47;color:#86efac}.upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.upload-card{min-width:0;border:1px dashed #486078;background:rgba(12,20,34,.48);border-radius:15px;padding:20px;display:flex;gap:14px;align-items:flex-start;cursor:pointer;transition:.18s}.upload-card:hover{border-color:var(--green);background:rgba(34,197,94,.06)}.upload-card .upload-icon{width:46px;height:46px;flex:0 0 46px;border-radius:13px;display:grid;place-items:center;background:#173526;color:#86efac;font-size:19px}.upload-card.rupture .upload-icon{background:#3a2c18;color:#fcd34d}.upload-card h3{font-size:14px;margin:2px 0 7px}.upload-card p{font-size:12px;line-height:1.55;color:var(--muted);margin:0 0 12px}.file-cta{display:inline-flex;align-items:center;gap:7px;background:#1d6f40;color:white;border-radius:8px;padding:8px 11px;font-size:11px;font-weight:800}.rupture .file-cta{background:#8a5a12}.upload-card input[type=file]{display:none}.hint{border:1px solid #34435a;background:#111c2e;border-radius:10px;padding:12px 14px;color:#bac7d8;font-size:12px;line-height:1.6;margin-top:14px}.hint strong{color:#e2e8f0}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:20px}.metric{border:1px solid var(--line);border-radius:14px;padding:16px;background:linear-gradient(145deg,#17243a,#121b2c);min-width:0}.metric .label{font-size:11px;color:var(--muted);line-height:1.4}.metric .value{font-size:clamp(19px,2vw,26px);font-weight:800;letter-spacing:-.5px;margin-top:9px;overflow-wrap:anywhere}.metric .foot{font-size:10px;color:var(--muted);margin-top:5px}.green{color:#86efac}.yellow{color:#fcd34d}.red{color:#fca5a5}.filters{display:grid;grid-template-columns:minmax(180px,2fr) repeat(4,minmax(125px,1fr));gap:10px;margin-bottom:16px}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.field label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:800}.field input,.field select,.bulk-cause{width:100%;min-width:0;background:#0e1727;border:1px solid #35445b;border-radius:9px;color:#e7eef8;padding:10px 11px;font:inherit;font-size:12px;outline:none}.field input:focus,.field select:focus,.bulk-cause:focus{border-color:var(--green)}.btn{border:1px solid #38506c;background:#20304a;color:#e5edf7;border-radius:9px;padding:10px 13px;font-size:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn:hover{filter:brightness(1.12)}.btn.primary{background:#187341;border-color:#239452;color:white}.btn.secondary{background:#172235}.btn.warn{background:#64430f;border-color:#8b641c;color:#fde68a}.btn:disabled{opacity:.5;cursor:not-allowed}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:560px}table{border-collapse:collapse;width:100%;min-width:900px;font-size:12px}thead{position:sticky;top:0;z-index:2;background:#111b2c}th{text-align:left;color:#9fb1c8;font-size:10px;text-transform:uppercase;letter-spacing:.6px;padding:13px 12px;border-bottom:1px solid var(--line);white-space:nowrap}td{padding:12px;border-bottom:1px solid rgba(60,78,103,.48);color:#e5edf7;vertical-align:middle}tbody tr:hover{background:rgba(148,163,184,.045)}tbody tr:last-child td{border-bottom:0}.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.tag{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800;white-space:nowrap}.tag.known{background:#123d2b;color:#86efac}.tag.unknown{background:#382d17;color:#fde68a}.tag.breakage{background:#39201d;color:#fca5a5}.tag.neutral{background:#243248;color:#cbd5e1}.empty{text-align:center!important;padding:28px!important;color:var(--muted)!important}.status{display:none;border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin:13px 0;font-size:12px;line-height:1.5}.status.show{display:block}.status.success{background:#123323;border-color:#236b43;color:#bbf7d0}.status.error{background:#3a1d25;border-color:#83313f;color:#fecdd3}.status.info{background:#122b43;border-color:#2e5e87;color:#bfdbfe}.status.warn{background:#382d17;border-color:#806019;color:#fde68a}.preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.preview-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.preview-scroll{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:10px}.preview-scroll table{min-width:1050px}.preview-scroll thead{top:0}.preview-scroll select{background:#0e1727;border:1px solid #40536d;color:#fff;border-radius:7px;padding:7px;font:inherit;font-size:11px;max-width:180px}.error-list{margin:8px 0 0;padding-left:20px;color:#fecaca}.section-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}.bar-row{display:grid;grid-template-columns:minmax(100px,1fr) minmax(80px,2fr) auto;gap:10px;align-items:center;margin:13px 0}.bar-name{font-size:11px;color:#d5deea;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:8px;background:#0e1727;border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,#16a34a,#86efac);border-radius:99px}.bar-value{font-size:11px;color:#bbf7d0;font-weight:800;white-space:nowrap}.footer-note{color:#718198;font-size:10px;line-height:1.6;margin-top:14px}.hidden{display:none!important}.nowrap{white-space:nowrap}.spinner{display:inline-block;width:12px;height:12px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1100px){.layout{grid-template-columns:190px minmax(0,1fr)}main{padding:21px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:repeat(3,minmax(0,1fr))}.section-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{padding:14px;gap:14px}.logo{padding:5px 0 12px}.sidebar nav{display:flex;overflow:auto;gap:5px}.sidebar nav a{white-space:nowrap;padding:10px}.sidebar nav a i{display:none}.sidebar nav a.active{box-shadow:inset 0 -3px var(--green)}main{padding:16px}.topbar{align-items:flex-start}.user-pill{display:none}.upload-grid{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .search-field{grid-column:1/-1}.panel{padding:15px}.metrics{gap:8px}.metric{padding:12px}.metric .value{font-size:20px}.bar-row{grid-template-columns:minmax(72px,1fr) minmax(50px,1fr) auto;gap:7px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="logo"><h1>SCADENZE</h1><span>SMART GDO</span><small>ENTERPRISE</small></div>
+  <nav>
+    <a href="index.html"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
+    <a href="scadenze.html"><i class="fa-solid fa-calendar-days"></i>Scadenze</a>
+    <a href="storico-scadenze.html"><i class="fa-solid fa-clock-rotate-left"></i>Storico scadenze</a>
+    <a href="storico-vendite.html"><i class="fa-solid fa-chart-line"></i>Storico vendite</a>
+    <a href="registro-ritiri.html"><i class="fa-solid fa-box-open"></i>Registro ritiri</a>
+    <a href="offerte.html"><i class="fa-solid fa-tags"></i>Offerte</a>
+    <a class="active" href="analisi-perdite.html"><i class="fa-solid fa-chart-pie"></i>Analisi perdite</a>
+    <a href="ai-gdo.html"><i class="fa-solid fa-brain"></i>AI GDO</a>
+    <a href="#" onclick="if(window.eseguiLogout){eseguiLogout();} return false;"><i class="fa-solid fa-right-from-bracket"></i>Esci</a>
+  </nav>
+</aside>
+<main>
+  <header class="topbar">
+    <div><div class="eyebrow">Controllo economico del punto vendita</div><h1 class="page-title">Analisi perdite</h1><p class="subtitle">Importa i CSV, misura il costo delle perdite e incrocia le referenze con lo storico scadenze.</p></div>
+    <div class="user-pill"><i class="fa-solid fa-shield-halved"></i><span>Area riservata</span></div>
+  </header>
+
+  <section class="panel">
+    <div class="panel-head"><div><h2><i class="fa-solid fa-file-csv green"></i> Importazione CSV</h2><p class="subtitle" style="margin-top:7px">Ogni riga deve contenere codice, descrizione, pezzi, costo unitario e data della registrazione. Intestazioni facoltative.</p></div></div>
+    <div class="upload-grid">
+      <label class="upload-card" for="filePerdite">
+        <span class="upload-icon"><i class="fa-solid fa-file-circle-exclamation"></i></span>
+        <span><h3>Perdite conosciute / sconosciute</h3><p>Il tipo di causa si assegna nell'anteprima, anche riga per riga. In assenza di conferma, la causa viene impostata su “sconosciuta”.</p><span class="file-cta"><i class="fa-solid fa-upload"></i> Seleziona CSV perdite</span></span>
+        <input id="filePerdite" type="file" accept=".csv,text/csv">
+      </label>
+      <label class="upload-card rupture" for="fileRotture">
+        <span class="upload-icon"><i class="fa-solid fa-box-open"></i></span>
+        <span><h3>Rotture e danni accidentali</h3><p>Importazione separata per monitorare prodotti rotti, quantità e relativo costo nel punto vendita.</p><span class="file-cta"><i class="fa-solid fa-upload"></i> Seleziona CSV rotture</span></span>
+        <input id="fileRotture" type="file" accept=".csv,text/csv">
+      </label>
+    </div>
+    <div class="hint"><strong><i class="fa-solid fa-circle-info"></i> Calcolo economico:</strong> perdita totale = pezzi × costo unitario. La data nella quinta colonna è la data della singola registrazione. Sono supportati CSV separati da punto e virgola o virgola e date gg/mm/aaaa oppure aaaa-mm-gg.</div>
+    <div id="pageStatus" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="previewPanel" class="panel hidden">
+    <div class="preview-head"><div><h2>Controlla prima di importare</h2><p id="previewSummary" class="subtitle" style="margin-top:6px"></p></div><div class="preview-tools"><label class="small muted" for="bulkCause">Imposta causa su tutte le righe</label><select id="bulkCause" class="bulk-cause"><option value="perdita_sconosciuta">Perdita sconosciuta</option><option value="perdita_conosciuta">Perdita conosciuta</option></select></div></div>
+    <div id="previewIssues" class="status"></div>
+    <div class="preview-scroll"><table><thead><tr><th>Codice</th><th>Descrizione</th><th>Pezzi</th><th>Costo unitario</th><th>Costo totale</th><th>Data registrazione</th><th>Reparto trovato</th><th>Causa</th></tr></thead><tbody id="previewBody"></tbody></table></div>
+    <div style="display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:14px"><button id="cancelPreview" class="btn secondary"><i class="fa-solid fa-xmark"></i>Annulla</button><button id="importButton" class="btn primary"><i class="fa-solid fa-database"></i>Importa righe valide</button></div>
+    <p class="footer-note">Le righe con errori non vengono importate. Le righe identiche già registrate (stesso codice, descrizione, quantità, costo unitario, data e causa) vengono riconosciute come duplicati. Senza un identificativo dell'evento non è possibile distinguere due eventi realmente identici nello stesso giorno: controlla l'anteprima prima di confermare.</p>
+  </section>
+
+  <div class="metrics">
+    <div class="metric"><div class="label"><i class="fa-solid fa-circle-check green"></i> Perdite conosciute</div><div class="value green" id="kpiKnown">€ 0,00</div><div class="foot" id="kpiKnownCount">0 registrazioni</div></div>
+    <div class="metric"><div class="label"><i class="fa-solid fa-circle-question yellow"></i> Perdite sconosciute</div><div class="value yellow" id="kpiUnknown">€ 0,00</div><div class="foot" id="kpiUnknownCount">0 registrazioni</div></div>
+    <div class="metric"><div class="label"><i class="fa-solid fa-box-open red"></i> Rotture</div><div class="value red" id="kpiBreakage">€ 0,00</div><div class="foot" id="kpiBreakageCount">0 registrazioni</div></div>
+    <div class="metric"><div class="label"><i class="fa-solid fa-coins"></i> Totale perdite</div><div class="value" id="kpiTotal">€ 0,00</div><div class="foot" id="kpiTotalCount">0 registrazioni · 0 pezzi</div></div>
+  </div>
+
+  <div class="section-grid">
+    <section class="panel">
+      <div class="panel-head"><div><h2><i class="fa-solid fa-magnifying-glass-chart green"></i> Perdite e storico scadenze</h2><p class="subtitle" style="margin-top:6px">Le referenze sono abbinate tramite codice prodotto.</p></div><button id="refreshButton" class="btn secondary"><i class="fa-solid fa-rotate"></i>Aggiorna</button></div>
+      <div id="historyNotice" class="status"></div>
+      <div id="topProducts" class="small muted">Nessun dato da analizzare.</div>
+      <p class="footer-note">Il collegamento con lo storico indica ricorrenze della referenza, non prova da solo che una perdita sia stata causata dalla scadenza. Il sistema non attribuisce una causa automaticamente.</p>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2><i class="fa-solid fa-ranking-star yellow"></i> Reparti con più perdite</h2><p class="subtitle" style="margin-top:6px">Classifica in base al costo totale filtrato.</p></div></div>
+      <div id="topDepartments" class="small muted">Nessun reparto disponibile.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><div><h2>Registro importato</h2><p class="subtitle" style="margin-top:6px">Filtra per periodo, tipo, reparto o referenza ed esporta le righe visualizzate.</p></div><button id="exportButton" class="btn secondary"><i class="fa-solid fa-file-arrow-down"></i>Esporta CSV</button></div>
+    <div class="filters">
+      <div class="field search-field"><label for="searchText">Cerca prodotto</label><input id="searchText" type="search" placeholder="Codice o descrizione"></div>
+      <div class="field"><label for="filterType">Tipo registrazione</label><select id="filterType"><option value="tutti">Tutti</option><option value="perdita_conosciuta">Perdita conosciuta</option><option value="perdita_sconosciuta">Perdita sconosciuta</option><option value="rottura">Rottura</option></select></div>
+      <div class="field"><label for="filterDepartment">Reparto</label><select id="filterDepartment"><option value="tutti">Tutti i reparti</option></select></div>
+      <div class="field"><label for="dateFrom">Dal</label><input id="dateFrom" type="date"></div>
+      <div class="field"><label for="dateTo">Al</label><input id="dateTo" type="date"></div>
+    </div>
+    <div id="recordsStatus" class="status"></div>
+    <div class="table-wrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Codice</th><th>Descrizione</th><th>Reparto</th><th class="num">Pezzi</th><th class="num">Costo unitario</th><th class="num">Costo totale</th><th class="num">Eventi storico scadenze</th><th>File sorgente</th></tr></thead><tbody id="recordsBody"><tr><td colspan="10" class="empty">Caricamento dati...</td></tr></tbody></table></div>
+    <p id="recordsFooter" class="footer-note">I dati verranno mostrati qui dopo il caricamento da Supabase.</p>
+  </section>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+<script>
+'use strict';
+const TABLE_LOSSES = 'analisi_perdite';
+const PAGE_SIZE = 1000;
+const money = new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'});
+const integer = new Intl.NumberFormat('it-IT',{maximumFractionDigits:3});
+let allRecords = [];
+let historyByCode = new Map();
+let productByCode = new Map();
+let activePreview = null;
+let historyLoaded = false;
+const el = id => document.getElementById(id);
+
+function showStatus(targetId, message, type='info'){
+  const target=el(targetId); if(!target) return;
+  target.className='status show '+type; target.textContent=message;
+}
+function hideStatus(targetId){const target=el(targetId);if(target){target.className='status';target.textContent='';}}
+function esc(value){return String(value ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function normCode(value){return String(value??'').trim().replace(/\s+/g,'').toUpperCase();}
+function numText(value){return integer.format(Number(value)||0);}
+function parseNumber(value){
+  let s=String(value??'').trim().replace(/[€$£\s]/g,'').replace(/[^0-9,\.\-+]/g,'');
+  if(!s) return NaN;
+  const comma=s.lastIndexOf(','), dot=s.lastIndexOf('.');
+  if(comma>=0 && dot>=0){
+    if(comma>dot) s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+  } else if(comma>=0){
+    if((s.match(/,/g)||[]).length>1){const last=s.lastIndexOf(',');s=s.slice(0,last).replace(/,/g,'')+'.'+s.slice(last+1);}
+    else s=s.replace(',','.');
+  } else if(dot>=0 && (s.match(/\./g)||[]).length>1){const last=s.lastIndexOf('.');s=s.slice(0,last).replace(/\./g,'')+'.'+s.slice(last+1);}
+  const n=Number(s); return Number.isFinite(n)?n:NaN;
+}
+function parseDate(value){
+  const s=String(value??'').trim(); if(!s) return null;
+  let m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T].*)?$/);
+  let y,mo,d;
+  if(m){y=Number(m[1]);mo=Number(m[2]);d=Number(m[3]);}
+  else {m=s.match(/^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})$/);if(!m)return null;d=Number(m[1]);mo=Number(m[2]);y=Number(m[3]);}
+  const date=new Date(Date.UTC(y,mo-1,d));
+  if(date.getUTCFullYear()!==y||date.getUTCMonth()!==mo-1||date.getUTCDate()!==d)return null;
+  return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function csvRows(text, delimiter){
+  text=String(text||'').replace(/^\uFEFF/,''); const rows=[];let row=[],cell='',quoted=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(ch==='"'){
+      if(quoted && text[i+1]==='"'){cell+='"';i++;}
+      else quoted=!quoted;
+    } else if(ch===delimiter && !quoted){row.push(cell);cell='';}
+    else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>String(v).trim()!==''))rows.push(row);row=[];cell='';}
+    else cell+=ch;
+  }
+  row.push(cell);if(row.some(v=>String(v).trim()!==''))rows.push(row);
+  return rows;
+}
+function detectDelimiter(text){
+  const first=String(text||'').replace(/^\uFEFF/,'').split(/\r?\n/).find(s=>s.trim())||'';
+  let best=';',bestCount=-1;
+  for(const d of [';','\t',',','|']){let count=0,quoted=false;for(let i=0;i<first.length;i++){if(first[i]==='"'){if(quoted&&first[i+1]==='"'){i++;continue;}quoted=!quoted;}else if(first[i]===d&&!quoted)count++;}if(count>bestCount){best=d;bestCount=count;}}
+  return best;
+}
+function looksLikeHeader(row){const s=row.map(v=>String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')).join(' ');return /codice|descrizione|pezzi|quantita|costo|data/.test(s);}
+function stableFingerprint(values){return JSON.stringify([normCode(values.codice),String(values.descrizione||'').trim().toLocaleLowerCase('it-IT'),Number(values.pezzi).toFixed(3),Number(values.costo_unitario).toFixed(4),values.data_registrazione,values.tipo_registro]);}
+function asISODate(dateValue){if(!dateValue)return '-';const s=String(dateValue).slice(0,10);const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:s;}
+function getCode(row){return normCode(row?.codice ?? row?.codice_ean ?? row?.ean ?? row?.barcode ?? row?.codiceProdotto ?? row?.codice_prodotto ?? '');}
+function getDescription(row){return row?.descrizione ?? row?.description ?? row?.nome ?? '';}
+function getDepartment(row){return String(row?.reparto ?? row?.categoria ?? row?.category ?? '').trim();}
+function makeHistoryMap(rows){const map=new Map();for(const row of rows||[]){const code=getCode(row);if(!code)continue;const current=map.get(code)||{count:0,dates:[],description:getDescription(row),reparto:getDepartment(row)};current.count++;const date=String(row.created_at||row.data||row.scadenza||'').slice(0,10);if(date)current.dates.push(date);if(!current.reparto&&getDepartment(row))current.reparto=getDepartment(row);map.set(code,current);}for(const val of map.values()){val.dates.sort();val.lastDate=val.dates[val.dates.length-1]||'';}return map;}
+function enrichPreview(row){const p=productByCode.get(row.codice),h=historyByCode.get(row.codice);return {...row,reparto:(p?.reparto||h?.reparto||''),storico_eventi:h?.count||0};}
+async function fetchAll(table, orderColumn=null, ascending=false){
+  let result=[],from=0;
+  while(true){let q=window.supabaseClient.from(table).select('*');if(orderColumn)q=q.order(orderColumn,{ascending});const {data,error}=await q.range(from,from+PAGE_SIZE-1);if(error)throw error;const batch=data||[];result=result.concat(batch);if(batch.length<PAGE_SIZE)break;from+=PAGE_SIZE;if(from>100000)throw new Error('Troppe righe da caricare in una sola volta.');}
+  return result;
+}
+async function loadData(){
+  showStatus('recordsStatus','Caricamento dati da Supabase…','info');
+  el('recordsBody').innerHTML='<tr><td colspan="10" class="empty"><span class="spinner"></span> Caricamento…</td></tr>';
+  try{
+    if(!window.supabaseClient)throw new Error('Client Supabase non disponibile. Controlla supabase.js.');
+    const [records,products]=await Promise.all([fetchAll(TABLE_LOSSES,'data_registrazione',false),fetchAll('prodotti')]);
+    allRecords=records||[];productByCode=new Map();
+    for(const p of products||[]){const c=getCode(p);if(c)productByCode.set(c,{descrizione:getDescription(p),reparto:getDepartment(p)});}
+    try{const hist=await fetchAll('storico_scadenze','created_at',false);historyByCode=makeHistoryMap(hist);historyLoaded=true;hideStatus('historyNotice');}
+    catch(historyError){historyByCode=new Map();historyLoaded=false;showStatus('historyNotice','Le importazioni sono accessibili, ma non è stato possibile leggere lo storico scadenze: '+(historyError.message||'errore di accesso')+'. Verifica le policy di lettura della tabella storico_scadenze.','warn');}
+    const reps=new Set();for(const r of allRecords){const rep=String(r.reparto||'').trim();if(rep)reps.add(rep);}for(const v of productByCode.values())if(v.reparto)reps.add(v.reparto);for(const v of historyByCode.values())if(v.reparto)reps.add(v.reparto);
+    const prev=el('filterDepartment').value;el('filterDepartment').innerHTML='<option value="tutti">Tutti i reparti</option>'+[...reps].sort((a,b)=>a.localeCompare(b,'it')).map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');if([...reps].includes(prev))el('filterDepartment').value=prev;
+    hideStatus('recordsStatus');render();
+  }catch(error){console.error(error);allRecords=[];render();showStatus('recordsStatus','Impossibile caricare i dati: '+(error.message||error)+'. Verifica di aver eseguito lo script SQL in Supabase e di essere autenticato.','error');}
+}
+function getFilteredRecords(){const q=el('searchText').value.trim().toLocaleLowerCase('it-IT');const type=el('filterType').value,dep=el('filterDepartment').value,from=el('dateFrom').value,to=el('dateTo').value;return allRecords.filter(r=>{const date=String(r.data_registrazione||'').slice(0,10);if(type!=='tutti'&&r.tipo_registro!==type)return false;if(dep!=='tutti'&&String(r.reparto||'')!==dep)return false;if(from&&date<from)return false;if(to&&date>to)return false;if(q&&!(`${r.codice||''} ${r.descrizione||''}`.toLocaleLowerCase('it-IT').includes(q)))return false;return true;});}
+function render(){
+ const list=getFilteredRecords();const sum=(arr)=>arr.reduce((n,r)=>n+Number(r.costo_totale??(Number(r.pezzi||0)*Number(r.costo_unitario||0))),0);const count=(arr)=>arr.length;const pieces=(arr)=>arr.reduce((n,r)=>n+Number(r.pezzi||0),0);
+ const known=list.filter(r=>r.tipo_registro==='perdita_conosciuta'),unknown=list.filter(r=>r.tipo_registro==='perdita_sconosciuta'),breaks=list.filter(r=>r.tipo_registro==='rottura');
+ el('kpiKnown').textContent=money.format(sum(known));el('kpiKnownCount').textContent=`${count(known)} registrazioni`;el('kpiUnknown').textContent=money.format(sum(unknown));el('kpiUnknownCount').textContent=`${count(unknown)} registrazioni`;el('kpiBreakage').textContent=money.format(sum(breaks));el('kpiBreakageCount').textContent=`${count(breaks)} registrazioni`;el('kpiTotal').textContent=money.format(sum(list));el('kpiTotalCount').textContent=`${count(list)} registrazioni · ${numText(pieces(list))} pezzi`;
+ renderRecords(list);renderTopProducts(list);renderDepartments(list);
+ el('recordsFooter').textContent=`Visualizzate ${list.length} di ${allRecords.length} registrazioni. Gli importi sono calcolati su pezzi × costo unitario.`;
+}
+function typeLabel(type){if(type==='perdita_conosciuta')return '<span class="tag known">Perdita conosciuta</span>';if(type==='perdita_sconosciuta')return '<span class="tag unknown">Perdita sconosciuta</span>';return '<span class="tag breakage">Rottura</span>';}
+function renderRecords(list){const body=el('recordsBody');if(!list.length){body.innerHTML='<tr><td colspan="10" class="empty">Nessuna registrazione corrisponde ai filtri.</td></tr>';return;}body.innerHTML=list.slice().sort((a,b)=>String(b.data_registrazione).localeCompare(String(a.data_registrazione))).map(r=>{const code=getCode(r);const hist=historyByCode.get(code);const total=Number(r.costo_totale??Number(r.pezzi||0)*Number(r.costo_unitario||0));return `<tr><td class="nowrap">${esc(asISODate(r.data_registrazione))}</td><td>${typeLabel(r.tipo_registro)}</td><td class="nowrap">${esc(r.codice)}</td><td>${esc(r.descrizione)}</td><td>${esc(r.reparto||'—')}</td><td class="num">${esc(numText(r.pezzi))}</td><td class="num">${esc(money.format(Number(r.costo_unitario||0)))}</td><td class="num"><strong>${esc(money.format(total))}</strong></td><td class="num">${hist?`<span class="tag neutral">${hist.count}</span>`:'—'}</td><td>${esc(r.nome_file||'—')}</td></tr>`;}).join('');}
+function groupRecords(list,keyFn){const map=new Map();for(const r of list){const key=keyFn(r)||'Reparto non identificato';const g=map.get(key)||{name:key,cost:0,rows:0,codes:new Set(),historyEvents:0,types:new Set()};g.cost+=Number(r.costo_totale??Number(r.pezzi||0)*Number(r.costo_unitario||0));g.rows++;g.codes.add(getCode(r));g.historyEvents=Math.max(g.historyEvents,historyByCode.get(getCode(r))?.count||0);g.types.add(r.tipo_registro);map.set(key,g);}return [...map.values()].sort((a,b)=>b.cost-a.cost);}
+function renderTopProducts(list){const top=groupRecords(list,r=>`${getCode(r)} — ${r.descrizione||''}`).slice(0,8);if(!top.length){el('topProducts').textContent='Nessun dato da analizzare.';return;}const max=Math.max(...top.map(x=>x.cost),0.01);el('topProducts').innerHTML=top.map(g=>{const code=(g.name.split(' — ')[0]||'').trim();const hist=historyByCode.get(code);const histText=hist?`${hist.count} eventi nello storico`: 'nessun abbinamento nello storico';return `<div style="margin:12px 0 16px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><span style="font-size:11px;color:#e5edf7;line-height:1.5">${esc(g.name)}</span><strong style="font-size:11px;color:#86efac;white-space:nowrap">${esc(money.format(g.cost))}</strong></div><div class="bar-track" style="margin:7px 0"><div class="bar-fill" style="width:${Math.max(2,g.cost/max*100)}%"></div></div><div style="font-size:10px;color:#94a3b8">${g.rows} registrazioni · ${esc(histText)}</div></div>`;}).join('');}
+function renderDepartments(list){const top=groupRecords(list,r=>r.reparto||productByCode.get(getCode(r))?.reparto||historyByCode.get(getCode(r))?.reparto||'Reparto non identificato').slice(0,8);if(!top.length){el('topDepartments').textContent='Nessun reparto disponibile.';return;}const max=Math.max(...top.map(x=>x.cost),0.01);el('topDepartments').innerHTML=top.map(g=>`<div class="bar-row"><div class="bar-name" title="${esc(g.name)}">${esc(g.name)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,g.cost/max*100)}%"></div></div><div class="bar-value">${esc(money.format(g.cost))}</div></div>`).join('');}
+function mapRow(row, index, tipoFile){const codice=String(row[0]??'').trim();const descrizione=String(row[1]??'').trim();const pezzi=parseNumber(row[2]);const costo=parseNumber(row[3]);const date=parseDate(row[4]);const errs=[];if(!codice)errs.push('codice mancante');if(!descrizione)errs.push('descrizione mancante');if(!Number.isFinite(pezzi)||pezzi<=0)errs.push('pezzi non validi');if(!Number.isFinite(costo)||costo<0)errs.push('costo unitario non valido');if(!date)errs.push('data non valida');let tipo=tipoFile==='rotture'?'rottura':'perdita_sconosciuta';const base={indice:index+1,codice,descrizione,pezzi,costo_unitario:costo,data_registrazione:date,tipo_registro:tipo,errori:errs};return enrichPreview(base);}
+function renderPreview(){const data=activePreview;if(!data)return;el('previewPanel').classList.remove('hidden');el('previewSummary').textContent=`File: ${data.file.name} · ${data.rows.length} righe valide · ${data.errors.length} righe con errori · ${data.tipoFile==='rotture'?'Tipo: rotture':'Tipo: perdite (causa assegnabile riga per riga)'}`;
+ const issue=el('previewIssues');if(data.errors.length){issue.className='status show warn';const examples=data.errors.slice(0,8).map(e=>`<li>Riga ${e.riga}: ${esc(e.motivo)}</li>`).join('');issue.innerHTML=`${data.errors.length} righe saranno escluse perché contengono dati non validi.${data.errors.length>8?' Sono mostrati i primi 8 errori.':''}<ul class="error-list">${examples}</ul>`;}else{issue.className='status';issue.textContent='';}
+ el('bulkCause').disabled=data.tipoFile==='rotture';el('bulkCause').value='perdita_sconosciuta';
+ el('previewBody').innerHTML=data.rows.map((r,i)=>{const cause=data.tipoFile==='rotture'?'<span class="tag breakage">Rottura</span>':`<select data-cause-index="${i}" aria-label="Causa riga ${r.indice}"><option value="perdita_sconosciuta" selected>Perdita sconosciuta</option><option value="perdita_conosciuta">Perdita conosciuta</option></select>`;return `<tr><td>${esc(r.codice)}</td><td>${esc(r.descrizione)}</td><td class="num">${esc(numText(r.pezzi))}</td><td class="num">${esc(money.format(r.costo_unitario))}</td><td class="num">${esc(money.format(r.pezzi*r.costo_unitario))}</td><td class="nowrap">${esc(asISODate(r.data_registrazione))}</td><td>${esc(r.reparto||'—')}</td><td>${cause}</td></tr>`;}).join('');
+ el('importButton').disabled=data.rows.length===0;el('previewPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function handleFile(file,tipoFile){if(!file)return;if(file.size>20*1024*1024){showStatus('pageStatus','Il file supera 20 MB. Dividilo in file più piccoli e riprova.','error');return;}if(!file.name.toLowerCase().endsWith('.csv')&&!file.type.includes('csv')){showStatus('pageStatus','Seleziona un file CSV.','error');return;}hideStatus('pageStatus');
+ try{const text=await file.text();const delim=detectDelimiter(text);let parsed=csvRows(text,delim);const hasHeader=parsed.length>0&&looksLikeHeader(parsed[0]);if(hasHeader)parsed=parsed.slice(1);if(parsed.length===0)throw new Error('Il file non contiene righe dati.');const valid=[],errors=[];for(let i=0;i<parsed.length;i++){const row=parsed[i];const sourceLine=i+1+(hasHeader?1:0);if(row.length<5){errors.push({riga:sourceLine,motivo:`attese 5 colonne, trovate ${row.length}`});continue;}const item=mapRow(row,i,tipoFile);if(item.errori.length){errors.push({riga:sourceLine,motivo:item.errori.join(', ')});continue;}valid.push(item);}if(valid.length===0)throw new Error('Nessuna riga valida. Controlla l’ordine delle cinque colonne: codice, descrizione, pezzi, costo unitario, data.');activePreview={file,tipoFile,rows:valid,errors,delimiter:delim};renderPreview();}catch(err){console.error(err);showStatus('pageStatus','Non riesco a leggere il CSV: '+(err.message||err),'error');}}
+async function fingerprintFor(row){return stableFingerprint(row);}
+async function importPreview(){if(!activePreview||!activePreview.rows.length)return;const button=el('importButton');button.disabled=true;button.innerHTML='<span class="spinner"></span> Importazione…';
+ try{
+  const data=activePreview;const fileType=data.tipoFile;const batchId=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const rowCause=new Map([...document.querySelectorAll('[data-cause-index]')].map(s=>[Number(s.dataset.causeIndex),s.value]));
+  const records=[];const localSeen=new Set();let internalDuplicates=0;
+  for(let i=0;i<data.rows.length;i++){const r={...data.rows[i]};if(fileType==='perdite')r.tipo_registro=rowCause.get(i)||'perdita_sconosciuta';else r.tipo_registro='rottura';const fingerprint=await fingerprintFor(r);if(localSeen.has(fingerprint)){internalDuplicates++;continue;}localSeen.add(fingerprint);records.push({fingerprint,tipo_registro:r.tipo_registro,codice:r.codice,descrizione:r.descrizione,pezzi:r.pezzi,costo_unitario:r.costo_unitario,data_registrazione:r.data_registrazione,reparto:r.reparto||null,nome_file:data.file.name,fonte_csv:fileType,batch_id:batchId});}
+  let already=0;const known=new Set();for(let i=0;i<records.length;i+=150){const chunk=records.slice(i,i+150);const fps=chunk.map(r=>r.fingerprint);const {data:existing,error}=await window.supabaseClient.from(TABLE_LOSSES).select('fingerprint').in('fingerprint',fps);if(error)throw error;for(const x of existing||[])known.add(x.fingerprint);}already=records.filter(r=>known.has(r.fingerprint)).length;const newRows=records.filter(r=>!known.has(r.fingerprint));
+  let inserted=0;for(let i=0;i<newRows.length;i+=150){const chunk=newRows.slice(i,i+150);const {data:result,error}=await window.supabaseClient.from(TABLE_LOSSES).upsert(chunk,{onConflict:'fingerprint',ignoreDuplicates:true}).select('id');if(error)throw error;inserted+=(result||[]).length;}
+  activePreview=null;el('previewPanel').classList.add('hidden');el('filePerdite').value='';el('fileRotture').value='';await loadData();showStatus('pageStatus',`Importazione completata: ${inserted} nuove registrazioni; ${already+internalDuplicates} duplicati ignorati; ${data.errors.length} righe non valide escluse.`,'success');
+ }catch(err){console.error(err);showStatus('previewIssues','Errore durante l’importazione: '+(err.message||err)+'. Se alcune righe sono già state salvate, aggiorna la pagina e verifica il registro prima di ripetere.','error');}
+ finally{button.disabled=false;button.innerHTML='<i class="fa-solid fa-database"></i>Importa righe valide';}
+}
+function csvEscape(value){const s=String(value??'');return /[",;\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function exportFiltered(){const list=getFilteredRecords();if(!list.length){showStatus('recordsStatus','Non ci sono righe da esportare con i filtri correnti.','warn');return;}const headers=['Data registrazione','Tipo','Codice','Descrizione','Reparto','Pezzi','Costo unitario','Costo totale','Eventi storico scadenze','File sorgente'];const rows=list.map(r=>[asISODate(r.data_registrazione),r.tipo_registro,r.codice,r.descrizione,r.reparto, r.pezzi,r.costo_unitario,Number(r.costo_totale??Number(r.pezzi||0)*Number(r.costo_unitario||0)).toFixed(2),historyByCode.get(getCode(r))?.count||0,r.nome_file]);const content='\uFEFF'+[headers,...rows].map(row=>row.map(csvEscape).join(';')).join('\r\n');const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`analisi-perdite-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+
+el('filePerdite').addEventListener('change',e=>handleFile(e.target.files?.[0],'perdite'));
+el('fileRotture').addEventListener('change',e=>handleFile(e.target.files?.[0],'rotture'));
+el('bulkCause').addEventListener('change',e=>document.querySelectorAll('[data-cause-index]').forEach(s=>s.value=e.target.value));
+el('cancelPreview').addEventListener('click',()=>{activePreview=null;el('previewPanel').classList.add('hidden');el('filePerdite').value='';el('fileRotture').value='';});
+el('importButton').addEventListener('click',importPreview);
+el('refreshButton').addEventListener('click',loadData);
+el('exportButton').addEventListener('click',exportFiltered);
+['searchText','filterType','filterDepartment','dateFrom','dateTo'].forEach(id=>el(id).addEventListener(id==='searchText'?'input':'change',render));
+document.addEventListener('DOMContentLoaded',()=>{if(!window.supabaseClient){showStatus('recordsStatus','Client Supabase non disponibile: controlla supabase.js.','error');return;}loadData();});
+</script>
+</body>
+</html>
