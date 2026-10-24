@@ -17,8 +17,8 @@ const CATEGORIE_GDO = [
     "Yogurt e Dessert",
     "Latte Fresco",
     "Latte UHT",
-    "CaffÃ¨",
-    "TÃ¨ e Infusi",
+    "CaffÃƒÂ¨",
+    "TÃƒÂ¨ e Infusi",
     "Biscotti",
     "Merendine",
     "Cioccolato",
@@ -105,7 +105,7 @@ const Dashboard = {
 
         // =====================================
         // PRODOTTI DA CONTROLLARE
-        // Se Ã¨ selezionato un reparto,
+        // Se ÃƒÂ¨ selezionato un reparto,
         // lavoriamo SOLO su quel reparto.
         // =====================================
 
@@ -224,8 +224,8 @@ const IMMAGINI_CATEGORIE_GDO = {
     'Yogurt e Dessert': "assets/categorie/v7-07-yogurt-e-dessert.jpg",
     'Latte Fresco': "assets/categorie/v7-08-latte-fresco.jpg",
     'Latte UHT': "assets/categorie/v7-09-latte-uht.jpg",
-    'CaffÃ¨': "assets/categorie/v7-10-caff.jpg",
-    'TÃ¨ e Infusi': "assets/categorie/v7-11-t-e-infusi.jpg",
+    'CaffÃƒÂ¨': "assets/categorie/v7-10-caff.jpg",
+    'TÃƒÂ¨ e Infusi': "assets/categorie/v7-11-t-e-infusi.jpg",
     'Biscotti': "assets/categorie/v7-12-biscotti.jpg",
     'Merendine': "assets/categorie/v7-13-merendine.jpg",
     'Cioccolato': "assets/categorie/v7-14-cioccolato.jpg",
@@ -316,7 +316,7 @@ function creaCategorieGDO() {
                     </div>
                     <div class="categoria-nome">${reparto}</div>
                     <strong id="${id}">0 referenze</strong>
-                    <button type="button" onclick='event.stopPropagation(); eliminaListaReparto(${JSON.stringify(reparto)})' title="Elimina lista">ðŸ—‘</button>
+                    <button type="button" onclick='event.stopPropagation(); eliminaListaReparto(${JSON.stringify(reparto)})' title="Elimina lista">Ã°Å¸â€”â€˜</button>
                 </div>
             `;
         }).join("");
@@ -351,6 +351,7 @@ if (document.readyState === "loading") {
 
 function selezionaReparto(reparto) {
     Dashboard.repartoSelezionato = reparto;
+    window.filtroDashboardEtichetta = "Categoria: " + reparto;
 
     console.log("REPARTO SELEZIONATO:", reparto);
 
@@ -482,9 +483,19 @@ function inserisciLegendaStatoLavorazione() {
 
 function renderTabellaDashboard(lista) {
 
+    // Conserva esattamente le referenze visualizzate, cosÃ¬ export e stampa
+    // rispettano il filtro attivo senza rileggere o modificare il database.
+    window.listaDashboardVisualizzata = Array.isArray(lista) ? lista.slice() : [];
+
     const tbody = document.getElementById("productTable");
 
     if (!tbody) return;
+
+    const sottotitoloFiltro = document.getElementById("filtroAttivoTitolo");
+    if (sottotitoloFiltro) {
+        const etichetta = window.filtroDashboardEtichetta || "Tutte le referenze";
+        sottotitoloFiltro.textContent = `${etichetta} Â· ${window.listaDashboardVisualizzata.length} referenze`;
+    }
 
     tbody.innerHTML = "";
 
@@ -515,7 +526,7 @@ function renderTabellaDashboard(lista) {
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
                 <td class="media-settimanale-dashboard" data-codice="${String(p.codice || "").replace(/\"/g, "&quot;")}">
-                    â€”
+                    Ã¢â‚¬â€
                 </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${Number(p.id)})" title="Modifica">
@@ -535,8 +546,8 @@ function renderTabellaDashboard(lista) {
 
 // =====================================
 // PANNELLO "COSA DEVO FARE OGGI" RIMOSSO
-// Manteniamo queste due funzioni come no-op perchÃ© sono richiamate
-// in altri punti del file; cosÃ¬ non interferiscono con categorie,
+// Manteniamo queste due funzioni come no-op perchÃƒÂ© sono richiamate
+// in altri punti del file; cosÃƒÂ¬ non interferiscono con categorie,
 // contatori, filtri, tabella prodotti o storico.
 // Non eseguono query e non modificano dati Supabase.
 // =====================================
@@ -556,6 +567,7 @@ async function aggiornaPannelloIntelligence() {
 
 function deselezionaReparto() {
     Dashboard.repartoSelezionato = null;
+    window.filtroDashboardEtichetta = "Tutte le referenze";
 
     console.log("NESSUN REPARTO SELEZIONATO");
 
@@ -571,6 +583,19 @@ function deselezionaReparto() {
 function filtraDashboard(tipo) {
 
     let lista = Prodotti.tutti();
+
+    const etichetteFiltro = {
+        scaduti: "Prodotti scaduti",
+        entro3: "Scadenze entro 3 giorni",
+        entro7: "Scadenze da 4 a 7 giorni",
+        entro10: "Scadenze da 8 a 10 giorni",
+        entro15: "Scadenze da 11 a 15 giorni",
+        totale: "Tutte le referenze"
+    };
+    window.filtroDashboardEtichetta = etichetteFiltro[tipo] || "Referenze filtrate";
+    if (Dashboard.repartoSelezionato) {
+        window.filtroDashboardEtichetta += " Â· " + Dashboard.repartoSelezionato;
+    }
 
     // Prima applichiamo il reparto
     if (Dashboard.repartoSelezionato) {
@@ -635,7 +660,7 @@ function filtraDashboard(tipo) {
 
         case "totale":
 
-            // GiÃ  filtrato per reparto, se selezionato.
+            // GiÃƒ  filtrato per reparto, se selezionato.
 
             break;
 
@@ -694,10 +719,10 @@ function apriScadenze(tipo) {
     // I contatori della Dashboard filtrano sempre la lista
     // direttamente nella Dashboard.
     //
-    // Se Ã¨ selezionato un reparto, filtra prima per reparto
+    // Se ÃƒÂ¨ selezionato un reparto, filtra prima per reparto
     // e poi per scadenza.
     //
-    // Se non Ã¨ selezionato un reparto, filtra tutta la lista.
+    // Se non ÃƒÂ¨ selezionato un reparto, filtra tutta la lista.
     filtraDashboard(tipo);
 
 }
@@ -729,4 +754,147 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     inserisciLegendaStatoLavorazione();
     inserisciPannelloIntelligence();
+});
+
+
+// =====================================
+// ESPORTAZIONE EXCEL E STAMPA ELENCO
+// Utilizza esclusivamente la lista attualmente visibile.
+// =====================================
+
+function normalizzaTestoExport(valore) {
+    return String(valore ?? "").replace(/\s+/g, " ").trim();
+}
+
+function datiListaDashboardPerExport() {
+    const lista = Array.isArray(window.listaDashboardVisualizzata)
+        ? window.listaDashboardVisualizzata
+        : [];
+
+    const mediePerCodice = new Map();
+    document.querySelectorAll("#productTable .media-settimanale-dashboard").forEach(cella => {
+        const codice = normalizzaCodicePerExport(cella.dataset.codice);
+        if (codice) mediePerCodice.set(codice, normalizzaTestoExport(cella.textContent));
+    });
+
+    return lista.map(p => {
+        const codice = normalizzaTestoExport(p.codice);
+        const scadenza = typeof formattaData === "function"
+            ? formattaData(p.scadenza)
+            : normalizzaTestoExport(p.scadenza);
+        return [
+            codice,
+            normalizzaTestoExport(p.descrizione),
+            normalizzaTestoExport(p.reparto),
+            normalizzaTestoExport(scadenza),
+            p.giorni ?? "",
+            mediePerCodice.get(normalizzaCodicePerExport(codice)) || "N/D"
+        ];
+    });
+}
+
+function normalizzaCodicePerExport(codice) {
+    return String(codice ?? "").trim().replace(/\s+/g, "").replace(/\.0$/, "");
+}
+
+function nomeFileListaDashboard(estensione) {
+    const data = new Date().toISOString().slice(0, 10);
+    const etichetta = (window.filtroDashboardEtichetta || "referenze")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+    return `scadenze-smart-${etichetta || "referenze"}-${data}.${estensione}`;
+}
+
+function esportaListaDashboardExcel() {
+    const lista = Array.isArray(window.listaDashboardVisualizzata)
+        ? window.listaDashboardVisualizzata
+        : [];
+
+    if (!lista.length) {
+        alert("Non ci sono referenze da esportare. Seleziona una scheda della dashboard o una categoria.");
+        return;
+    }
+
+    const intestazioni = ["Codice", "Descrizione", "Reparto", "Scadenza", "Giorni alla scadenza", "Vendite medie settimanali"];
+    const righe = datiListaDashboardPerExport();
+
+    // Produce un vero file .xlsx se la libreria Ã¨ disponibile.
+    if (window.XLSX && window.XLSX.utils) {
+        const foglio = window.XLSX.utils.aoa_to_sheet([intestazioni, ...righe]);
+        foglio["!cols"] = [
+            { wch: 18 }, { wch: 42 }, { wch: 25 },
+            { wch: 16 }, { wch: 20 }, { wch: 26 }
+        ];
+        foglio["!autofilter"] = { ref: `A1:F${righe.length + 1}` };
+        const libro = window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(libro, foglio, "Scadenze");
+        window.XLSX.writeFile(libro, nomeFileListaDashboard("xlsx"));
+        return;
+    }
+
+    // Piano di riserva: CSV UTF-8 compatibile con Excel.
+    const csv = [intestazioni, ...righe].map(riga =>
+        riga.map(valore => `"${String(valore ?? "").replace(/"/g, '""')}"`).join(";")
+    ).join("\r\n");
+    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomeFileListaDashboard("csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+}
+
+function stampaListaDashboard() {
+    const lista = Array.isArray(window.listaDashboardVisualizzata)
+        ? window.listaDashboardVisualizzata
+        : [];
+
+    if (!lista.length) {
+        alert("Non ci sono referenze da stampare. Seleziona una scheda della dashboard o una categoria.");
+        return;
+    }
+
+    const intestazioni = ["Codice", "Descrizione", "Reparto", "Scadenza", "Giorni", "Vendite medie settimanali"];
+    const righe = datiListaDashboardPerExport();
+    const escapeHtmlExport = valore => String(valore ?? "").replace(/[&<>"']/g, carattere => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[carattere]);
+    const titoloFiltro = escapeHtmlExport(window.filtroDashboardEtichetta || "Tutte le referenze");
+    const righeHtml = righe.map(riga => `<tr>${riga.map(cella => `<td>${escapeHtmlExport(cella)}</td>`).join("")}</tr>`).join("");
+    const intestazioniHtml = intestazioni.map(cella => `<th>${escapeHtmlExport(cella)}</th>`).join("");
+    const finestra = window.open("", "_blank");
+
+    if (!finestra) {
+        alert("Il browser ha bloccato la finestra di stampa. Consenti i popup per questo sito e riprova.");
+        return;
+    }
+
+    finestra.document.open();
+    finestra.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Lista scadenze</title>
+      <style>
+        @page{size:A4 portrait;margin:12mm;}
+        *{box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#111;margin:0;font-size:11px;}
+        h1{font-size:20px;margin:0 0 6px;}p{margin:0 0 14px;color:#444;font-size:12px;}
+        table{width:100%;border-collapse:collapse;table-layout:auto;}
+        th,td{border:1px solid #777;padding:6px;text-align:left;vertical-align:top;overflow-wrap:anywhere;}
+        th{background:#e9edf2!important;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+        tr{break-inside:avoid;page-break-inside:avoid;} th:nth-child(1),td:nth-child(1){width:15%;}
+        th:nth-child(3),td:nth-child(3){width:17%;}th:nth-child(4),td:nth-child(4){width:13%;}
+        th:nth-child(5),td:nth-child(5){width:8%;text-align:center;} .footer{margin-top:10px;color:#555;font-size:10px;}
+      </style></head><body><h1>Scadenze Smart GDO â€” Lista referenze</h1>
+      <p>${titoloFiltro} Â· ${righe.length} referenze Â· Stampato il ${new Date().toLocaleString("it-IT")}</p>
+      <table><thead><tr>${intestazioniHtml}</tr></thead><tbody>${righeHtml}</tbody></table>
+      <div class="footer">Elenco generato dalla dashboard Scadenze Smart GDO.</div>
+      <script>window.onload=function(){window.focus();window.print();};<\/script></body></html>`);
+    finestra.document.close();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const bottoneExcel = document.getElementById("exportListaExcel");
+    const bottoneStampa = document.getElementById("stampaListaProdotti");
+    if (bottoneExcel) bottoneExcel.addEventListener("click", esportaListaDashboardExcel);
+    if (bottoneStampa) bottoneStampa.addEventListener("click", stampaListaDashboard);
 });
