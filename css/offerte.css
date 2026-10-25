@@ -58,9 +58,10 @@
     width: 100%;
     min-width: 980px;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
     margin-top: 6px;
     color: #202938;
+    box-sizing: border-box;
 }
 #tabellaGestioneOfferte th {
     background: #2167bd;
@@ -79,14 +80,16 @@
 }
 #tabellaGestioneOfferte tbody tr:nth-child(even) td { background: #f7f9fc; }
 #tabellaGestioneOfferte tbody tr:hover td { background: #eef5ff; }
-#tabellaGestioneOfferte th:nth-child(1), #tabellaGestioneOfferte td:nth-child(1) { min-width: 95px; }
-#tabellaGestioneOfferte th:nth-child(2), #tabellaGestioneOfferte td:nth-child(2) { min-width: 240px; }
-#tabellaGestioneOfferte th:nth-child(3), #tabellaGestioneOfferte td:nth-child(3) { min-width: 120px; }
-#tabellaGestioneOfferte th:nth-child(4), #tabellaGestioneOfferte td:nth-child(4) { min-width: 80px; text-align: center; }
-#tabellaGestioneOfferte th:nth-child(5), #tabellaGestioneOfferte td:nth-child(5) { min-width: 145px; text-align: right; white-space: nowrap; }
-#tabellaGestioneOfferte th:nth-child(6), #tabellaGestioneOfferte td:nth-child(6),
-#tabellaGestioneOfferte th:nth-child(7), #tabellaGestioneOfferte td:nth-child(7) { min-width: 135px; white-space: nowrap; }
-#tabellaGestioneOfferte td.azioni { min-width: 100px; white-space: nowrap; text-align: center; }
+#tabellaGestioneOfferte th, #tabellaGestioneOfferte td { box-sizing: border-box; }
+#tabellaGestioneOfferte th:nth-child(1), #tabellaGestioneOfferte td:nth-child(1) { width: 9%; min-width: 88px; }
+#tabellaGestioneOfferte th:nth-child(2), #tabellaGestioneOfferte td:nth-child(2) { width: 23%; min-width: 190px; overflow-wrap: anywhere; }
+#tabellaGestioneOfferte th:nth-child(3), #tabellaGestioneOfferte td:nth-child(3) { width: 12%; min-width: 100px; }
+#tabellaGestioneOfferte th:nth-child(4), #tabellaGestioneOfferte td:nth-child(4) { width: 8%; min-width: 65px; text-align: center; }
+#tabellaGestioneOfferte th:nth-child(5), #tabellaGestioneOfferte td:nth-child(5) { width: 14%; min-width: 125px; text-align: right; white-space: nowrap; }
+#tabellaGestioneOfferte th:nth-child(6), #tabellaGestioneOfferte td:nth-child(6) { width: 12%; min-width: 115px; white-space: nowrap; }
+#tabellaGestioneOfferte th:nth-child(7), #tabellaGestioneOfferte td:nth-child(7) { width: 12%; min-width: 115px; white-space: nowrap; }
+#tabellaGestioneOfferte th:nth-child(8), #tabellaGestioneOfferte td:nth-child(8) { width: 10%; min-width: 100px; }
+#tabellaGestioneOfferte td.azioni { white-space: nowrap; text-align: center; }
 .azione-modifica, .azione-elimina {
     background: transparent !important;
     border: none !important;
@@ -169,6 +172,7 @@
     .container { width: 96%; padding: 14px; }
     .offerte-topbar { align-items: flex-start; flex-direction: column; }
     #productModal .modal-content { padding: 18px; }
+    #tabellaGestioneOfferte { min-width: 980px; }
 }
 @media print {
     body { background: #fff !important; color: #000 !important; }
