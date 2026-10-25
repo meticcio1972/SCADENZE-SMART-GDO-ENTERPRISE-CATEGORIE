@@ -104,6 +104,8 @@
             }
 
             if (!giaPresente || giaPresente.length === 0) {
+                const fineOfferta = p.data_fine_offerta || p.scadenza || oggiISO;
+                const giorniAllaFine = Math.floor((new Date(`${fineOfferta}T00:00:00`) - new Date(`${oggiISO}T00:00:00`)) / 86400000);
                 const { error: insertErrore } = await window.supabaseClient
                     .from("storico_scadenze")
                     .insert([{
@@ -111,8 +113,8 @@
                         codice: String(p.codice ?? ""),
                         descrizione: p.descrizione ?? "",
                         reparto: p.reparto ?? "",
-                        scadenza: p.scadenza || p.data_fine_offerta,
-                        giorni: Number(p.giorni || 0),
+                        scadenza: fineOfferta,
+                        giorni: Number.isFinite(giorniAllaFine) ? giorniAllaFine : -1,
                         stato: "offerta_scaduta",
                         intervento,
                         pezzi_offerta: Number(p.pezzi_offerta || 0)
