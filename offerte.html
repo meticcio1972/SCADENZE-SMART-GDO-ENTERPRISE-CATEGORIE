@@ -1,129 +1,83 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Offerte</title>
-
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/offerte.css">  
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="database.js"></script>
-<script src="offerte.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Offerte</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/offerte.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
-
 <body>
-<div class="topbar">
-
-    <button id="tornaDashboard"
-            onclick="window.location.href='index.html'">
-        <i class="fa-solid fa-arrow-left"></i> Dashboard
-    </button>
-
-    <h2>📢 Gestione Offerte</h2>
-
-</div>
-<div class="container">
-
-
-
-<div class="toolbar">
-
-<input
-id="ricercaOfferta"
-type="text"
-placeholder="Cerca prodotto...">
-
-<button id="nuovaOfferta">
-➕ Nuova Offerta
-</button>
-
-<button id="stampaOfferte">
-🖨️ Stampa
-</button>
-
-<button id="excelOfferte">
-📊 Excel
-</button>
-
-</div>
-
-<table class="table">
-
-<thead>
-
-<tr>
-
-<th>Codice</th>
-<th>Descrizione</th>
-<th>Reparto</th>
-<th>Pezzi</th>
-<th>Prezzo Offerta</th>
-<th>Data Inizio</th>
-<th>Data Fine</th>
-<th>Azioni</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tabellaOfferte">
-
-</tbody>
-
-</table>
-
-</div>
-  <div id="productModal" class="modal" style="display:none;">
-
-    <div class="modal-content">
-
-        <h2>Modifica Offerta</h2>
-
-        <input id="codice" type="text" placeholder="Codice" readonly>
-
-        <input id="descrizione" type="text" placeholder="Descrizione" readonly>
-
-        <select id="categoria" disabled>
-            <option>Latticini</option>
-            <option>Macelleria</option>
-            <option>Gastronomia</option>
-            <option>Ortofrutta</option>
-            <option>Drogheria</option>
-            <option>Altro</option>
-        </select>
-
-        <input id="prezzo" type="number" step="0.01" placeholder="Prezzo">
-
-        <label>
-            <input type="checkbox" id="offerta">
-            Offerta
-        </label>
-
-        <input id="pezzi_offerta" type="number" placeholder="Prezzo Offerta">
-        <input id="pezzi_offerta" type="number" placeholder="Pezzi">
-
-        <label for="data_inizio_offerta">Data inizio offerta</label>
-        <input id="data_inizio_offerta" type="date">
-
-        <label for="data_fine_offerta">Data fine offerta</label>
-        <input id="data_fine_offerta" type="date">
-        
-
-        <br><br>
-
-        <button id="saveOfferta">💾 Salva</button>
-
-        <button id="closeModal">❌ Chiudi</button>
-
+    <div class="topbar">
+        <button id="tornaDashboard" type="button" onclick="window.location.href='index.html'">
+            <i class="fa-solid fa-arrow-left"></i> Dashboard
+        </button>
+        <h2>📢 Gestione Offerte</h2>
     </div>
 
-</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
-<script src="database.js"></script>
-<script src="offerte.js"></script>
-</body>
+    <main class="container">
+        <div class="toolbar">
+            <input id="ricercaOfferta" type="search" placeholder="Cerca per codice, descrizione o reparto..." aria-label="Cerca offerte">
+            <button id="nuovaOfferta" type="button">➕ Nuova Offerta</button>
+            <button id="stampaOfferte" type="button">🖨️ Stampa</button>
+            <button id="excelOfferte" type="button">📊 Excel</button>
+        </div>
 
+        <div class="tabella-wrapper">
+            <table class="table" id="tabellaOfferteTable">
+                <thead>
+                    <tr>
+                        <th>Codice</th>
+                        <th>Descrizione</th>
+                        <th>Reparto</th>
+                        <th>Pezzi</th>
+                        <th>Prezzo</th>
+                        <th>Data Inizio</th>
+                        <th>Data Fine</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="tabellaOfferte">
+                    <tr><td colspan="8" class="nessuna-offerta">Caricamento offerte…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="productModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titoloModaleOfferta">
+        <div class="modal-content">
+            <h2 id="titoloModaleOfferta">Modifica Offerta</h2>
+            <label for="codice">Codice</label>
+            <input id="codice" type="text" placeholder="Codice" readonly>
+            <label for="descrizione">Descrizione</label>
+            <input id="descrizione" type="text" placeholder="Descrizione" readonly>
+            <label for="categoria">Reparto</label>
+            <input id="categoria" type="text" placeholder="Reparto" readonly>
+            <label for="prezzo">Prezzo</label>
+            <input id="prezzo" type="number" min="0" step="0.01" placeholder="Prezzo">
+            <label class="checkbox-offerta" for="offerta">
+                <input type="checkbox" id="offerta" checked>
+                Offerta attiva
+            </label>
+            <label for="pezzi_offerta">Pezzi in offerta</label>
+            <input id="pezzi_offerta" type="number" min="0" step="1" placeholder="Pezzi">
+            <label for="data_inizio_offerta">Data inizio offerta</label>
+            <input id="data_inizio_offerta" type="date">
+            <label for="data_fine_offerta">Data fine offerta</label>
+            <input id="data_fine_offerta" type="date">
+            <div class="modal-buttons">
+                <button id="saveOfferta" type="button">💾 Salva</button>
+                <button id="closeModal" type="button">❌ Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script caricati una sola volta e nell'ordine corretto -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script src="database.js"></script>
+    <script src="offerte.js"></script>
+</body>
 </html>
