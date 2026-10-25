@@ -17,8 +17,8 @@ const CATEGORIE_GDO = [
     "Yogurt e Dessert",
     "Latte Fresco",
     "Latte UHT",
-    "CaffÃ¨",
-    "TÃ¨ e Infusi",
+    "CaffÃƒÂ¨",
+    "TÃƒÂ¨ e Infusi",
     "Biscotti",
     "Merendine",
     "Cioccolato",
@@ -105,7 +105,7 @@ const Dashboard = {
 
         // =====================================
         // PRODOTTI DA CONTROLLARE
-        // Se Ã¨ selezionato un reparto,
+        // Se ÃƒÂ¨ selezionato un reparto,
         // lavoriamo SOLO su quel reparto.
         // =====================================
 
@@ -224,8 +224,8 @@ const IMMAGINI_CATEGORIE_GDO = {
     'Yogurt e Dessert': "assets/categorie/v7-07-yogurt-e-dessert.jpg",
     'Latte Fresco': "assets/categorie/v7-08-latte-fresco.jpg",
     'Latte UHT': "assets/categorie/v7-09-latte-uht.jpg",
-    'CaffÃ¨': "assets/categorie/v7-10-caff.jpg",
-    'TÃ¨ e Infusi': "assets/categorie/v7-11-t-e-infusi.jpg",
+    'CaffÃƒÂ¨': "assets/categorie/v7-10-caff.jpg",
+    'TÃƒÂ¨ e Infusi': "assets/categorie/v7-11-t-e-infusi.jpg",
     'Biscotti': "assets/categorie/v7-12-biscotti.jpg",
     'Merendine': "assets/categorie/v7-13-merendine.jpg",
     'Cioccolato': "assets/categorie/v7-14-cioccolato.jpg",
@@ -316,7 +316,7 @@ function creaCategorieGDO() {
                     </div>
                     <div class="categoria-nome">${reparto}</div>
                     <strong id="${id}">0 referenze</strong>
-                    <button type="button" onclick='event.stopPropagation(); eliminaListaReparto(${JSON.stringify(reparto)})' title="Elimina lista">ðŸ—‘</button>
+                    <button type="button" onclick='event.stopPropagation(); eliminaListaReparto(${JSON.stringify(reparto)})' title="Elimina lista">Ã°Å¸â€”â€˜</button>
                 </div>
             `;
         }).join("");
@@ -486,6 +486,10 @@ function renderTabellaDashboard(lista) {
 
     if (!tbody) return;
 
+    // Conserva la lista effettivamente mostrata (dopo i filtri di reparto/scadenza).
+    window.__scadenzeListaCorrente = Array.isArray(lista) ? [...lista] : [];
+    window.__scadenzeFiltroCorrente = window.__scadenzeFiltroCorrente || "";
+
     tbody.innerHTML = "";
 
     if (!lista || lista.length === 0) {
@@ -515,7 +519,7 @@ function renderTabellaDashboard(lista) {
                 <td>${typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza || "")}</td>
                 <td>${p.giorni ?? ""}</td>
                 <td class="media-settimanale-dashboard" data-codice="${String(p.codice || "").replace(/\"/g, "&quot;")}">
-                    â€”
+                    Ã¢â‚¬â€
                 </td>
                 <td>
                     <button class="btn-edit" onclick="modificaProdotto(${Number(p.id)})" title="Modifica">
@@ -535,8 +539,8 @@ function renderTabellaDashboard(lista) {
 
 // =====================================
 // PANNELLO "COSA DEVO FARE OGGI" RIMOSSO
-// Manteniamo queste due funzioni come no-op perchÃ© sono richiamate
-// in altri punti del file; cosÃ¬ non interferiscono con categorie,
+// Manteniamo queste due funzioni come no-op perchÃƒÂ© sono richiamate
+// in altri punti del file; cosÃƒÂ¬ non interferiscono con categorie,
 // contatori, filtri, tabella prodotti o storico.
 // Non eseguono query e non modificano dati Supabase.
 // =====================================
@@ -580,6 +584,9 @@ function filtraDashboard(tipo) {
         );
 
     }
+
+    // Mantieni il filtro selezionato per l'esportazione della lista visibile.
+    window.__scadenzeFiltroCorrente = tipo || "";
 
     // Poi applichiamo la scadenza
     switch (tipo) {
@@ -635,7 +642,7 @@ function filtraDashboard(tipo) {
 
         case "totale":
 
-            // GiÃ  filtrato per reparto, se selezionato.
+            // GiÃƒ  filtrato per reparto, se selezionato.
 
             break;
 
@@ -694,10 +701,10 @@ function apriScadenze(tipo) {
     // I contatori della Dashboard filtrano sempre la lista
     // direttamente nella Dashboard.
     //
-    // Se Ã¨ selezionato un reparto, filtra prima per reparto
+    // Se ÃƒÂ¨ selezionato un reparto, filtra prima per reparto
     // e poi per scadenza.
     //
-    // Se non Ã¨ selezionato un reparto, filtra tutta la lista.
+    // Se non ÃƒÂ¨ selezionato un reparto, filtra tutta la lista.
     filtraDashboard(tipo);
 
 }
