@@ -269,11 +269,14 @@
         </section>
 
         <section class="table-area" style="margin-top:20px;">
-            <div class="table-header">
+            <div class="table-header" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
                 <div>
                     <h2><i class="fa-solid fa-clipboard"></i> Prodotti</h2>
-                    <p style="margin:5px 0 0;color:#667085;">Le referenze della categoria selezionata vengono mostrate qui.</p>
+                    <p style="margin:5px 0 0;color:#667085;">La lista visualizzata rispetta la card di scadenza e la categoria selezionate.</p>
                 </div>
+                <button id="exportListaScadenzeExcel" class="new-product" type="button" title="Esporta soltanto le referenze attualmente visibili">
+                    <i class="fa-solid fa-file-excel"></i> Esporta lista visualizzata in Excel
+                </button>
             </div>
             <table>
                 <thead><tr><th>Codice</th><th>Descrizione</th><th>Reparto</th><th>Scadenza</th><th>Giorni</th><th>Vendite medie settimanali</th><th>Azioni</th></tr></thead>
@@ -355,6 +358,7 @@
         </div>
 
     </div>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script src="auth.js"></script>
