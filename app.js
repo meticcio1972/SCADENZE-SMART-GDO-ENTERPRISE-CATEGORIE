@@ -85,7 +85,7 @@ async function caricaTuttiProdotti() {
         return;
     }
 
-    console.log("ÃÂ¢ÃÂÃÂ Scadenze Smart GDO Enterprise avviato");
+    console.log("ÃƒÆ’Ã‚Æ’Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Å“ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚â€¦ Scadenze Smart GDO Enterprise avviato");
     console.log("VERSIONE APP 19 LUGLIO");
     // Carica i prodotti salvati
 
@@ -100,21 +100,30 @@ Prodotti.carica(ricalcolaGiorni(data));
 
 console.log("Prodotti caricati:", data.length);
 
-    // Precarica subito lo storico acquisti/vendite per tutte le referenze.
-    // Non aspettiamo l'apertura della sezione Prodotti: in questo modo
-    // il movimento storico e gia disponibile quando la tabella verra mostrata.
-    await caricaMovimentiStoriciPerLista(data);
-
-    // Disegna la tabella
+    // Mostra subito i dati principali: il caricamento dello storico non deve
+    // bloccare l'apertura della dashboard.
     renderTabella();
 
-    // Aggiorna i contatori dashboard
     if (typeof Dashboard !== "undefined" &&
-    document.getElementById("scaduti")) {
+        document.getElementById("scaduti")) {
+        Dashboard.aggiorna();
+    }
 
-    Dashboard.aggiorna();
-
-}
+    // Carica i movimenti storici in background. Sono utili per gli indicatori,
+    // ma non devono ritardare la prima visualizzazione delle liste.
+    caricaMovimentiStoriciPerLista(data)
+        .then(() => {
+            // Aggiorna la tabella solo quando i dati storici sono pronti.
+            // Se l'utente ha giÃƒ  aperto una sezione, il render usa lo stato corrente.
+            if (typeof renderTabella === "function") {
+                renderTabella(undefined, { skipIntelligence: true });
+            }
+            if (typeof Dashboard !== "undefined" &&
+                document.getElementById("scaduti")) {
+                Dashboard.aggiorna();
+            }
+        })
+        .catch(errore => console.error("Errore caricamento storico in background:", errore));
 
 }
 async function ricaricaProdotti() {
@@ -159,6 +168,83 @@ function formattaData(data) {
 // di una referenza. Senza questo stato, ricaricaProdotti() ridisegna
 // la tabella completa e perde il filtro "Scaduti/Entro 3/7/10/15".
 let filtroDashboardAttivo = "";
+
+// Esporta in Excel soltanto la lista attualmente visibile, dopo i filtri della dashboard.
+function esportaListaScadenzeVisualizzata() {
+    const lista = Array.isArray(window.__scadenzeListaCorrente)
+        ? window.__scadenzeListaCorrente
+        : [];
+
+    if (!lista.length) {
+        alert("La lista visualizzata Ã¨ vuota: non ci sono referenze da esportare.");
+        return;
+    }
+
+    const righe = lista.map(p => {
+        let mediaTesto = "";
+        try {
+            const codice = typeof normalizzaCodiceVendite === "function"
+                ? normalizzaCodiceVendite(p.codice)
+                : String(p.codice || "").trim();
+            if (typeof CACHE_VENDITE_MEDIE !== "undefined" && CACHE_VENDITE_MEDIE.has(codice)) {
+                const media = CACHE_VENDITE_MEDIE.get(codice);
+                mediaTesto = typeof media === "number" ? media : (media === null ? "N/D" : "");
+            }
+        } catch (_) { /* La media puÃ² non essere ancora disponibile: le altre colonne restano esportabili. */ }
+
+        return {
+            "Codice": p.codice ?? "",
+            "Descrizione": p.descrizione ?? "",
+            "Reparto": p.reparto ?? "",
+            "Data Scadenza": typeof formattaData === "function" ? formattaData(p.scadenza) : (p.scadenza ?? ""),
+            "Giorni alla Scadenza": p.giorni ?? "",
+            "Vendite Medie Settimanali (pz)": mediaTesto,
+            "Stato Lavorazione": p.stato_lavorazione ?? ""
+        };
+    });
+
+    const etichette = {
+        scaduti: "Scaduti",
+        entro3: "Entro_3_giorni",
+        entro7: "Entro_7_giorni",
+        entro10: "Entro_10_giorni",
+        entro15: "Entro_15_giorni"
+    };
+    const filtro = window.__scadenzeFiltroCorrente || filtroDashboardAttivo || "";
+    const data = new Date();
+    const dataNome = `${data.getFullYear()}-${String(data.getMonth()+1).padStart(2,"0")}-${String(data.getDate()).padStart(2,"0")}`;
+    const nomeFile = `Scadenze_${etichette[filtro] || "Lista_Visualizzata"}_${dataNome}`;
+
+    if (window.XLSX && window.XLSX.utils) {
+        const foglio = window.XLSX.utils.json_to_sheet(righe);
+        const libro = window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(libro, foglio, "Scadenze");
+        window.XLSX.writeFile(libro, `${nomeFile}.xlsx`);
+        return;
+    }
+
+    // Alternativa compatibile con Excel se la libreria .xlsx non Ã¨ raggiungibile.
+    const intestazioni = Object.keys(righe[0]);
+    const csvEscape = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const csv = "\uFEFF" + [intestazioni, ...righe.map(r => intestazioni.map(k => r[k]))]
+        .map(riga => riga.map(csvEscape).join(";"))
+        .join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${nomeFile}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    alert("La libreria Excel non Ã¨ disponibile: ho esportato un CSV che puoi aprire con Excel.");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const pulsante = document.getElementById("exportListaScadenzeExcel");
+    if (pulsante) pulsante.addEventListener("click", esportaListaScadenzeVisualizzata);
+});
 
 // ============================================================
 // VENDITE MEDIE SETTIMANALI PER LA CATEGORIA SELEZIONATA
@@ -515,7 +601,7 @@ function renderIndicatoreAccumulo(movimento) {
     const colore = diff > 0 ? "#f59e0b" : (diff < 0 ? "#64748b" : "#22c55e");
 
     return `<div title="${escapeHtmlVendite(testoPressione)}. Media acquisti: ${acquisti.toFixed(1)} pz/settimana. Questo NON rappresenta la giacenza reale attuale." style="margin-top:4px;font-size:11px;color:${colore};font-weight:600;">` +
-        `↕ ${escapeHtmlVendite(testoDiff)}` +
+        `Ã¢â€ â€¢ ${escapeHtmlVendite(testoDiff)}` +
         `</div>`;
 }
 
@@ -595,11 +681,11 @@ function calcolaRischioRotazione(p, mediaSettimanale) {
 }
 
 function renderIndicatoreRischioRotazione(rischio) {
-    if (!rischio) return `<span style="color:#94a3b8;">—</span>`;
+    if (!rischio) return `<span style="color:#94a3b8;">Ã¢â‚¬â€</span>`;
 
     const testo = rischio.livello === "OK"
-        ? `ROTazione OK · ${rischio.giorniCopertura} gg`
-        : `${rischio.livello} · ${rischio.percentualeRischio}%`;
+        ? `ROTazione OK Ã‚Â· ${rischio.giorniCopertura} gg`
+        : `${rischio.livello} Ã‚Â· ${rischio.percentualeRischio}%`;
 
     const dettaglio = rischio.livello === "OK"
         ? `Rotazione compatibile. Copertura stimata: ${rischio.giorniCopertura} giorni.`
@@ -658,6 +744,10 @@ function renderTabella(listaArgomento, opzioni = {}) {
         }
         return Number(a.giorni) - Number(b.giorni);
     });
+
+    // Lista realmente visualizzata, giÃ  filtrata per scadenza e reparto.
+    window.__scadenzeListaCorrente = [...listaOrdinata];
+    window.__scadenzeFiltroCorrente = filtroDashboardAttivo || window.__scadenzeFiltroCorrente || "";
 
     const righe = [];
 
@@ -742,6 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         card.addEventListener("click", () => {
             filtroDashboardAttivo = filtro;
+            window.__scadenzeFiltroCorrente = filtro || "";
             console.log("Filtro Dashboard memorizzato:", filtro || "tutti");
         }, true);
     });
@@ -876,7 +967,7 @@ if (
 
     if (erroreStorico) {
         console.error("Errore inserimento storico:", erroreStorico);
-        alert("Il prodotto ÃÂÃÂ¨ stato salvato, ma non ÃÂÃÂ¨ stato registrato nello storico.");
+        alert("Il prodotto ÃƒÆ’Ã‚Æ’Ãƒâ€šÃ‚Æ’ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Â¨ stato salvato, ma non ÃƒÆ’Ã‚Æ’Ãƒâ€šÃ‚Æ’ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Â¨ stato registrato nello storico.");
         return;
     }
 
@@ -1081,15 +1172,60 @@ function mettiInOfferta(id, filtro) {
         dataFine.value = formattaInputData(fine);
     }
 }
-function eliminaProdotto(index){
+async function eliminaProdotto(index) {
+    if (!confirm("Eliminare definitivamente questo prodotto?")) return;
 
-    if(confirm("Eliminare questo prodotto?")){
+    const prodotto = Prodotti.tutti()[index];
+    if (!prodotto || prodotto.id === undefined || prodotto.id === null) {
+        alert("Non riesco a identificare il prodotto da eliminare. Aggiorna la pagina e riprova.");
+        return;
+    }
 
-        Prodotti.tutti().splice(index,1);
+    const idEliminato = String(prodotto.id);
 
-        Storage.salva(Prodotti.lista);
-        renderTabella();
-        Dashboard.aggiorna();
+    try {
+        // La cancellazione deve avvenire nel database, non solo nella schermata.
+        const { error: erroreEliminazione } = await window.supabaseClient
+            .from("prodotti")
+            .delete()
+            .eq("id", prodotto.id);
+
+        if (erroreEliminazione) {
+            console.error("Errore eliminazione prodotto su Supabase:", erroreEliminazione);
+            alert("Non sono riuscito a eliminare il prodotto dal database: " + erroreEliminazione.message);
+            return;
+        }
+
+        // Rileggiamo tutti i prodotti dal database per verificare che la modifica sia stata salvata.
+        const { data: aggiornati, error: erroreRicarica } = await caricaTuttiProdotti();
+        if (erroreRicarica) {
+            console.error("Errore verifica dopo eliminazione:", erroreRicarica);
+            alert("La richiesta ÃƒÂ¨ stata inviata, ma non riesco a verificare il risultato. Ricarica la pagina prima di riprovare.");
+            return;
+        }
+
+        const eliminatoDavvero = !aggiornati.some(p => String(p.id) === idEliminato);
+        Prodotti.carica(ricalcolaGiorni(aggiornati));
+
+        if (typeof Dashboard !== "undefined" && typeof Dashboard.aggiorna === "function") {
+            Dashboard.aggiorna();
+        }
+
+        if (filtroDashboardAttivo) {
+            renderTabellaFiltrata(filtroDashboardAttivo);
+        } else if (typeof renderTabella === "function") {
+            renderTabella();
+        }
+
+        if (!eliminatoDavvero) {
+            alert("Il database non ha rimosso il prodotto: ÃƒÂ¨ ancora presente dopo la verifica. Potrebbero mancare i permessi di eliminazione in Supabase (policy RLS).");
+            return;
+        }
+
+        alert("Prodotto eliminato e modifica verificata nel database.");
+    } catch (errore) {
+        console.error("Errore imprevisto durante l'eliminazione:", errore);
+        alert("Errore imprevisto durante l'eliminazione. Il prodotto non ÃƒÂ¨ stato rimosso dalla schermata.");
     }
 }
 const importCSVBtn = document.getElementById("importCSV");
@@ -1241,7 +1377,7 @@ const prodottiImportati = document.getElementById("prodottiImportati");
 const ultimoImport = document.getElementById("ultimoImport");
 
 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¡ Importazione in corso...";
+    statoImportazione.textContent = "ÃƒÆ’Ã‚Æ’Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Å¸ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Å¸ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Â¡ Importazione in corso...";
 }
 
 if (repartoImportazione) {
@@ -1325,7 +1461,7 @@ if (prodottiImportati) {
                 Dashboard.aggiorna();
 
                 if (statoImportazione) {
-    statoImportazione.textContent = "ÃÂ°ÃÂÃÂÃÂ¢ Completato";
+    statoImportazione.textContent = "ÃƒÆ’Ã‚Æ’Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Å¸ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Å¸ÃƒÆ’Ã‚â€šÃƒâ€šÃ‚Â¢ Completato";
 }
 
 if (ultimoImport) {
@@ -1420,30 +1556,53 @@ if (tornaDashboard) {
 // ======================================================
 
 async function eliminaListaReparto(reparto) {
-
     const conferma = confirm(
-        "Sei sicuro di voler eliminare tutta la lista del reparto " +
-        reparto +
-        "?"
+        "Sei sicuro di voler eliminare dal database tutta la lista del reparto " + reparto + "?"
     );
-
     if (!conferma) return;
 
-    const { error } = await window.supabaseClient
-        .from("prodotti")
-        .delete()
-        .eq("reparto", reparto);
+    try {
+        // Chiediamo a Supabase gli ID effettivamente eliminati: un esito senza errore
+        // ma con zero righe non deve essere mostrato come cancellazione riuscita.
+        const { data: eliminati, error } = await window.supabaseClient
+            .from("prodotti")
+            .delete()
+            .eq("reparto", reparto)
+            .select("id");
 
-    if (error) {
-        console.error("Errore eliminazione lista:", error);
-        alert("Errore durante l'eliminazione della lista.");
-        return;
+        if (error) {
+            console.error("Errore eliminazione lista:", error);
+            alert("Errore durante l'eliminazione della lista: " + error.message);
+            return;
+        }
+
+        if (!eliminati || eliminati.length === 0) {
+            const { data: presenti, error: erroreVerifica } = await window.supabaseClient
+                .from("prodotti")
+                .select("id")
+                .eq("reparto", reparto)
+                .limit(1);
+
+            if (erroreVerifica) {
+                console.error("Errore verifica lista:", erroreVerifica);
+                alert("Non posso verificare se la lista ÃƒÂ¨ stata eliminata. Ricarica la pagina e controlla.");
+                return;
+            }
+
+            if (presenti && presenti.length > 0) {
+                alert("La lista non ÃƒÂ¨ stata eliminata dal database. I prodotti sono ancora presenti: controlliamo i permessi di eliminazione in Supabase (policy RLS).");
+            } else {
+                alert("Non risultano prodotti salvati con il reparto esatto '" + reparto + "'. Non ÃƒÂ¨ stata modificata alcuna riga.");
+            }
+            return;
+        }
+
+        alert("Lista " + reparto + " eliminata e verificata nel database (" + eliminati.length + " prodotti).");
+        location.reload();
+    } catch (errore) {
+        console.error("Errore imprevisto eliminazione lista:", errore);
+        alert("Errore imprevisto durante l'eliminazione della lista. Riprova e controlla i permessi Supabase.");
     }
-
-    alert("Lista " + reparto + " eliminata correttamente.");
-
-    // Ricarica la dashboard e aggiorna i conteggi
-    location.reload();
 }
 
 
