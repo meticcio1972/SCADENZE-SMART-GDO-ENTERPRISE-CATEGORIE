@@ -15,13 +15,12 @@
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-<style>
-.riga-da-confermare { background:#fff0f0 !important; color:#7f1d1d; }
-.riga-confermata { background:#eaf8ee !important; color:#14532d; }
-.badge-confermato { display:inline-block; padding:5px 8px; border-radius:6px; background:#bbf7d0; color:#14532d; font-weight:700; font-size:11px; }
-.btn-conferma-evento { padding:7px 10px; border:0; border-radius:6px; background:#b91c1c; color:white; cursor:pointer; font-weight:700; }
-</style>
+    <style>
+      .scadenza-da-confermare { background:#fff0f0 !important; color:#8f1717; }
+      .scadenza-confermata { background:#edf9ef !important; color:#185c2b; }
+      .scadenza-da-confermare td, .scadenza-confermata td { border-bottom:1px solid #ddd; }
+      .scadenza-da-confermare td { font-weight:600; }
+    </style>
 </head>
 
 <body>
@@ -152,11 +151,11 @@
                         <th>Reparto</th>
                         <th>Scadenza</th>
                         <th>Giorni</th>
-                        <th>Pezzi offerta</th>
-                        <th>Stato</th>
-                        <th>Intervento</th>
+                        <th>Pezzi iniziali</th>
                         <th>Pezzi avanzati</th>
                         <th>Pezzi venduti</th>
+                        <th>Stato</th>
+                        <th>Intervento</th>
                         <th>Conferma</th>
                     </tr>
                 </thead>
@@ -217,7 +216,12 @@ async function caricaStorico() {
         return;
     }
 
-   storicoCompleto = data || [];
+   storicoCompleto = (data || []).sort((a, b) => {
+       const aPending = a.stato === "offerta_scaduta" && !a.confermata_il;
+       const bPending = b.stato === "offerta_scaduta" && !b.confermata_il;
+       if (aPending !== bPending) return aPending ? -1 : 1;
+       return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+   });
 
 // Carica le quantità di pezzi scaduti salvate per codice.
 const { data: quantitaSalvate, error: erroreQuantita } = await window.supabaseClient
@@ -335,108 +339,97 @@ async function salvaPezziScaduti(codice) {
 
 function mostraStorico(lista) {
     const tabella = document.getElementById("tabellaStorico");
-
     if (!lista.length) {
-        tabella.innerHTML = `
-            <tr><td colspan="12" style="text-align:center;">Nessun evento nello storico</td></tr>
-        `;
+        tabella.innerHTML = `<tr><td colspan="12" style="text-align:center;">Nessun evento nello storico</td></tr>`;
         return;
     }
 
-    // Gli eventi non ancora confermati restano sempre in cima.
+    // Le conferme in sospeso restano sempre in cima, anche dopo una ricerca.
     const ordinata = [...lista].sort((a, b) => {
-        const aConfermato = a.confermato === true;
-        const bConfermato = b.confermato === true;
-        if (aConfermato !== bConfermato) return aConfermato ? 1 : -1;
+        const aPending = a.stato === "offerta_scaduta" && !a.confermata_il;
+        const bPending = b.stato === "offerta_scaduta" && !b.confermata_il;
+        if (aPending !== bPending) return aPending ? -1 : 1;
         return new Date(b.created_at || 0) - new Date(a.created_at || 0);
     });
 
     tabella.innerHTML = ordinata.map(riga => {
-        const dataEvento = riga.created_at
-            ? new Date(riga.created_at).toLocaleDateString("it-IT") : "-";
-        const scadenza = riga.scadenza
-            ? new Date(riga.scadenza + "T00:00:00").toLocaleDateString("it-IT") : "-";
+        const dataEvento = riga.created_at ? new Date(riga.created_at).toLocaleDateString("it-IT") : "-";
+        const scadenza = riga.scadenza ? new Date(riga.scadenza + "T00:00:00").toLocaleDateString("it-IT") : "-";
+        const eOffertaScaduta = riga.stato === "offerta_scaduta";
+        const confermata = !!riga.confermata_il;
         const iniziali = Number(riga.pezzi_offerta || 0);
-        const avanzati = riga.pezzi_avanzati === null || riga.pezzi_avanzati === undefined
-            ? "" : Number(riga.pezzi_avanzati);
-        const venduti = riga.pezzi_venduti === null || riga.pezzi_venduti === undefined
-            ? "" : Number(riga.pezzi_venduti);
-        const richiedeConferma = String(riga.stato || "").toLowerCase() === "offerta_scaduta";
-        const confermato = riga.confermato === true;
-        const id = escapeHtmlStorico(riga.id);
-
+        const avanzati = riga.pezzi_avanzati === null || riga.pezzi_avanzati === undefined ? "" : Number(riga.pezzi_avanzati);
+        const venduti = riga.pezzi_venduti === null || riga.pezzi_venduti === undefined ? "—" : Number(riga.pezzi_venduti);
+        const classeRiga = eOffertaScaduta ? (confermata ? "scadenza-confermata" : "scadenza-da-confermare") : "";
+        const controllo = eOffertaScaduta
+            ? (confermata
+                ? `<span style="color:#16803c;font-weight:700;">✓ Confermata<br><small>${new Date(riga.confermata_il).toLocaleDateString("it-IT")}</small></span>`
+                : `<button type="button" class="conferma-scadenza" data-id="${Number(riga.id)}" style="padding:7px 10px;border:0;border-radius:7px;background:#c62828;color:#fff;font-weight:700;cursor:pointer;">Conferma</button>`)
+            : "—";
+        const inputAvanzati = eOffertaScaduta && !confermata
+            ? `<input type="number" min="0" max="${iniziali}" step="1" class="input-pezzi-avanzati" data-id="${Number(riga.id)}" value="${avanzati}" placeholder="0" style="width:82px;padding:7px;border:1px solid #aaa;border-radius:6px;">`
+            : (eOffertaScaduta ? String(avanzati) : "—");
         return `
-            <tr class="${richiedeConferma ? (confermato ? "riga-confermata" : "riga-da-confermare") : ""}">
+            <tr class="${classeRiga}">
                 <td>${escapeHtmlStorico(dataEvento)}</td>
                 <td>${escapeHtmlStorico(riga.codice)}</td>
                 <td>${escapeHtmlStorico(riga.descrizione)}</td>
                 <td>${escapeHtmlStorico(riga.reparto)}</td>
                 <td>${escapeHtmlStorico(scadenza)}</td>
-                <td>${escapeHtmlStorico(riga.giorni)}</td>
+                <td>${escapeHtmlStorico(riga.giorni ?? "")}</td>
                 <td><strong>${iniziali}</strong></td>
-                <td>${escapeHtmlStorico(riga.stato)}</td>
-                <td>${escapeHtmlStorico(riga.intervento)}</td>
-                <td>
-                    ${richiedeConferma
-                        ? `<input type="number" min="0" step="1"
-                            class="pezzi-avanzati-evento" data-id="${id}"
-                            value="${avanzati}" ${confermato ? "disabled" : ""}
-                            style="width:82px;padding:6px;">`
-                        : "—"}
-                </td>
-                <td><strong>${richiedeConferma && venduti !== "" ? venduti : "—"}</strong></td>
-                <td>
-                    ${!richiedeConferma ? "—" : (confermato
-                        ? '<span class="badge-confermato">CONFERMATO</span>'
-                        : `<button type="button" class="btn-conferma-evento" data-id="${id}">Conferma</button>`)}
-                </td>
+                <td>${inputAvanzati}</td>
+                <td><strong>${venduti}</strong></td>
+                <td>${escapeHtmlStorico(riga.stato ?? "")}</td>
+                <td>${escapeHtmlStorico(riga.intervento ?? "")}</td>
+                <td>${controllo}</td>
             </tr>`;
     }).join("");
 
-    tabella.querySelectorAll(".btn-conferma-evento").forEach(btn => {
-        btn.addEventListener("click", () => confermaEventoScadenza(btn.dataset.id));
+    tabella.querySelectorAll(".conferma-scadenza").forEach(btn => {
+        btn.addEventListener("click", () => confermaScadenza(Number(btn.dataset.id)));
     });
 }
 
-async function confermaEventoScadenza(id) {
-    const riga = storicoCompleto.find(item => String(item.id) === String(id));
-    const input = document.querySelector(`.pezzi-avanzati-evento[data-id="${CSS.escape(String(id))}"]`);
+async function confermaScadenza(id) {
+    const riga = storicoCompleto.find(item => Number(item.id) === Number(id));
+    const input = document.querySelector(`.input-pezzi-avanzati[data-id="${Number(id)}"]`);
     if (!riga || !input) return;
 
-    const iniziali = Number(riga.pezzi_offerta || 0);
     const avanzati = Number(input.value);
+    const iniziali = Number(riga.pezzi_offerta || 0);
     if (!Number.isInteger(avanzati) || avanzati < 0) {
-        alert("Inserisci un numero intero pari o superiore a zero.");
+        alert("Inserisci un numero intero di pezzi avanzati, anche zero.");
+        input.focus();
         return;
     }
     if (avanzati > iniziali) {
         alert(`I pezzi avanzati (${avanzati}) non possono superare i pezzi iniziali (${iniziali}).`);
+        input.focus();
         return;
     }
+    if (!confirm(`Confermi ${avanzati} pezzi avanzati su ${iniziali}? Il sistema registrerà ${iniziali - avanzati} pezzi venduti.`)) return;
 
-    const venduti = iniziali - avanzati;
+    const btn = document.querySelector(`.conferma-scadenza[data-id="${Number(id)}"]`);
+    if (btn) { btn.disabled = true; btn.textContent = "Salvo…"; }
+    const confermataIl = new Date().toISOString();
     const { data, error } = await window.supabaseClient
         .from("storico_scadenze")
-        .update({
-            pezzi_avanzati: avanzati,
-            pezzi_venduti: venduti,
-            confermato: true,
-            confermato_at: new Date().toISOString()
-        })
+        .update({ pezzi_avanzati: avanzati, pezzi_venduti: iniziali - avanzati, confermata_il: confermataIl })
         .eq("id", id)
-        .select("*")
+        .select("id, pezzi_avanzati, pezzi_venduti, confermata_il")
         .single();
 
     if (error) {
         console.error("Errore conferma scadenza:", error);
-        alert("Non è stato possibile confermare. Verifica di aver eseguito prima l'aggiornamento SQL.");
+        alert("Non è stato possibile salvare la conferma: " + error.message + ". Verifica che l'aggiornamento SQL sia stato eseguito e che Supabase consenta l'aggiornamento.");
+        if (btn) { btn.disabled = false; btn.textContent = "Conferma"; }
         return;
     }
-
-    const indice = storicoCompleto.findIndex(item => String(item.id) === String(id));
-    if (indice >= 0) storicoCompleto[indice] = data;
+    Object.assign(riga, data);
     mostraStorico(storicoCompleto);
 }
+
 
 
 document
@@ -492,9 +485,12 @@ function esportaExcel() {
             ? new Date(riga.scadenza + "T00:00:00").toLocaleDateString("it-IT")
             : "",
         "Giorni": riga.giorni ?? "",
-        "Pezzi offerta": Number(riga.pezzi_offerta || 0),
+        "Pezzi iniziali": Number(riga.pezzi_offerta || 0),
+        "Pezzi avanzati": riga.pezzi_avanzati ?? "",
+        "Pezzi venduti": riga.pezzi_venduti ?? "",
         "Stato": riga.stato ?? "",
-        "Intervento": riga.intervento ?? ""
+        "Intervento": riga.intervento ?? "",
+        "Confermata il": riga.confermata_il ? new Date(riga.confermata_il).toLocaleDateString("it-IT") : "Da confermare"
     }));
 
     const foglioStorico = XLSX.utils.json_to_sheet(datiStorico);
@@ -557,8 +553,11 @@ function esportaExcel() {
         { wch: 12 },
         { wch: 10 },
         { wch: 15 },
+        { wch: 13 },
+        { wch: 13 },
         { wch: 15 },
-        { wch: 20 }
+        { wch: 25 },
+        { wch: 16 }
     ];
 
     foglioRiepilogo["!cols"] = [
